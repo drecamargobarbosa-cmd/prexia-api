@@ -65,6 +65,11 @@ ANTIBIOTIC_PROTOCOLS = {
             "Confirmar critérios clínicos de otite média aguda",
             "Nem todos os casos exigem antibiótico imediato",
             "Avaliar idade e gravidade antes de iniciar antibiótico"
+        ],
+        "perguntas_obrigatorias": [
+            "Qual a idade do paciente?",
+            "Há sinais de gravidade, como febre alta, dor intensa ou toxemia?",
+            "O paciente tem alergia à penicilina?"
         ]
     }
 }
