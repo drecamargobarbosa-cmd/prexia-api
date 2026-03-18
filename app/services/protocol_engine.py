@@ -1,26 +1,11 @@
-import json
-from pathlib import Path
+from app.protocols.antibiotics import ANTIBIOTIC_PROTOCOLS
 
 
 class ProtocolEngine:
 
-    def __init__(self):
-
-        self.protocol_path = Path(__file__).resolve().parent.parent / "protocols"
-
-
-    def load_protocol(self, scenario):
+    def load_protocol(self, scenario: str):
 
         if not scenario:
             return None
 
-        protocol_file = self.protocol_path / f"{scenario}.json"
-
-        if not protocol_file.exists():
-            return None
-
-        with open(protocol_file, "r", encoding="utf-8") as f:
-
-            protocol = json.load(f)
-
-        return protocol
+        return ANTIBIOTIC_PROTOCOLS.get(scenario)
