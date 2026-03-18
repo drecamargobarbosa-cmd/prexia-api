@@ -35,15 +35,14 @@ class ClinicalEngine:
             or "odontogenica" in q
             or "abscesso dentario" in q
             or "infeccao dentaria" in q
+            or "infeccao odontologica" in q
             or "dor de dente" in q
         ):
             return "infeccao_odontogenica"
 
         return None
 
-    def evaluate(self, question: str, contexto: dict = None) -> dict:
-
-        # 🔴 NOVO: usar contexto se existir
+    def evaluate(self, question: str, contexto: dict | None = None) -> dict:
         if contexto and contexto.get("scenario"):
             scenario = contexto.get("scenario")
         else:
@@ -56,37 +55,40 @@ class ClinicalEngine:
                 "tipo": "sem_protocolo",
                 "cenario": scenario,
                 "resposta": "Nao tenho protocolo para esse cenario no momento.",
+                "antibiotico_sugerido": None,
+                "dose": None,
+                "duracao": None,
+                "alternativas": [],
+                "alertas_protocolo": [],
+                "interacoes_medicamentosas": [],
+                "red_flags": [],
+                "confirmacao_necessaria": False,
+                "perguntas_obrigatorias": [],
+                "fonte": "protocolo_local_v1"
             }
 
-        # 🔴 Se veio resposta do usuário, seguimos com decisão clínica
-        if contexto and contexto.get("scenario"):
-            response = self.response_engine.build_response(protocol, scenario)
-
-            antibiotic = response.get("antibiotico_sugerido")
-
-            drug_alerts = check_drug_interactions(question, antibiotic)
-            disease_alerts = check_disease_interactions(question, antibiotic)
-
-            existing_alerts = response.get("interacoes_medicamentosas", [])
-            response["interacoes_medicamentosas"] = existing_alerts + drug_alerts
-
-            existing_protocol_alerts = response.get("alertas_protocolo", [])
-            response["alertas_protocolo"] = existing_protocol_alerts + disease_alerts
-
-            return response
-
-        # 🔴 Fluxo inicial (sem dados ainda)
         response = self.response_engine.build_response(protocol, scenario)
 
-        perguntas = response.get("perguntas_obrigatorias", [])
+        if not (contexto and contexto.get("scenario")):
+            perguntas = response.get("perguntas_obrigatorias", [])
+            if perguntas:
+                return {
+                    "tipo": "coleta_dados",
+                    "cenario": scenario,
+                    "resposta": "Antes de sugerir o tratamento, preciso de algumas informações:",
+                    "perguntas": perguntas
+                }
 
-        if perguntas:
-            return {
-                "tipo": "coleta_dados",
-                "cenario": scenario,
-                "resposta": "Antes de sugerir o tratamento, preciso de algumas informações:",
-                "perguntas": perguntas
-            }
+        antibiotic = response.get("antibiotico_sugerido")
+
+        drug_alerts = check_drug_interactions(question, antibiotic)
+        disease_alerts = check_disease_interactions(question, antibiotic)
+
+        existing_alerts = response.get("interacoes_medicamentosas", [])
+        response["interacoes_medicamentosas"] = existing_alerts + drug_alerts
+
+        existing_protocol_alerts = response.get("alertas_protocolo", [])
+        response["alertas_protocolo"] = existing_protocol_alerts + disease_alerts
 
         return response
     
