@@ -22,14 +22,23 @@ class ClinicalEngine:
         if "sinusite" in q:
             return "sinusite_bacteriana"
 
-        if "faringite" in q or "amigdalite" in q or "garganta" in q:
-            return "faringoamigdalite"
+        if (
+            "infeccao urinaria" in q
+            or "cistite" in q
+            or "itu" in q
+            or "disuria" in q
+        ):
+            return "itu_nao_complicada"
 
-        if "infeccao urinaria" in q or "cistite" in q or "itu" in q or "disuria" in q:
-            return "itu_baixa"
-
-        if "celulite" in q or "erisipela" in q or "infeccao de pele" in q:
-            return "celulite_leve"
+        if (
+            "odonto" in q
+            or "odontogenica" in q
+            or "abscesso dentario" in q
+            or "infeccao dentaria" in q
+            or "infeccao odontologica" in q
+            or "dor de dente" in q
+        ):
+            return "infeccao_odontogenica"
 
         return None
 
