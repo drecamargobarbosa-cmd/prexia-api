@@ -51,3 +51,20 @@ ANTIBIOTIC_PROTOCOLS = {
         ]
     }
 }
+"otite_media_aguda": {
+    "primeira_linha": {
+        "medicamento": "amoxicilina",
+        "dose": "50 a 90 mg/kg/dia divididos em 2 ou 3 doses",
+        "duracao": "5 a 10 dias"
+    },
+    "alergia_penicilina": {
+        "medicamento": "azitromicina",
+        "dose": "10 mg/kg no primeiro dia, depois 5 mg/kg/dia",
+        "duracao": "5 dias"
+    },
+    "observacoes": [
+        "Confirmar critérios clínicos de otite média aguda",
+        "Nem todos os casos exigem antibiótico imediato",
+        "Avaliar idade e gravidade antes de iniciar antibiótico"
+    ]
+},
