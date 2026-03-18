@@ -1,33 +1,54 @@
 from app.services.protocol_engine import ProtocolEngine
-from app.services.interaction_engine import InteractionEngine
-from app.services.safety_engine import SafetyEngine
 from app.services.response_engine import ResponseEngine
+from app.services.safety_engine import normalize_text
+from app.services.interaction_engine import (
+    check_drug_interactions,
+    check_disease_interactions,
+)
 
 
 class ClinicalEngine:
 
     def __init__(self):
-
         self.protocol_engine = ProtocolEngine()
-        self.interaction_engine = InteractionEngine()
-        self.safety_engine = SafetyEngine()
         self.response_engine = ResponseEngine()
 
-    def evaluate(self, question: str):
+    def identify_scenario(self, question: str) -> str | None:
+        q = normalize_text(question)
 
-        # 1 entender cenário clínico
-        scenario = self.interaction_engine.identify_scenario(question)
+        if "otite" in q or "ouvido" in q:
+            return "otite_media_aguda"
 
-        # 2 carregar protocolo
+        if "sinusite" in q:
+            return "sinusite_bacteriana"
+
+        if "faringite" in q or "amigdalite" in q or "garganta" in q:
+            return "faringoamigdalite"
+
+        if "infeccao urinaria" in q or "cistite" in q or "itu" in q or "disuria" in q:
+            return "itu_baixa"
+
+        if "celulite" in q or "erisipela" in q or "infeccao de pele" in q:
+            return "celulite_leve"
+
+        return None
+
+    def evaluate(self, question: str) -> dict:
+        scenario = self.identify_scenario(question)
+
         protocol = self.protocol_engine.load_protocol(scenario)
 
-        # 3 aplicar validações de segurança
-        safety_alerts = self.safety_engine.check(question)
-
-        # 4 montar resposta
         response = self.response_engine.build_response(protocol, scenario)
 
-        # 5 anexar alertas de segurança
-        response["alertas_seguranca"] = safety_alerts
+        antibiotic = response.get("antibiotico_sugerido")
+
+        drug_alerts = check_drug_interactions(question, antibiotic)
+        disease_alerts = check_disease_interactions(question, antibiotic)
+
+        existing_alerts = response.get("interacoes_medicamentosas", [])
+        response["interacoes_medicamentosas"] = existing_alerts + drug_alerts
+
+        existing_protocol_alerts = response.get("alertas_protocolo", [])
+        response["alertas_protocolo"] = existing_protocol_alerts + disease_alerts
 
         return response
