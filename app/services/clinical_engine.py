@@ -1,6 +1,6 @@
 from app.services.protocol_engine import ProtocolEngine
 from app.services.response_engine import ResponseEngine
-from app.services.safety_engine import normalize_text
+from app.services.safety_engine import normalize
 from app.services.interaction_engine import (
     check_drug_interactions,
     check_disease_interactions,
