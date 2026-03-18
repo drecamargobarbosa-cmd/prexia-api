@@ -35,7 +35,6 @@ class ClinicalEngine:
             or "odontogenica" in q
             or "abscesso dentario" in q
             or "infeccao dentaria" in q
-            or "infeccao odontologica" in q
             or "dor de dente" in q
         ):
             return "infeccao_odontogenica"
@@ -43,6 +42,18 @@ class ClinicalEngine:
         return None
 
     def evaluate(self, question: str, contexto: dict | None = None) -> dict:
+        texto = normalize(question)
+
+        # 🔴 Detectar alergia
+        tem_alergia = any(p in texto for p in ["alergia", "alergico", "alérgico"])
+
+        # 🔴 Detectar ausência de alergia
+        sem_alergia = "sem alergia" in texto or "sem alergias" in texto
+
+        # 🔴 Detectar gravidade (simples por enquanto)
+        grave = any(p in texto for p in ["grave", "toxemia", "febre alta"])
+
+        # 🔴 Cenário
         if contexto and contexto.get("scenario"):
             scenario = contexto.get("scenario")
         else:
@@ -55,11 +66,35 @@ class ClinicalEngine:
                 "tipo": "sem_protocolo",
                 "cenario": scenario,
                 "resposta": "Nao tenho protocolo para esse cenario no momento.",
-                "antibiotico_sugerido": None,
-                "dose": None,
-                "duracao": None,
+            }
+
+        # 🔴 Se estamos na resposta do usuário
+        if contexto and contexto.get("scenario"):
+
+            primeira_linha = protocol.get("primeira_linha", {})
+            alergia = protocol.get("alergia_penicilina", {})
+
+            # 🔴 Decisão clínica básica
+            if tem_alergia and not sem_alergia:
+                medicamento = alergia.get("medicamento")
+                dose = alergia.get("dose")
+                duracao = alergia.get("duracao")
+                justificativa = "Paciente com alergia à penicilina."
+            else:
+                medicamento = primeira_linha.get("medicamento")
+                dose = primeira_linha.get("dose")
+                duracao = primeira_linha.get("duracao")
+                justificativa = "Primeira linha conforme protocolo."
+
+            response = {
+                "tipo": "protocolo",
+                "cenario": scenario,
+                "resposta": f"Protocolo definido. {justificativa}",
+                "antibiotico_sugerido": medicamento,
+                "dose": dose,
+                "duracao": duracao,
                 "alternativas": [],
-                "alertas_protocolo": [],
+                "alertas_protocolo": protocol.get("observacoes", []),
                 "interacoes_medicamentosas": [],
                 "red_flags": [],
                 "confirmacao_necessaria": False,
@@ -67,28 +102,27 @@ class ClinicalEngine:
                 "fonte": "protocolo_local_v1"
             }
 
+            # 🔴 Interações
+            drug_alerts = check_drug_interactions(question, medicamento)
+            disease_alerts = check_disease_interactions(question, medicamento)
+
+            response["interacoes_medicamentosas"] += drug_alerts
+            response["alertas_protocolo"] += disease_alerts
+
+            return response
+
+        # 🔴 Fluxo inicial
         response = self.response_engine.build_response(protocol, scenario)
 
-        if not (contexto and contexto.get("scenario")):
-            perguntas = response.get("perguntas_obrigatorias", [])
-            if perguntas:
-                return {
-                    "tipo": "coleta_dados",
-                    "cenario": scenario,
-                    "resposta": "Antes de sugerir o tratamento, preciso de algumas informações:",
-                    "perguntas": perguntas
-                }
+        perguntas = response.get("perguntas_obrigatorias", [])
 
-        antibiotic = response.get("antibiotico_sugerido")
-
-        drug_alerts = check_drug_interactions(question, antibiotic)
-        disease_alerts = check_disease_interactions(question, antibiotic)
-
-        existing_alerts = response.get("interacoes_medicamentosas", [])
-        response["interacoes_medicamentosas"] = existing_alerts + drug_alerts
-
-        existing_protocol_alerts = response.get("alertas_protocolo", [])
-        response["alertas_protocolo"] = existing_protocol_alerts + disease_alerts
+        if perguntas:
+            return {
+                "tipo": "coleta_dados",
+                "cenario": scenario,
+                "resposta": "Antes de sugerir o tratamento, preciso de algumas informações:",
+                "perguntas": perguntas
+            }
 
         return response
     
