@@ -20,6 +20,7 @@ app.add_middleware(
 
 class ChatContext(BaseModel):
     scenario: Optional[str] = None
+    collected_data: Optional[str] = None
 
 
 class ChatRequest(BaseModel):
