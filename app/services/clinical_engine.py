@@ -1,59 +1,91 @@
-from app.protocols.antibiotics import ANTIBIOTIC_PROTOCOLS
+from app.protocols.infections import INFECTION_PROTOCOLS
 
 
 def detect_scenario(message: str) -> str | None:
     m = message.lower()
 
-    if "sinusite" in m:
-        return "sinusite_bacteriana"
-    if "itu" in m or "infecção urinária" in m or "infeccao urinaria" in m or "cistite" in m:
-        return "itu_nao_complicada"
-    if "odontogenica" in m or "odontogênica" in m or "dente" in m or "odontologica" in m or "odontológica" in m:
-        return "infeccao_odontogenica"
+    for scenario, data in INFECTION_PROTOCOLS.items():
+        for keyword in data["keywords"]:
+            if keyword in m:
+                return scenario
 
     return None
 
 
 def has_penicillin_allergy(message: str) -> bool:
     m = message.lower()
-    return "alergia a penicilina" in m or "alérgico a penicilina" in m or "alergico a penicilina" in m
+    triggers = [
+        "alergia a penicilina",
+        "alérgico a penicilina",
+        "alergico a penicilina",
+        "alergia penicilina"
+    ]
+    return any(t in m for t in triggers)
 
 
-def build_response(message: str) -> dict:
+def extract_proposed_antibiotic(message: str) -> str | None:
+    m = message.lower()
+
+    known_antibiotics = [
+        "amoxicilina",
+        "amoxicilina + clavulanato",
+        "amoxicilina clavulanato",
+        "azitromicina",
+        "clindamicina",
+        "nitrofurantoína",
+        "nitrofurantoina",
+        "fosfomicina",
+        "ciprofloxacino",
+        "levofloxacino",
+        "cefuroxima"
+    ]
+
+    trigger_phrases = [
+        "estou pensando em usar",
+        "pensei em usar",
+        "quero usar",
+        "vou usar",
+        "usar",
+        "prescrever",
+        "sugiro",
+        "sugerir"
+    ]
+
+    if any(trigger in m for trigger in trigger_phrases):
+        for antibiotic in known_antibiotics:
+            if antibiotic in m:
+                return antibiotic
+
+    return None
+
+
+def recommend_antibiotic(message: str) -> dict:
     scenario = detect_scenario(message)
 
     if not scenario:
         return {
-            "resposta": (
-                "Ainda não tenho protocolo estruturado para esse cenário. "
-                "No momento consigo apoiar sinusite bacteriana, ITU não complicada e infecção odontogênica."
-            ),
-            "tipo": "fallback",
-            "fonte": "motor_clinico_estruturado"
+            "scenario": None,
+            "recommended": None,
+            "proposed": extract_proposed_antibiotic(message),
+            "protocol_found": False,
+            "justification": "Ainda não há protocolo estruturado para este cenário."
         }
 
-    protocol = ANTIBIOTIC_PROTOCOLS[scenario]
+    protocol = INFECTION_PROTOCOLS[scenario]
+    penicillin_allergy = has_penicillin_allergy(message)
 
-    if has_penicillin_allergy(message) and "alergia_penicilina" in protocol:
-        choice = protocol["alergia_penicilina"]
-        motivo = "Escolha baseada em alergia a penicilina."
+    if penicillin_allergy and "alergia_penicilina" in protocol:
+        recommended = protocol["alergia_penicilina"]
+        justification = "Escolha baseada em alergia a penicilina."
     else:
-        choice = protocol["primeira_linha"]
-        motivo = "Escolha de primeira linha segundo protocolo estruturado."
-
-    observacoes = " ".join(protocol.get("observacoes", []))
-
-    resposta = (
-        f"Antibiótico sugerido: {choice['medicamento']}. "
-        f"Dose: {choice['dose']}. "
-        f"Duração: {choice['duracao']}. "
-        f"{motivo} "
-        f"Observações: {observacoes}"
-    )
+        recommended = protocol["primeira_linha"]
+        justification = "Escolha de primeira linha segundo protocolo estruturado."
 
     return {
-        "resposta": resposta,
-        "tipo": "recomendacao_estruturada",
-        "cenario": scenario,
-        "fonte": "motor_clinico_estruturado"
+        "scenario": scenario,
+        "recommended": recommended,
+        "proposed": extract_proposed_antibiotic(message),
+        "protocol_found": True,
+        "justification": justification,
+        "observacoes": protocol.get("observacoes", [])
     }
