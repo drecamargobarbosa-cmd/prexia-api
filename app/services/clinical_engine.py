@@ -49,6 +49,16 @@ class ClinicalEngine:
 
         response = self.response_engine.build_response(protocol, scenario)
 
+        perguntas = response.get("perguntas_obrigatorias", [])
+
+        if perguntas:
+            return {
+                "tipo": "coleta_dados",
+                "cenario": scenario,
+                "resposta": "Antes de sugerir o tratamento, preciso de algumas informações:",
+                "perguntas": perguntas
+            }
+
         antibiotic = response.get("antibiotico_sugerido")
 
         drug_alerts = check_drug_interactions(question, antibiotic)
