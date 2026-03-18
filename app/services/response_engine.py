@@ -42,6 +42,6 @@ class ResponseEngine:
             "interacoes_medicamentosas": [],
             "red_flags": [],
             "confirmacao_necessaria": False,
-            "perguntas_obrigatorias": [],
+            "perguntas_obrigatorias": protocol.get("perguntas_obrigatorias", []),
             "fonte": "protocolo_local_v1"
         }
