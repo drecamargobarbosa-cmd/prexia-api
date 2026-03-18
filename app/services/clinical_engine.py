@@ -1,91 +1,33 @@
-from app.protocols.infections import INFECTION_PROTOCOLS
+from app.services.protocol_engine import ProtocolEngine
+from app.services.interaction_engine import InteractionEngine
+from app.services.safety_engine import SafetyEngine
+from app.services.response_engine import ResponseEngine
 
 
-def detect_scenario(message: str) -> str | None:
-    m = message.lower()
+class ClinicalEngine:
 
-    for scenario, data in INFECTION_PROTOCOLS.items():
-        for keyword in data["keywords"]:
-            if keyword in m:
-                return scenario
+    def __init__(self):
 
-    return None
+        self.protocol_engine = ProtocolEngine()
+        self.interaction_engine = InteractionEngine()
+        self.safety_engine = SafetyEngine()
+        self.response_engine = ResponseEngine()
 
+    def evaluate(self, question: str):
 
-def has_penicillin_allergy(message: str) -> bool:
-    m = message.lower()
-    triggers = [
-        "alergia a penicilina",
-        "alérgico a penicilina",
-        "alergico a penicilina",
-        "alergia penicilina"
-    ]
-    return any(t in m for t in triggers)
+        # 1 entender cenário clínico
+        scenario = self.interaction_engine.identify_scenario(question)
 
+        # 2 carregar protocolo
+        protocol = self.protocol_engine.load_protocol(scenario)
 
-def extract_proposed_antibiotic(message: str) -> str | None:
-    m = message.lower()
+        # 3 aplicar validações de segurança
+        safety_alerts = self.safety_engine.check(question)
 
-    known_antibiotics = [
-        "amoxicilina",
-        "amoxicilina + clavulanato",
-        "amoxicilina clavulanato",
-        "azitromicina",
-        "clindamicina",
-        "nitrofurantoína",
-        "nitrofurantoina",
-        "fosfomicina",
-        "ciprofloxacino",
-        "levofloxacino",
-        "cefuroxima"
-    ]
+        # 4 montar resposta
+        response = self.response_engine.build_response(protocol, scenario)
 
-    trigger_phrases = [
-        "estou pensando em usar",
-        "pensei em usar",
-        "quero usar",
-        "vou usar",
-        "usar",
-        "prescrever",
-        "sugiro",
-        "sugerir"
-    ]
+        # 5 anexar alertas de segurança
+        response["alertas_seguranca"] = safety_alerts
 
-    if any(trigger in m for trigger in trigger_phrases):
-        for antibiotic in known_antibiotics:
-            if antibiotic in m:
-                return antibiotic
-
-    return None
-
-
-def recommend_antibiotic(message: str) -> dict:
-    scenario = detect_scenario(message)
-
-    if not scenario:
-        return {
-            "scenario": None,
-            "recommended": None,
-            "proposed": extract_proposed_antibiotic(message),
-            "protocol_found": False,
-            "justification": "Ainda não há protocolo estruturado para este cenário."
-        }
-
-    protocol = INFECTION_PROTOCOLS[scenario]
-    penicillin_allergy = has_penicillin_allergy(message)
-
-    if penicillin_allergy and "alergia_penicilina" in protocol:
-        recommended = protocol["alergia_penicilina"]
-        justification = "Escolha baseada em alergia a penicilina."
-    else:
-        recommended = protocol["primeira_linha"]
-        justification = "Escolha de primeira linha segundo protocolo estruturado."
-
-    return {
-        "scenario": scenario,
-        "recommended": recommended,
-        "proposed": extract_proposed_antibiotic(message),
-        "protocol_found": True,
-        "justification": justification,
-        "observacoes": protocol.get("observacoes", [])
-    }
+        return response
