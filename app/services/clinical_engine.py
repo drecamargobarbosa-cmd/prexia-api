@@ -5,6 +5,7 @@ from app.services.interaction_engine import (
     check_drug_interactions,
     check_disease_interactions,
 )
+import re
 
 
 class ClinicalEngine:
@@ -41,6 +42,12 @@ class ClinicalEngine:
 
         return None
 
+    def extract_peso(self, texto: str):
+        match = re.search(r'(\d+)\s?kg', texto)
+        if match:
+            return int(match.group(1))
+        return None
+
     def evaluate(self, question: str, contexto: dict | None = None) -> dict:
         texto = normalize(question)
 
@@ -50,8 +57,8 @@ class ClinicalEngine:
         # 🔴 Detectar ausência de alergia
         sem_alergia = "sem alergia" in texto or "sem alergias" in texto
 
-        # 🔴 Detectar gravidade (simples por enquanto)
-        grave = any(p in texto for p in ["grave", "toxemia", "febre alta"])
+        # 🔴 Extrair peso
+        peso = self.extract_peso(texto)
 
         # 🔴 Cenário
         if contexto and contexto.get("scenario"):
@@ -68,30 +75,44 @@ class ClinicalEngine:
                 "resposta": "Nao tenho protocolo para esse cenario no momento.",
             }
 
-        # 🔴 Se estamos na resposta do usuário
+        # 🔴 Fluxo com resposta do usuário
         if contexto and contexto.get("scenario"):
 
             primeira_linha = protocol.get("primeira_linha", {})
             alergia = protocol.get("alergia_penicilina", {})
 
-            # 🔴 Decisão clínica básica
             if tem_alergia and not sem_alergia:
                 medicamento = alergia.get("medicamento")
-                dose = alergia.get("dose")
+                dose_base = alergia.get("dose")
                 duracao = alergia.get("duracao")
                 justificativa = "Paciente com alergia à penicilina."
             else:
                 medicamento = primeira_linha.get("medicamento")
-                dose = primeira_linha.get("dose")
+                dose_base = primeira_linha.get("dose")
                 duracao = primeira_linha.get("duracao")
                 justificativa = "Primeira linha conforme protocolo."
+
+            # 🔴 Calcular dose se tiver peso
+            dose_final = dose_base
+
+            if peso and "mg/kg" in dose_base:
+                if "10 mg/kg" in dose_base:
+                    dose_calculada = 10 * peso
+                    dose_final = f"{dose_calculada} mg/dia (baseado em {peso} kg)"
+                elif "5 mg/kg" in dose_base:
+                    dose_calculada = 5 * peso
+                    dose_final = f"{dose_calculada} mg/dia (baseado em {peso} kg)"
+                elif "50 a 90 mg/kg" in dose_base:
+                    min_dose = 50 * peso
+                    max_dose = 90 * peso
+                    dose_final = f"{min_dose} a {max_dose} mg/dia (baseado em {peso} kg)"
 
             response = {
                 "tipo": "protocolo",
                 "cenario": scenario,
                 "resposta": f"Protocolo definido. {justificativa}",
                 "antibiotico_sugerido": medicamento,
-                "dose": dose,
+                "dose": dose_final,
                 "duracao": duracao,
                 "alternativas": [],
                 "alertas_protocolo": protocol.get("observacoes", []),
@@ -102,7 +123,6 @@ class ClinicalEngine:
                 "fonte": "protocolo_local_v1"
             }
 
-            # 🔴 Interações
             drug_alerts = check_drug_interactions(question, medicamento)
             disease_alerts = check_disease_interactions(question, medicamento)
 
