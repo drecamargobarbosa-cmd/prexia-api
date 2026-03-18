@@ -35,18 +35,47 @@ class ClinicalEngine:
             or "odontogenica" in q
             or "abscesso dentario" in q
             or "infeccao dentaria" in q
-            or "infeccao odontologica" in q
             or "dor de dente" in q
         ):
             return "infeccao_odontogenica"
 
         return None
 
-    def evaluate(self, question: str) -> dict:
-        scenario = self.identify_scenario(question)
+    def evaluate(self, question: str, contexto: dict = None) -> dict:
+
+        # 🔴 NOVO: usar contexto se existir
+        if contexto and contexto.get("scenario"):
+            scenario = contexto.get("scenario")
+        else:
+            scenario = self.identify_scenario(question)
 
         protocol = self.protocol_engine.load_protocol(scenario)
 
+        if not protocol:
+            return {
+                "tipo": "sem_protocolo",
+                "cenario": scenario,
+                "resposta": "Nao tenho protocolo para esse cenario no momento.",
+            }
+
+        # 🔴 Se veio resposta do usuário, seguimos com decisão clínica
+        if contexto and contexto.get("scenario"):
+            response = self.response_engine.build_response(protocol, scenario)
+
+            antibiotic = response.get("antibiotico_sugerido")
+
+            drug_alerts = check_drug_interactions(question, antibiotic)
+            disease_alerts = check_disease_interactions(question, antibiotic)
+
+            existing_alerts = response.get("interacoes_medicamentosas", [])
+            response["interacoes_medicamentosas"] = existing_alerts + drug_alerts
+
+            existing_protocol_alerts = response.get("alertas_protocolo", [])
+            response["alertas_protocolo"] = existing_protocol_alerts + disease_alerts
+
+            return response
+
+        # 🔴 Fluxo inicial (sem dados ainda)
         response = self.response_engine.build_response(protocol, scenario)
 
         perguntas = response.get("perguntas_obrigatorias", [])
@@ -59,15 +88,5 @@ class ClinicalEngine:
                 "perguntas": perguntas
             }
 
-        antibiotic = response.get("antibiotico_sugerido")
-
-        drug_alerts = check_drug_interactions(question, antibiotic)
-        disease_alerts = check_disease_interactions(question, antibiotic)
-
-        existing_alerts = response.get("interacoes_medicamentosas", [])
-        response["interacoes_medicamentosas"] = existing_alerts + drug_alerts
-
-        existing_protocol_alerts = response.get("alertas_protocolo", [])
-        response["alertas_protocolo"] = existing_protocol_alerts + disease_alerts
-
         return response
+    
