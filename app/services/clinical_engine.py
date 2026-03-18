@@ -14,7 +14,7 @@ class ClinicalEngine:
         self.response_engine = ResponseEngine()
 
     def identify_scenario(self, question: str) -> str | None:
-        q = normalize_text(question)
+        q = normalize(question)
 
         if "otite" in q or "ouvido" in q:
             return "otite_media_aguda"
