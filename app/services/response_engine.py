@@ -1,12 +1,11 @@
 class ResponseEngine:
 
-    def build_response(self, protocol: dict | None, scenario: str | None):
-
+    def build_response(self, protocol, scenario):
         if not protocol:
             return {
-                "tipo": "fallback",
+                "tipo": "sem_protocolo",
                 "cenario": scenario,
-                "resposta": "Ainda não há protocolo estruturado para este cenário.",
+                "resposta": "Nao tenho protocolo para esse cenario no momento.",
                 "antibiotico_sugerido": None,
                 "dose": None,
                 "duracao": None,
@@ -14,36 +13,35 @@ class ResponseEngine:
                 "alertas_protocolo": [],
                 "interacoes_medicamentosas": [],
                 "red_flags": [],
-                "confirmacao_necessaria": True,
-                "perguntas_obrigatorias": [
-                    "Pode detalhar melhor o quadro clínico?",
-                    "Qual a idade do paciente?",
-                    "Há alergias medicamentosas?"
-                ],
-                "fonte": "fallback_clinico_v1"
+                "confirmacao_necessaria": False,
+                "perguntas_obrigatorias": [],
+                "fonte": "protocolo_local_v1"
             }
 
         primeira_linha = protocol.get("primeira_linha", {})
-        alternativas = protocol.get("alternativas", [])
-        perguntas_obrigatorias = protocol.get("perguntas_obrigatorias", [])
-        alertas = protocol.get("alertas", [])
-        red_flags = protocol.get("red_flags", [])
+        alternativa = protocol.get("alternativa", {})
+        alergia_penicilina = protocol.get("alergia_penicilina", {})
+
+        alternativas = []
+
+        if alternativa.get("medicamento"):
+            alternativas.append(alternativa.get("medicamento"))
+
+        if alergia_penicilina.get("medicamento"):
+            alternativas.append(alergia_penicilina.get("medicamento"))
 
         return {
             "tipo": "protocolo",
-            "cenario": protocol.get("titulo", scenario),
-            "resposta": protocol.get(
-                "resposta_base",
-                "Protocolo identificado com sucesso."
-            ),
-            "antibiotico_sugerido": primeira_linha.get("antibiotico"),
+            "cenario": scenario,
+            "resposta": "Protocolo identificado com sucesso.",
+            "antibiotico_sugerido": primeira_linha.get("medicamento"),
             "dose": primeira_linha.get("dose"),
             "duracao": primeira_linha.get("duracao"),
             "alternativas": alternativas,
-            "alertas_protocolo": alertas,
+            "alertas_protocolo": protocol.get("observacoes", []),
             "interacoes_medicamentosas": [],
-            "red_flags": red_flags,
-            "confirmacao_necessaria": len(perguntas_obrigatorias) > 0,
-            "perguntas_obrigatorias": perguntas_obrigatorias,
-            "fonte": protocol.get("fonte", "protocolo_local_v1")
+            "red_flags": [],
+            "confirmacao_necessaria": False,
+            "perguntas_obrigatorias": [],
+            "fonte": "protocolo_local_v1"
         }
