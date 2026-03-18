@@ -1,17 +1,13 @@
+from typing import Optional
+
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
-from typing import List
 
 from app.services.clinical_engine import ClinicalEngine
 
-app = FastAPI(
-    title="Prexia API",
-    description="API clínica para suporte à decisão médica",
-    version="1.0"
-)
 
-clinical_engine = ClinicalEngine()
+app = FastAPI(title="PREXIA API", version="1.0.0")
 
 app.add_middleware(
     CORSMiddleware,
@@ -21,18 +17,26 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+
+class ChatContext(BaseModel):
+    scenario: Optional[str] = None
+
+
 class ChatRequest(BaseModel):
     mensagem: str
-    contexto: List[str] = []
+    contexto: Optional[ChatContext] = None
+
+
+clinical_engine = ClinicalEngine()
+
 
 @app.get("/")
 def root():
-    return {"message": "Prexia API running"}
+    return {"status": "ok", "service": "prexia-api"}
 
-@app.get("/health")
-def health():
-    return {"status": "ok"}
 
 @app.post("/chat")
 def chat(request: ChatRequest):
-    return clinical_engine.evaluate(request.mensagem)
+    contexto_dict = request.contexto.model_dump() if request.contexto else None
+    resultado = clinical_engine.evaluate(request.mensagem, contexto_dict)
+    return resultado
