@@ -1,74 +1,77 @@
-from typing import Optional
-
 from fastapi import FastAPI
-from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 
 from app.services.clinical_engine import ClinicalEngine
-from app.services.session_memory import add_message, get_history
-
-
-app = FastAPI(title="PREXIA API", version="1.1.1")
-
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=[
-        "https://chat.prexia.com.br",
-        "https://prexia.com.br",
-        "https://www.prexia.com.br",
-    ],
-    allow_credentials=False,
-    allow_methods=["*"],
-    allow_headers=["*"],
+from app.services.session_memory import (
+    add_message,
+    get_context,
+    get_history,
+    update_context,
+    clear_history,
 )
 
 
-class ChatContext(BaseModel):
-    scenario: Optional[str] = None
-    collected_data: Optional[str] = None
-
-
-class ChatRequest(BaseModel):
-    user_id: str
-    mensagem: str
-    contexto: Optional[ChatContext] = None
-
+app = FastAPI(title="PREXIA API")
 
 clinical_engine = ClinicalEngine()
 
 
+class ChatRequest(BaseModel):
+    user_id: str
+    message: str
+
+
+class ChatResponse(BaseModel):
+    user_id: str
+    message: str
+    history: list
+    context: dict
+    clinical_response: dict
+
+
 @app.get("/")
 def root():
-    return {"status": "ok", "service": "prexia-api"}
+    return {"status": "ok", "service": "PREXIA API"}
 
 
-@app.post("/chat")
+@app.post("/chat", response_model=ChatResponse)
 def chat(request: ChatRequest):
-    contexto_dict = request.contexto.model_dump() if request.contexto else {}
+    user_id = request.user_id
+    message = request.message
 
-    add_message(
-        user_id=request.user_id,
-        role="user",
-        content=request.mensagem
+    add_message(user_id, "user", message)
+
+    contexto_atual = get_context(user_id)
+
+    clinical_response = clinical_engine.evaluate(
+        question=message,
+        contexto=contexto_atual,
     )
 
-    historico = get_history(request.user_id)
-
-    if historico:
-        ultimas_mensagens = historico[-6:]
-        contexto_historico = "\n".join(
-            [f"{item['role']}: {item['content']}" for item in ultimas_mensagens]
-        )
-        contexto_dict["conversation_history"] = contexto_historico
-
-    resultado = clinical_engine.evaluate(request.mensagem, contexto_dict)
-
-    resposta_assistente = resultado.get("answer") or resultado.get("resposta") or str(resultado)
-
-    add_message(
-        user_id=request.user_id,
-        role="assistant",
-        content=resposta_assistente
+    update_context(
+        user_id,
+        {
+            "scenario": clinical_response.get("cenario"),
+            "dados_clinicos": clinical_response.get("dados_clinicos", {}),
+        },
     )
 
-    return resultado
+    add_message(user_id, "assistant", clinical_response.get("resposta", ""))
+
+    return {
+        "user_id": user_id,
+        "message": message,
+        "history": get_history(user_id),
+        "context": get_context(user_id),
+        "clinical_response": clinical_response,
+    }
+
+
+@app.post("/reset/{user_id}")
+def reset_user_context(user_id: str):
+    clear_history(user_id)
+    return {
+        "status": "ok",
+        "user_id": user_id,
+        "message": "Contexto do usuario apagado com sucesso."
+    }
