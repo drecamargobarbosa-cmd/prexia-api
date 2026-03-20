@@ -120,44 +120,42 @@ class ClinicalEngine:
     def _format_protocol(self, scenario, protocolo, dados):
         linhas = []
 
-        linhas.append(f"Diagnóstico: {scenario.replace('_', ' ').title()}")
+        linhas.append("🩺 Avaliação Clínica")
+        linhas.append(f"Diagnóstico provável: {scenario.replace('_', ' ').title()}")
         linhas.append("")
 
         primeira = protocolo.get("primeira_linha")
         alergia_alt = protocolo.get("alergia_penicilina")
         alternativa = protocolo.get("alternativa")
 
-        usar_alternativa = False
-
         if dados.get("alergia") is True:
             if alergia_alt:
-                usar_alternativa = True
                 med = alergia_alt
+                motivo = "Devido à alergia à penicilina"
             elif alternativa:
-                usar_alternativa = True
                 med = alternativa
+                motivo = "Devido à alergia à penicilina"
             else:
                 med = primeira
+                motivo = "Sem alternativa específica disponível"
         else:
             med = primeira
+            motivo = "Esquema de primeira linha"
 
         if not med:
             return "Protocolo encontrado, mas sem medicação configurada."
 
-        linhas.append("Conduta:")
-        linhas.append(f"• {med['medicamento']}")
-        linhas.append(f"• Dose: {med['dose']}")
-        linhas.append(f"• Duração: {med['duracao']}")
+        linhas.append("💊 Conduta recomendada")
+        linhas.append(f"Medicação: {med['medicamento']}")
+        linhas.append(f"Dose: {med['dose']}")
+        linhas.append(f"Duração: {med['duracao']}")
         linhas.append("")
-
-        if usar_alternativa:
-            linhas.append("Atenção:")
-            linhas.append("• Escolha baseada em alergia à penicilina")
-            linhas.append("")
+        linhas.append(f"Justificativa: {motivo}")
+        linhas.append("")
 
         obs = protocolo.get("observacoes", [])
         if obs:
-            linhas.append("Observações:")
+            linhas.append("📌 Observações clínicas")
             for o in obs:
                 linhas.append(f"• {o}")
 
