@@ -12,11 +12,11 @@ class ClinicalEngine:
         scenario = contexto.get("scenario")
         dados = contexto.get("dados_clinicos", {})
 
-        # 🔍 identificar cenário se ainda não tiver
+        # identificar cenário se ainda não tiver
         if not scenario:
             scenario = self.protocol_engine.identify_scenario(question)
 
-        # 🚨 NOVO BLOCO: cenário não identificado
+        # cenário não identificado
         if not scenario:
             return {
                 "tipo": "investigacao",
@@ -31,35 +31,46 @@ class ClinicalEngine:
                 "dados_clinicos": dados,
             }
 
-        # 🧠 extrair dados da mensagem
+        # extrair dados da mensagem
         dados_extraidos = self._extract_clinical_data(question)
 
         # atualizar contexto
         dados.update({k: v for k, v in dados_extraidos.items() if v is not None})
 
-        # 🔄 verificar se ainda faltam dados
+        # verificar o que ainda falta
         missing = []
 
-        if not dados.get("idade"):
-            missing.append("Qual a idade do paciente?")
+        if dados.get("idade") is None:
+            missing.append({
+                "campo": "idade",
+                "pergunta": "Qual a idade do paciente?"
+            })
 
         if dados.get("gravidade") is None:
-            missing.append("Há sinais de gravidade, como febre alta, dor intensa ou toxemia?")
+            missing.append({
+                "campo": "gravidade",
+                "pergunta": "Há sinais de gravidade, como febre alta, dor intensa ou toxemia?"
+            })
 
         if dados.get("alergia") is None:
-            missing.append("O paciente tem alergia à penicilina?")
+            missing.append({
+                "campo": "alergia",
+                "pergunta": "O paciente tem alergia à penicilina?"
+            })
 
-        # 👉 ainda precisa coletar dados
-        if missing:
+        perguntas_finais = [item["pergunta"] for item in missing]
+
+        # ainda precisa coletar dados
+        if perguntas_finais:
             return {
                 "tipo": "coleta_dados",
                 "cenario": scenario,
                 "resposta": "Ainda preciso de algumas informações para definir o tratamento:",
-                "perguntas": missing,
+                "perguntas": perguntas_finais,
                 "dados_clinicos": dados,
             }
 
-        # ✅ dados completos → gerar conduta
+        # dados completos, gerar conduta
         protocolo = self.protocol_engine.get_protocol(scenario, dados)
 
         if not protocolo:
@@ -79,9 +90,6 @@ class ClinicalEngine:
             "dados_clinicos": dados,
         }
 
-    # =========================
-    # 🔍 EXTRAÇÃO DE DADOS
-    # =========================
     def _extract_clinical_data(self, text: str):
         text = text.lower()
 
@@ -120,9 +128,6 @@ class ClinicalEngine:
 
         return data
 
-    # =========================
-    # 📋 FORMATAÇÃO CLÍNICA
-    # =========================
     def _format_protocol(self, scenario, protocolo):
         linhas = []
 
