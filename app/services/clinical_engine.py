@@ -12,7 +12,7 @@ class ClinicalEngine:
         scenario = contexto.get("scenario")
         dados = contexto.get("dados_clinicos", {})
 
-        # identificar cenário se ainda não tiver
+        # identificar cenário
         if not scenario:
             scenario = self.protocol_engine.identify_scenario(question)
 
@@ -31,46 +31,50 @@ class ClinicalEngine:
                 "dados_clinicos": dados,
             }
 
-        # extrair dados da mensagem
+        # extrair dados
         dados_extraidos = self._extract_clinical_data(question)
-
-        # atualizar contexto
         dados.update({k: v for k, v in dados_extraidos.items() if v is not None})
 
-        # verificar o que ainda falta
+        # carregar protocolo
+        protocolo_base = self.protocol_engine.load_protocol(scenario)
+
+        # usar perguntas do protocolo se existirem
+        perguntas_protocolo = protocolo_base.get("perguntas_obrigatorias", []) if protocolo_base else []
+
         missing = []
 
-        if dados.get("idade") is None:
-            missing.append({
-                "campo": "idade",
-                "pergunta": "Qual a idade do paciente?"
-            })
+        # lógica baseada no protocolo
+        if perguntas_protocolo:
+            for pergunta in perguntas_protocolo:
+                if "idade" in pergunta.lower() and dados.get("idade") is None:
+                    missing.append(pergunta)
+                elif "gravidade" in pergunta.lower() and dados.get("gravidade") is None:
+                    missing.append(pergunta)
+                elif "alergia" in pergunta.lower() and dados.get("alergia") is None:
+                    missing.append(pergunta)
 
-        if dados.get("gravidade") is None:
-            missing.append({
-                "campo": "gravidade",
-                "pergunta": "Há sinais de gravidade, como febre alta, dor intensa ou toxemia?"
-            })
+        else:
+            # fallback padrão
+            if dados.get("idade") is None:
+                missing.append("Qual a idade do paciente?")
 
-        if dados.get("alergia") is None:
-            missing.append({
-                "campo": "alergia",
-                "pergunta": "O paciente tem alergia à penicilina?"
-            })
+            if dados.get("gravidade") is None:
+                missing.append("Há sinais de gravidade, como febre alta, dor intensa ou toxemia?")
 
-        perguntas_finais = [item["pergunta"] for item in missing]
+            if dados.get("alergia") is None:
+                missing.append("O paciente tem alergia à penicilina?")
 
         # ainda precisa coletar dados
-        if perguntas_finais:
+        if missing:
             return {
                 "tipo": "coleta_dados",
                 "cenario": scenario,
                 "resposta": "Ainda preciso de algumas informações para definir o tratamento:",
-                "perguntas": perguntas_finais,
+                "perguntas": missing,
                 "dados_clinicos": dados,
             }
 
-        # dados completos, gerar conduta
+        # gerar conduta
         protocolo = self.protocol_engine.get_protocol(scenario, dados)
 
         if not protocolo:
@@ -100,27 +104,23 @@ class ClinicalEngine:
             "gravidade": None,
         }
 
-        # idade
         if "ano" in text:
             import re
             match = re.search(r"(\d+)\s*ano", text)
             if match:
                 data["idade"] = int(match.group(1))
 
-        # peso
         if "kg" in text:
             import re
             match = re.search(r"(\d+)\s*kg", text)
             if match:
                 data["peso"] = int(match.group(1))
 
-        # alergia
         if "sem alerg" in text:
             data["alergia"] = False
         elif "alerg" in text:
             data["alergia"] = True
 
-        # gravidade
         if "sem grav" in text:
             data["gravidade"] = False
         elif "grave" in text or "toxemia" in text:
