@@ -37,36 +37,46 @@ def root():
 
 @app.post("/chat")
 def chat(request: ChatRequest):
-    user_id = request.user_id
-    message = request.message
+    try:
+        user_id = request.user_id
+        message = request.message
 
-    add_message(user_id, "user", message)
+        add_message(user_id, "user", message)
 
-    contexto_atual = get_context(user_id)
+        contexto_atual = get_context(user_id)
 
-    clinical_response = clinical_engine.evaluate(
-        question=message,
-        contexto=contexto_atual,
-    )
+        clinical_response = clinical_engine.evaluate(
+            question=message,
+            contexto=contexto_atual,
+        )
 
-    update_context(
-        user_id,
-        {
-            "scenario": clinical_response.get("cenario"),
-            "dados_clinicos": clinical_response.get("dados_clinicos", {}),
-        },
-    )
+        if not isinstance(clinical_response, dict):
+            raise ValueError("Resposta inválida do clinical_engine")
 
-    resposta_texto = clinical_response.get("resposta", "")
+        update_context(
+            user_id,
+            {
+                "scenario": clinical_response.get("cenario"),
+                "dados_clinicos": clinical_response.get("dados_clinicos", {}),
+            },
+        )
 
-    add_message(user_id, "assistant", resposta_texto)
+        resposta_texto = clinical_response.get("resposta", "")
 
-    return {
-        "resposta": resposta_texto,
-        "clinical_response": clinical_response,
-        "history": get_history(user_id),
-        "context": get_context(user_id),
-    }
+        add_message(user_id, "assistant", resposta_texto)
+
+        return {
+            "resposta": resposta_texto,
+            "clinical_response": clinical_response,
+            "history": get_history(user_id),
+            "context": get_context(user_id),
+        }
+
+    except Exception as e:
+        return {
+            "erro": "Falha ao processar a solicitação clínica",
+            "detalhe": str(e)
+        }
 
 
 @app.post("/reset/{user_id}")
