@@ -1,5 +1,6 @@
 import re
 
+from app.protocols.antibiotics import ANTIBIOTIC_PROTOCOLS
 from app.services.protocol_engine import ProtocolEngine
 from app.services.response_engine import ResponseEngine
 from app.services.safety_engine import normalize
@@ -18,35 +19,11 @@ class ClinicalEngine:
     def identify_scenario(self, question: str) -> str | None:
         q = normalize(question)
 
-        if "otite" in q or "ouvido" in q or "otalgia" in q:
-            return "otite_media_aguda"
-
-        if "sinusite" in q:
-            return "sinusite_bacteriana"
-
-        if (
-            "infeccao urinaria" in q
-            or "infecção urinária" in q
-            or "cistite" in q
-            or "itu" in q
-            or "disuria" in q
-            or "disúria" in q
-        ):
-            return "itu_nao_complicada"
-
-        if (
-            "odonto" in q
-            or "odontogenica" in q
-            or "odontogênica" in q
-            or "abscesso dentario" in q
-            or "abscesso dentário" in q
-            or "infeccao dentaria" in q
-            or "infecção dentária" in q
-            or "infeccao odontologica" in q
-            or "infecção odontológica" in q
-            or "dor de dente" in q
-        ):
-            return "infeccao_odontogenica"
+        for scenario, protocol in ANTIBIOTIC_PROTOCOLS.items():
+            keywords = protocol.get("keywords", [])
+            for keyword in keywords:
+                if normalize(keyword) in q:
+                    return scenario
 
         return None
 
