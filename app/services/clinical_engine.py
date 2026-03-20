@@ -12,6 +12,25 @@ class ClinicalEngine:
         scenario = contexto.get("scenario")
         dados = contexto.get("dados_clinicos", {})
 
+        texto = question.lower()
+
+        # 🚨 NOVO: detectar piora clínica
+        if "piora" in texto or "não melhorou" in texto or "sem melhora" in texto:
+            return {
+                "tipo": "reavaliacao",
+                "cenario": scenario,
+                "resposta": (
+                    "O quadro sugere possível falha terapêutica ou evolução desfavorável.\n\n"
+                    "Recomenda-se:\n"
+                    "• Reavaliar diagnóstico\n"
+                    "• Verificar adesão ao tratamento\n"
+                    "• Considerar complicações\n"
+                    "• Avaliar necessidade de troca de antibiótico\n"
+                    "• Considerar encaminhamento se sinais de gravidade"
+                ),
+                "dados_clinicos": dados,
+            }
+
         if not scenario:
             scenario = self.protocol_engine.identify_scenario(question)
 
