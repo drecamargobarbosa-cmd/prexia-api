@@ -125,6 +125,29 @@ class ClinicalEngine:
 
         return None
 
+    def build_alternatives(
+        self,
+        protocol: dict,
+        medicamento_escolhido: str | None,
+    ) -> list[str]:
+        alternativas = []
+
+        alternativa = protocol.get("alternativa", {})
+        alergia_penicilina = protocol.get("alergia_penicilina", {})
+
+        for opcao in [alternativa, alergia_penicilina]:
+            medicamento = opcao.get("medicamento")
+            if not medicamento:
+                continue
+
+            if medicamento_escolhido and normalize(medicamento) == normalize(medicamento_escolhido):
+                continue
+
+            if medicamento not in alternativas:
+                alternativas.append(medicamento)
+
+        return alternativas
+
     def build_protocol_response(
         self,
         protocol: dict,
@@ -161,6 +184,11 @@ class ClinicalEngine:
                 dose_calculada = 5 * peso
                 dose_final = f"{dose_calculada} mg/dia, baseado em {peso} kg"
 
+        alternativas = self.build_alternatives(
+            protocol=protocol,
+            medicamento_escolhido=medicamento,
+        )
+
         response = {
             "tipo": "protocolo",
             "cenario": scenario,
@@ -168,7 +196,7 @@ class ClinicalEngine:
             "antibiotico_sugerido": medicamento,
             "dose": dose_final,
             "duracao": duracao,
-            "alternativas": [],
+            "alternativas": alternativas,
             "alertas_protocolo": protocol.get("observacoes", []),
             "interacoes_medicamentosas": [],
             "red_flags": [],
@@ -242,11 +270,15 @@ class ClinicalEngine:
         faltando = []
 
         for pergunta in perguntas_obrigatorias:
-            if "idade" in pergunta.lower() and dados["idade"] is None:
+            pergunta_n = normalize(pergunta)
+
+            if "idade" in pergunta_n and dados["idade"] is None:
                 faltando.append(pergunta)
-            elif "gravidade" in pergunta.lower() and dados["gravidade"] is None:
+            elif "gravidade" in pergunta_n and dados["gravidade"] is None:
                 faltando.append(pergunta)
-            elif "alergia" in pergunta.lower() and dados["alergia"] is None:
+            elif "alergia" in pergunta_n and dados["alergia"] is None:
+                faltando.append(pergunta)
+            elif "peso" in pergunta_n and dados["peso"] is None:
                 faltando.append(pergunta)
 
         if faltando:
