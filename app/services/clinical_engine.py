@@ -12,11 +12,9 @@ class ClinicalEngine:
         scenario = contexto.get("scenario")
         dados = contexto.get("dados_clinicos", {})
 
-        # identificar cenário
         if not scenario:
             scenario = self.protocol_engine.identify_scenario(question)
 
-        # cenário não identificado
         if not scenario:
             return {
                 "tipo": "investigacao",
@@ -31,30 +29,28 @@ class ClinicalEngine:
                 "dados_clinicos": dados,
             }
 
-        # extrair dados
         dados_extraidos = self._extract_clinical_data(question)
         dados.update({k: v for k, v in dados_extraidos.items() if v is not None})
 
-        # carregar protocolo
         protocolo_base = self.protocol_engine.load_protocol(scenario)
-
-        # usar perguntas do protocolo se existirem
         perguntas_protocolo = protocolo_base.get("perguntas_obrigatorias", []) if protocolo_base else []
 
         missing = []
 
-        # lógica baseada no protocolo
         if perguntas_protocolo:
             for pergunta in perguntas_protocolo:
-                if "idade" in pergunta.lower() and dados.get("idade") is None:
+                p = pergunta.lower()
+
+                if "idade" in p and dados.get("idade") is None:
                     missing.append(pergunta)
-                elif "gravidade" in pergunta.lower() and dados.get("gravidade") is None:
+
+                elif "gravidade" in p and dados.get("gravidade") is None:
                     missing.append(pergunta)
-                elif "alergia" in pergunta.lower() and dados.get("alergia") is None:
+
+                elif "alerg" in p and dados.get("alergia") is None:
                     missing.append(pergunta)
 
         else:
-            # fallback padrão
             if dados.get("idade") is None:
                 missing.append("Qual a idade do paciente?")
 
@@ -64,7 +60,6 @@ class ClinicalEngine:
             if dados.get("alergia") is None:
                 missing.append("O paciente tem alergia à penicilina?")
 
-        # ainda precisa coletar dados
         if missing:
             return {
                 "tipo": "coleta_dados",
@@ -74,7 +69,6 @@ class ClinicalEngine:
                 "dados_clinicos": dados,
             }
 
-        # gerar conduta
         protocolo = self.protocol_engine.get_protocol(scenario, dados)
 
         if not protocolo:
@@ -85,7 +79,7 @@ class ClinicalEngine:
                 "dados_clinicos": dados,
             }
 
-        resposta_formatada = self._format_protocol(scenario, protocolo)
+        resposta_formatada = self._format_protocol(scenario, protocolo, dados)
 
         return {
             "tipo": "protocolo_definido",
@@ -128,16 +122,26 @@ class ClinicalEngine:
 
         return data
 
-    def _format_protocol(self, scenario, protocolo):
+    def _format_protocol(self, scenario, protocolo, dados):
         linhas = []
 
         linhas.append(f"Diagnóstico: {scenario.replace('_', ' ').title()}\n")
 
         primeira = protocolo.get("primeira_linha")
-        alternativa = protocolo.get("alergia_penicilina")
+        alergia_alt = protocolo.get("alergia_penicilina")
+        alternativa = protocolo.get("alternativa")
 
-        if alternativa and protocolo.get("usar_alternativa"):
-            med = alternativa
+        usar_alternativa = False
+
+        if dados.get("alergia") is True:
+            if alergia_alt:
+                usar_alternativa = True
+                med = alergia_alt
+            elif alternativa:
+                usar_alternativa = True
+                med = alternativa
+            else:
+                med = primeira
         else:
             med = primeira
 
@@ -145,6 +149,10 @@ class ClinicalEngine:
         linhas.append(f"• {med['medicamento']}")
         linhas.append(f"• Dose: {med['dose']}")
         linhas.append(f"• Duração: {med['duracao']}\n")
+
+        if usar_alternativa:
+            linhas.append("Atenção:")
+            linhas.append("• Escolha baseada em alergia à penicilina\n")
 
         obs = protocolo.get("observacoes", [])
         if obs:
