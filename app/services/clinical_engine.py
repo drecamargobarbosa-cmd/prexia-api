@@ -173,7 +173,7 @@ class ClinicalEngine:
             "interacoes_medicamentosas": [],
             "red_flags": [],
             "confirmacao_necessaria": False,
-            "perguntas_obrigatorias": [],
+            "perguntas_obrigatorias": protocol.get("perguntas_obrigatorias", []),
             "fonte": "protocolo_local_v1"
         }
 
@@ -237,26 +237,26 @@ class ClinicalEngine:
                 "dados_clinicos": dados
             }
 
-        if scenario == "otite_media_aguda":
-            faltando = []
+        perguntas_obrigatorias = protocol.get("perguntas_obrigatorias", [])
 
-            if dados["idade"] is None:
-                faltando.append("Qual a idade do paciente?")
+        faltando = []
 
-            if dados["gravidade"] is None:
-                faltando.append("Há sinais de gravidade, como febre alta, dor intensa ou toxemia?")
+        for pergunta in perguntas_obrigatorias:
+            if "idade" in pergunta.lower() and dados["idade"] is None:
+                faltando.append(pergunta)
+            elif "gravidade" in pergunta.lower() and dados["gravidade"] is None:
+                faltando.append(pergunta)
+            elif "alergia" in pergunta.lower() and dados["alergia"] is None:
+                faltando.append(pergunta)
 
-            if dados["alergia"] is None:
-                faltando.append("O paciente tem alergia à penicilina?")
-
-            if faltando:
-                return {
-                    "tipo": "coleta_dados",
-                    "cenario": scenario,
-                    "resposta": "Ainda preciso de algumas informações para definir o tratamento:",
-                    "perguntas": faltando,
-                    "dados_clinicos": dados
-                }
+        if faltando:
+            return {
+                "tipo": "coleta_dados",
+                "cenario": scenario,
+                "resposta": "Ainda preciso de algumas informações para definir o tratamento:",
+                "perguntas": faltando,
+                "dados_clinicos": dados
+            }
 
         return self.build_protocol_response(
             protocol=protocol,
