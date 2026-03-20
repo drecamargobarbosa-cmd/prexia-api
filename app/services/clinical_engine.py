@@ -1,301 +1,137 @@
-import re
-
-from app.protocols.antibiotics import ANTIBIOTIC_PROTOCOLS
 from app.services.protocol_engine import ProtocolEngine
-from app.services.response_engine import ResponseEngine
-from app.services.safety_engine import normalize
-from app.services.interaction_engine import (
-    check_drug_interactions,
-    check_disease_interactions,
-)
 
 
 class ClinicalEngine:
-
     def __init__(self):
         self.protocol_engine = ProtocolEngine()
-        self.response_engine = ResponseEngine()
 
-    def identify_scenario(self, question: str) -> str | None:
-        q = normalize(question)
+    def evaluate(self, question: str, contexto: dict = None):
+        if contexto is None:
+            contexto = {}
 
-        for scenario, protocol in ANTIBIOTIC_PROTOCOLS.items():
-            keywords = protocol.get("keywords", [])
-            for keyword in keywords:
-                if normalize(keyword) in q:
-                    return scenario
+        scenario = contexto.get("scenario")
+        dados = contexto.get("dados_clinicos", {})
 
-        return None
+        # 🔍 identificar cenário se ainda não tiver
+        if not scenario:
+            scenario = self.protocol_engine.identify_scenario(question)
 
-    def extract_peso(self, texto: str) -> int | None:
-        match = re.search(r'(\d+)\s?kg\b', texto)
-        if match:
-            return int(match.group(1))
-        return None
+        # 🧠 extrair dados da mensagem
+        dados_extraidos = self._extract_clinical_data(question)
 
-    def extract_idade(self, texto: str) -> int | None:
-        patterns = [
-            r'(\d+)\s?anos\b',
-            r'(\d+)\s?ano\b',
-            r'(\d+)\s?a\b',
-        ]
+        # atualizar contexto
+        dados.update({k: v for k, v in dados_extraidos.items() if v is not None})
 
-        for pattern in patterns:
-            match = re.search(pattern, texto)
-            if match:
-                return int(match.group(1))
+        # 🔄 verificar se ainda faltam dados
+        missing = []
 
-        return None
+        if not dados.get("idade"):
+            missing.append("Qual a idade do paciente?")
 
-    def detect_allergy(self, texto: str) -> bool | None:
-        texto = normalize(texto)
+        if dados.get("gravidade") is None:
+            missing.append("Há sinais de gravidade, como febre alta, dor intensa ou toxemia?")
 
-        termos_negacao = [
-            "sem alergia",
-            "sem alergias",
-            "nega alergia",
-            "nega alergias",
-            "nao tem alergia",
-            "nao tem alergias",
-            "não tem alergia",
-            "não tem alergias",
-            "sem alergia a penicilina",
-            "sem alergia à penicilina",
-            "nega alergia a penicilina",
-            "nega alergia à penicilina",
-        ]
+        if dados.get("alergia") is None:
+            missing.append("O paciente tem alergia à penicilina?")
 
-        termos_presenca = [
-            "alergia a penicilina",
-            "alergia à penicilina",
-            "alergico a penicilina",
-            "alergico à penicilina",
-            "alergica a penicilina",
-            "alergica à penicilina",
-            "alérgico a penicilina",
-            "alérgico à penicilina",
-            "alérgica a penicilina",
-            "alérgica à penicilina",
-            "alergico",
-            "alergica",
-            "alérgico",
-            "alérgica",
-            "tem alergia",
-            "refere alergia",
-        ]
+        # 👉 ainda precisa coletar dados
+        if missing:
+            return {
+                "tipo": "coleta_dados",
+                "cenario": scenario,
+                "resposta": "Ainda preciso de algumas informações para definir o tratamento:",
+                "perguntas": missing,
+                "dados_clinicos": dados,
+            }
 
-        if any(t in texto for t in termos_negacao):
-            return False
+        # ✅ dados completos → gerar conduta
+        protocolo = self.protocol_engine.get_protocol(scenario, dados)
 
-        if any(t in texto for t in termos_presenca):
-            return True
+        if not protocolo:
+            return {
+                "tipo": "erro",
+                "cenario": scenario,
+                "resposta": "Não encontrei protocolo para esse cenário.",
+                "dados_clinicos": dados,
+            }
 
-        return None
+        resposta_formatada = self._format_protocol(scenario, protocolo)
 
-    def detect_severity(self, texto: str) -> bool | None:
-        texto = normalize(texto)
-
-        termos_negacao = [
-            "sem gravidade",
-            "sem sinais de gravidade",
-            "nao grave",
-            "não grave",
-            "leve",
-            "sem febre alta",
-            "sem toxemia",
-        ]
-
-        termos_presenca = [
-            "grave",
-            "muito grave",
-            "febre alta",
-            "toxemia",
-            "dor intensa",
-            "prostracao",
-            "prostração",
-            "com gravidade",
-            "sinais de gravidade",
-        ]
-
-        if any(t in texto for t in termos_negacao):
-            return False
-
-        if any(t in texto for t in termos_presenca):
-            return True
-
-        return None
-
-    def build_alternatives(
-        self,
-        protocol: dict,
-        medicamento_escolhido: str | None,
-    ) -> list[str]:
-        alternativas = []
-
-        alternativa = protocol.get("alternativa", {})
-        alergia_penicilina = protocol.get("alergia_penicilina", {})
-
-        for opcao in [alternativa, alergia_penicilina]:
-            medicamento = opcao.get("medicamento")
-            if not medicamento:
-                continue
-
-            if medicamento_escolhido and normalize(medicamento) == normalize(medicamento_escolhido):
-                continue
-
-            if medicamento not in alternativas:
-                alternativas.append(medicamento)
-
-        return alternativas
-
-    def build_protocol_response(
-        self,
-        protocol: dict,
-        scenario: str,
-        question: str,
-        usar_alergia: bool = False,
-        peso: int | None = None,
-    ) -> dict:
-        primeira_linha = protocol.get("primeira_linha", {})
-        alergia = protocol.get("alergia_penicilina", {})
-
-        if usar_alergia and alergia:
-            medicamento = alergia.get("medicamento")
-            dose_base = alergia.get("dose")
-            duracao = alergia.get("duracao")
-            justificativa = "Paciente com alergia à penicilina."
-        else:
-            medicamento = primeira_linha.get("medicamento")
-            dose_base = primeira_linha.get("dose")
-            duracao = primeira_linha.get("duracao")
-            justificativa = "Primeira linha conforme protocolo."
-
-        dose_final = dose_base
-
-        if peso and dose_base:
-            if "50 a 90 mg/kg" in dose_base:
-                min_dose = 50 * peso
-                max_dose = 90 * peso
-                dose_final = f"{min_dose} a {max_dose} mg/dia, baseado em {peso} kg"
-            elif "10 mg/kg" in dose_base:
-                dose_calculada = 10 * peso
-                dose_final = f"{dose_calculada} mg/dia, baseado em {peso} kg"
-            elif "5 mg/kg" in dose_base:
-                dose_calculada = 5 * peso
-                dose_final = f"{dose_calculada} mg/dia, baseado em {peso} kg"
-
-        alternativas = self.build_alternatives(
-            protocol=protocol,
-            medicamento_escolhido=medicamento,
-        )
-
-        response = {
-            "tipo": "protocolo",
+        return {
+            "tipo": "protocolo_definido",
             "cenario": scenario,
-            "resposta": f"Protocolo definido. {justificativa}",
-            "antibiotico_sugerido": medicamento,
-            "dose": dose_final,
-            "duracao": duracao,
-            "alternativas": alternativas,
-            "alertas_protocolo": protocol.get("observacoes", []),
-            "interacoes_medicamentosas": [],
-            "red_flags": [],
-            "confirmacao_necessaria": False,
-            "perguntas_obrigatorias": protocol.get("perguntas_obrigatorias", []),
-            "fonte": "protocolo_local_v1"
+            "resposta": resposta_formatada,
+            "dados_clinicos": dados,
         }
 
-        drug_alerts = check_drug_interactions(question, medicamento)
-        disease_alerts = check_disease_interactions(question, medicamento)
+    # =========================
+    # 🔍 EXTRAÇÃO DE DADOS
+    # =========================
+    def _extract_clinical_data(self, text: str):
+        text = text.lower()
 
-        response["interacoes_medicamentosas"] += drug_alerts
-        response["alertas_protocolo"] += disease_alerts
-
-        return response
-
-    def evaluate(self, question: str, contexto: dict | None = None) -> dict:
-        contexto = contexto or {}
-
-        dados = contexto.get("dados_clinicos") or {
+        data = {
             "idade": None,
             "peso": None,
             "alergia": None,
             "gravidade": None,
         }
 
-        texto = normalize(question)
+        # idade
+        if "ano" in text:
+            import re
+            match = re.search(r"(\d+)\s*ano", text)
+            if match:
+                data["idade"] = int(match.group(1))
 
-        idade = self.extract_idade(texto)
-        if idade is not None:
-            dados["idade"] = idade
+        # peso
+        if "kg" in text:
+            import re
+            match = re.search(r"(\d+)\s*kg", text)
+            if match:
+                data["peso"] = int(match.group(1))
 
-        peso = self.extract_peso(texto)
-        if peso is not None:
-            dados["peso"] = peso
+        # alergia
+        if "sem alerg" in text:
+            data["alergia"] = False
+        elif "alerg" in text:
+            data["alergia"] = True
 
-        alergia = self.detect_allergy(texto)
-        if alergia is not None:
-            dados["alergia"] = alergia
+        # gravidade
+        if "sem grav" in text:
+            data["gravidade"] = False
+        elif "grave" in text or "toxemia" in text:
+            data["gravidade"] = True
 
-        gravidade = self.detect_severity(texto)
-        if gravidade is not None:
-            dados["gravidade"] = gravidade
+        return data
 
-        scenario = contexto.get("scenario")
-        if not scenario:
-            scenario = self.identify_scenario(question)
+    # =========================
+    # 📋 FORMATAÇÃO CLÍNICA
+    # =========================
+    def _format_protocol(self, scenario, protocolo):
+        linhas = []
 
-        protocol = self.protocol_engine.load_protocol(scenario)
+        linhas.append(f"Diagnóstico: {scenario.replace('_', ' ').title()}\n")
 
-        if not protocol:
-            return {
-                "tipo": "sem_protocolo",
-                "cenario": scenario,
-                "resposta": "Nao tenho protocolo para esse cenario no momento.",
-                "antibiotico_sugerido": None,
-                "dose": None,
-                "duracao": None,
-                "alternativas": [],
-                "alertas_protocolo": [],
-                "interacoes_medicamentosas": [],
-                "red_flags": [],
-                "confirmacao_necessaria": False,
-                "perguntas_obrigatorias": [],
-                "fonte": "protocolo_local_v1",
-                "dados_clinicos": dados
-            }
+        # primeira linha
+        primeira = protocolo.get("primeira_linha")
+        alternativa = protocolo.get("alergia_penicilina")
 
-        perguntas_obrigatorias = protocol.get("perguntas_obrigatorias", [])
+        if alternativa and protocolo.get("usar_alternativa"):
+            med = alternativa
+        else:
+            med = primeira
 
-        faltando = []
+        linhas.append("Conduta:")
+        linhas.append(f"• {med['medicamento']}")
+        linhas.append(f"• Dose: {med['dose']}")
+        linhas.append(f"• Duração: {med['duracao']}\n")
 
-        for pergunta in perguntas_obrigatorias:
-            pergunta_n = normalize(pergunta)
+        # observações
+        obs = protocolo.get("observacoes", [])
+        if obs:
+            linhas.append("Observações:")
+            for o in obs:
+                linhas.append(f"• {o}")
 
-            if "idade" in pergunta_n and dados["idade"] is None:
-                faltando.append(pergunta)
-            elif "gravidade" in pergunta_n and dados["gravidade"] is None:
-                faltando.append(pergunta)
-            elif "alergia" in pergunta_n and dados["alergia"] is None:
-                faltando.append(pergunta)
-            elif "peso" in pergunta_n and dados["peso"] is None:
-                faltando.append(pergunta)
-
-        if faltando:
-            return {
-                "tipo": "coleta_dados",
-                "cenario": scenario,
-                "resposta": "Ainda preciso de algumas informações para definir o tratamento:",
-                "perguntas": faltando,
-                "dados_clinicos": dados
-            }
-
-        return self.build_protocol_response(
-            protocol=protocol,
-            scenario=scenario,
-            question=question,
-            usar_alergia=bool(dados["alergia"]),
-            peso=dados["peso"],
-        ) | {
-            "dados_clinicos": dados
-        }
+        return "\n".join(linhas)
