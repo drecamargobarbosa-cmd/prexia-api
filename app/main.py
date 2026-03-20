@@ -8,12 +8,16 @@ from app.services.clinical_engine import ClinicalEngine
 from app.services.session_memory import add_message, get_history
 
 
-app = FastAPI(title="PREXIA API", version="1.1.0")
+app = FastAPI(title="PREXIA API", version="1.1.1")
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
-    allow_credentials=True,
+    allow_origins=[
+        "https://chat.prexia.com.br",
+        "https://prexia.com.br",
+        "https://www.prexia.com.br",
+    ],
+    allow_credentials=False,
     allow_methods=["*"],
     allow_headers=["*"],
 )
