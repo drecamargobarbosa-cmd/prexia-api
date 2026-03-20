@@ -1,4 +1,5 @@
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 
 from app.services.clinical_engine import ClinicalEngine
@@ -13,6 +14,14 @@ from app.services.session_memory import (
 
 app = FastAPI(title="PREXIA API")
 
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
 clinical_engine = ClinicalEngine()
 
 
@@ -21,20 +30,12 @@ class ChatRequest(BaseModel):
     message: str
 
 
-class ChatResponse(BaseModel):
-    user_id: str
-    message: str
-    history: list
-    context: dict
-    clinical_response: dict
-
-
 @app.get("/")
 def root():
     return {"status": "ok", "service": "PREXIA API"}
 
 
-@app.post("/chat", response_model=ChatResponse)
+@app.post("/chat")
 def chat(request: ChatRequest):
     user_id = request.user_id
     message = request.message
@@ -56,14 +57,15 @@ def chat(request: ChatRequest):
         },
     )
 
-    add_message(user_id, "assistant", clinical_response.get("resposta", ""))
+    resposta_texto = clinical_response.get("resposta", "")
+
+    add_message(user_id, "assistant", resposta_texto)
 
     return {
-        "user_id": user_id,
-        "message": message,
+        "resposta": resposta_texto,
+        "clinical_response": clinical_response,
         "history": get_history(user_id),
         "context": get_context(user_id),
-        "clinical_response": clinical_response,
     }
 
 
@@ -72,6 +74,5 @@ def reset_user_context(user_id: str):
     clear_history(user_id)
     return {
         "status": "ok",
-        "user_id": user_id,
-        "message": "Contexto do usuario apagado com sucesso."
+        "message": "Contexto apagado"
     }
