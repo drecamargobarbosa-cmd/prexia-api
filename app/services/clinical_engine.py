@@ -16,6 +16,21 @@ class ClinicalEngine:
         if not scenario:
             scenario = self.protocol_engine.identify_scenario(question)
 
+        # 🚨 NOVO BLOCO: cenário não identificado
+        if not scenario:
+            return {
+                "tipo": "investigacao",
+                "cenario": None,
+                "resposta": "Preciso entender melhor o quadro clínico para orientar a conduta.",
+                "perguntas": [
+                    "Qual é a principal queixa do paciente?",
+                    "Há quanto tempo os sintomas começaram?",
+                    "Existe febre ou sinais sistêmicos?",
+                    "Qual a idade do paciente?",
+                ],
+                "dados_clinicos": dados,
+            }
+
         # 🧠 extrair dados da mensagem
         dados_extraidos = self._extract_clinical_data(question)
 
@@ -113,7 +128,6 @@ class ClinicalEngine:
 
         linhas.append(f"Diagnóstico: {scenario.replace('_', ' ').title()}\n")
 
-        # primeira linha
         primeira = protocolo.get("primeira_linha")
         alternativa = protocolo.get("alergia_penicilina")
 
@@ -127,7 +141,6 @@ class ClinicalEngine:
         linhas.append(f"• Dose: {med['dose']}")
         linhas.append(f"• Duração: {med['duracao']}\n")
 
-        # observações
         obs = protocolo.get("observacoes", [])
         if obs:
             linhas.append("Observações:")
