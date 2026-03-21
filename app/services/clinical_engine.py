@@ -782,7 +782,8 @@ class ClinicalEngine:
         medicacao: str = "",
         dose: str = "",
         posologia: str = "",
-        duracao: str = ""
+        duracao: str = "",
+        prescricao: str = ""
     ) -> str:
         sections = [
             f"Avaliação clínica: {avaliacao_clinica}",
@@ -807,6 +808,9 @@ class ClinicalEngine:
 
         if observacoes_clinicas:
             sections.append(f"Observações clínicas: {observacoes_clinicas}")
+
+        if prescricao:
+            sections.append(f"Prescrição:\n{prescricao}")
 
         return "\n\n".join(sections)
 
@@ -1045,6 +1049,9 @@ class ClinicalEngine:
                 "dose": "500 mg" if idade is not None and idade >= 12 else "10 mg/kg/dia",
                 "posologia": "1 vez ao dia",
                 "duracao": "5 dias",
+                "via": "via oral",
+                "apresentacao": "comprimido" if idade is not None and idade >= 12 else "suspensão oral",
+                "unidade_posologica": "1 comprimido" if idade is not None and idade >= 12 else "dose calculada por peso",
                 "justificativa_plano": (
                     "Há suporte clínico para tratamento antimicrobiano e, devido à alergia à penicilina, "
                     "foi priorizada alternativa terapêutica."
@@ -1058,6 +1065,9 @@ class ClinicalEngine:
                     "dose": "875/125 mg",
                     "posologia": "12/12 horas",
                     "duracao": "7 a 10 dias",
+                    "via": "via oral",
+                    "apresentacao": "comprimido",
+                    "unidade_posologica": "1 comprimido",
                     "justificativa_plano": (
                         "Em adulto com quadro compatível com otite média aguda e sinais de gravidade, "
                         "optou-se por ampliar cobertura com associação de clavulanato."
@@ -1069,6 +1079,9 @@ class ClinicalEngine:
                 "dose": "500 mg",
                 "posologia": "8/8 horas",
                 "duracao": "7 dias",
+                "via": "via oral",
+                "apresentacao": "cápsula ou comprimido",
+                "unidade_posologica": "1 unidade",
                 "justificativa_plano": (
                     "Em adulto sem alergia à penicilina e sem sinais de gravidade, "
                     "a amoxicilina permanece como primeira escolha."
@@ -1082,6 +1095,9 @@ class ClinicalEngine:
                     "dose": "80 a 90 mg/kg/dia (componente amoxicilina)",
                     "posologia": "dividida em 2 tomadas ao dia",
                     "duracao": "10 dias",
+                    "via": "via oral",
+                    "apresentacao": "suspensão oral",
+                    "unidade_posologica": "dose calculada por peso",
                     "justificativa_plano": (
                         "Em pediatria com sinais de gravidade, pode-se considerar ampliação de cobertura."
                     )
@@ -1092,6 +1108,9 @@ class ClinicalEngine:
                 "dose": "50 mg/kg/dia",
                 "posologia": "dividida em 2 a 3 tomadas ao dia",
                 "duracao": "7 a 10 dias",
+                "via": "via oral",
+                "apresentacao": "suspensão oral",
+                "unidade_posologica": "dose calculada por peso",
                 "justificativa_plano": (
                     "Em paciente pediátrico sem gravidade, a amoxicilina isolada é adequada."
                 )
@@ -1102,10 +1121,32 @@ class ClinicalEngine:
             "dose": "Seguir protocolo institucional conforme faixa etária",
             "posologia": "Conforme protocolo institucional",
             "duracao": "7 dias",
+            "via": "via oral",
+            "apresentacao": "conforme protocolo",
+            "unidade_posologica": "conforme protocolo",
             "justificativa_plano": (
                 "Há indicação clínica, porém faltam elementos adicionais para detalhar melhor a posologia."
             )
         }
+
+    def _build_prescription_text(self, plano: dict) -> str:
+        medicacao = plano.get("medicacao", "")
+        dose = plano.get("dose", "")
+        unidade_posologica = plano.get("unidade_posologica", "")
+        via = plano.get("via", "via oral")
+        posologia = plano.get("posologia", "")
+        duracao = plano.get("duracao", "")
+
+        if unidade_posologica and dose and posologia and duracao:
+            return (
+                f"{medicacao} {dose}\n"
+                f"Tomar {unidade_posologica}, {via}, {posologia}, por {duracao}."
+            )
+
+        return (
+            f"{medicacao} {dose}\n"
+            f"Usar {via}, {posologia}, por {duracao}."
+        )
 
     def _generate_complete_otitis_therapeutic_response(self, context: dict):
         scenario = context.get("scenario")
@@ -1157,6 +1198,8 @@ class ClinicalEngine:
             "Reavaliar precocemente se houver piora clínica, ausência de melhora ou surgimento de novos sinais de gravidade."
         )
 
+        prescricao = self._build_prescription_text(plano)
+
         resposta = self._build_structured_text(
             avaliacao_clinica=avaliacao,
             diagnostico_provavel=diagnostico,
@@ -1166,7 +1209,8 @@ class ClinicalEngine:
             posologia=plano["posologia"],
             duracao=plano["duracao"],
             justificativa=justificativa,
-            observacoes_clinicas=observacoes
+            observacoes_clinicas=observacoes,
+            prescricao=prescricao
         )
 
         return {
@@ -1179,6 +1223,7 @@ class ClinicalEngine:
                 "dose": plano["dose"],
                 "posologia": plano["posologia"],
                 "duracao": plano["duracao"],
+                "prescricao": prescricao,
                 "dados_clinicos": dados
             },
             "history": context.get("history", []),
@@ -1375,6 +1420,7 @@ class ClinicalEngine:
                     dose=plano["dose"],
                     posologia=plano["posologia"],
                     duracao=plano["duracao"],
+                    prescricao=self._build_prescription_text(plano),
                     justificativa=(
                         "O conjunto de informações clínicas é compatível com o cenário de otite média aguda já implementado."
                     ),
@@ -1415,6 +1461,7 @@ class ClinicalEngine:
                     dose=plano["dose"],
                     posologia=plano["posologia"],
                     duracao=plano["duracao"],
+                    prescricao=self._build_prescription_text(plano),
                     justificativa=(
                         "A gravidade do quadro exige decisão clínica mais cuidadosa e acompanhamento mais próximo."
                     ),
@@ -1455,6 +1502,7 @@ class ClinicalEngine:
                     dose=plano["dose"],
                     posologia=plano["posologia"],
                     duracao=plano["duracao"],
+                    prescricao=self._build_prescription_text(plano),
                     justificativa=(
                         "A alergia à penicilina interfere diretamente na escolha do antimicrobiano."
                     ),
