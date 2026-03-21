@@ -690,18 +690,42 @@ class ClinicalEngine:
         return None
 
     def _extract_duration_days(self, text: str):
-        patterns = [
+        direct_patterns = [
             r'ha\s*(\d{1,2})\s*dias',
-            r'(\d{1,2})\s*dias\s*de\s*sintomas',
+            r'(\d{1,2})\s*dias\s*de\s*sintomas?',
             r'(\d{1,2})\s*dias\s*de\s*dor',
             r'comecou\s*ha\s*(\d{1,2})\s*dias',
             r'inicio\s*ha\s*(\d{1,2})\s*dias',
-            r'sintomas\s*ha\s*(\d{1,2})\s*dias',
-            r'(\d{1,2})\s*dias\s*de\s*evolucao'
+            r'sintomas?\s*ha\s*(\d{1,2})\s*dias',
+            r'(\d{1,2})\s*dias\s*de\s*evolucao',
+            r'^(\d{1,2})\s*dias$',
+            r'^(\d{1,2})\s*dia$',
+            r'(\d{1,2})\s*dias\b',
+            r'(\d{1,2})\s*dia\b'
         ]
 
-        for pattern in patterns:
+        for pattern in direct_patterns:
             match = re.search(pattern, text)
+            if match:
+                try:
+                    dias = int(match.group(1))
+                    if 0 <= dias <= 60:
+                        return dias
+                except ValueError:
+                    pass
+
+        typo_text = text.replace(" dis ", " dias ")
+        typo_text = re.sub(r'\b(\d{1,2})\s*dis\b', r'\1 dias', typo_text)
+        typo_text = typo_text.replace(" de sintoma", " de sintomas")
+
+        typo_patterns = [
+            r'(\d{1,2})\s*dias\s*de\s*sintomas?',
+            r'^(\d{1,2})\s*dias$',
+            r'(\d{1,2})\s*dias\b'
+        ]
+
+        for pattern in typo_patterns:
+            match = re.search(pattern, typo_text)
             if match:
                 try:
                     dias = int(match.group(1))
