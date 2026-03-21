@@ -14,7 +14,6 @@ class ClinicalEngine:
 
         texto = question.lower()
 
-        # Detectar piora clínica
         if "piora" in texto or "não melhorou" in texto or "sem melhora" in texto:
             return {
                 "tipo": "reavaliacao",
@@ -66,15 +65,6 @@ class ClinicalEngine:
                     missing.append(pergunta)
                 elif "alerg" in p and dados.get("alergia") is None:
                     missing.append(pergunta)
-        else:
-            if dados.get("idade") is None:
-                missing.append("Qual a idade do paciente?")
-
-            if dados.get("gravidade") is None:
-                missing.append("Há sinais de gravidade, como febre alta, dor intensa ou toxemia?")
-
-            if dados.get("alergia") is None:
-                missing.append("O paciente tem alergia à penicilina?")
 
         if missing:
             return {
@@ -86,14 +76,6 @@ class ClinicalEngine:
             }
 
         protocolo = self.protocol_engine.get_protocol(scenario)
-
-        if not protocolo:
-            return {
-                "tipo": "erro",
-                "cenario": scenario,
-                "resposta": "Não encontrei protocolo para esse cenário.",
-                "dados_clinicos": dados,
-            }
 
         resposta_formatada = self._format_protocol(scenario, protocolo, dados)
 
@@ -116,55 +98,21 @@ class ClinicalEngine:
 
         import re
 
-        # IDADE
         match_idade = re.search(r"(\d+)\s*ano", text)
         if match_idade:
             data["idade"] = int(match_idade.group(1))
 
-        # PESO
-        match_peso = re.search(r"(\d+)\s*kg", text)
-        if match_peso:
-            data["peso"] = int(match_peso.group(1))
-
-        # ALERGIA
-        sinais_sem_alergia = [
-            "sem alerg",
-            "nega alerg",
-            "nao tem alerg",
-            "não tem alerg",
-            "sem alergia",
-            "nega alergia",
-        ]
-
-        if any(sinal in text for sinal in sinais_sem_alergia):
+        if any(s in text for s in ["sem alerg", "sem alergia", "nega alerg"]):
             data["alergia"] = False
         elif "alerg" in text:
             data["alergia"] = True
 
-        # GRAVIDADE
-        sinais_leves = [
-            "sem febre",
-            "afebril",
-            "sem dor intensa",
-            "dor leve",
-            "sem sinais de gravidade",
-            "sem gravidade",
-            "sem toxemia",
-            "bom estado geral",
-        ]
+        sinais_leves = ["sem febre", "afebril", "sem gravidade", "dor leve"]
+        sinais_graves = ["febre alta", "toxemia", "prostrado", "grave"]
 
-        sinais_graves = [
-            "febre alta",
-            "toxemia",
-            "prostrado",
-            "dor intensa",
-            "grave",
-            "mal estado geral",
-        ]
-
-        if any(sinal in text for sinal in sinais_leves):
+        if any(s in text for s in sinais_leves):
             data["gravidade"] = False
-        elif any(sinal in text for sinal in sinais_graves):
+        elif any(s in text for s in sinais_graves):
             data["gravidade"] = True
 
         return data
@@ -179,41 +127,21 @@ class ClinicalEngine:
         tratamento = protocolo.get("tratamento", {})
         primeira = tratamento.get("primeira_linha")
         alergia_alt = tratamento.get("alergia_penicilina")
-        alternativa = protocolo.get("alternativa")
 
-        if dados.get("alergia") is True:
-            if alergia_alt:
-                med = alergia_alt
-                motivo = "Devido à alergia à penicilina."
-            elif alternativa:
-                med = alternativa
-                motivo = "Devido à alergia à penicilina."
-            else:
-                med = primeira
-                motivo = "Sem alternativa específica disponível."
-        else:
-            med = primeira
-            motivo = "Esquema de primeira linha."
+        med = alergia_alt if dados.get("alergia") else primeira
 
         if not med:
-            return "Protocolo encontrado, mas sem medicação configurada."
+            return "Protocolo sem medicação configurada."
 
+        # 🔥 FORMATO DE PRESCRIÇÃO REAL
         linhas.append("Conduta recomendada:")
-        linhas.append(f"Medicação: {med.get('medicamento', 'Não informado')}")
-        linhas.append(f"Dose: {med.get('dose', med.get('posologia', 'Não informada'))}")
-        linhas.append(f"Duração: {med.get('duracao', 'Não informada')}")
+
+        linhas.append(f"{med.get('medicamento')} {med.get('apresentacao')}")
         linhas.append("")
-        linhas.append(f"Justificativa: {motivo}")
-
-        justificativa_protocolo = med.get("justificativa")
-        if justificativa_protocolo:
-            linhas.append(f"Observações clínicas: {justificativa_protocolo}")
-
-        obs = protocolo.get("observacoes", [])
-        if obs:
-            linhas.append("")
-            linhas.append("Observações clínicas:")
-            for o in obs:
-                linhas.append(f"• {o}")
+        linhas.append(f"{med.get('posologia')} por {med.get('duracao')}")
+        linhas.append("")
+        linhas.append(f"Quantidade: {med.get('quantidade_total')}")
+        linhas.append("")
+        linhas.append(f"Justificativa: {med.get('justificativa')}")
 
         return "\n".join(linhas)
