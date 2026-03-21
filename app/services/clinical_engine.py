@@ -145,6 +145,9 @@ class ClinicalEngine:
             "nao possui alergia",
             "sem alergia a penicilina",
             "nega alergia a penicilina",
+            "sem alergia penicilina",
+            "sem alergia a penicilinas",
+            "sem alergia a antibioticos beta lactamicos",
         ]
 
         positive_terms = [
@@ -182,6 +185,8 @@ class ClinicalEngine:
             "quadro leve",
             "quadro sem gravidade",
             "nao grave",
+            "sem sinais sistemicos",
+            "sem sinais sistêmicos",
         ]
 
         positive_terms = [
@@ -216,45 +221,33 @@ class ClinicalEngine:
             "gravidade": self._extract_severity(normalized_text),
         }
 
-    def _question_requires_age(self, question_text: str) -> bool:
-        normalized = self._normalize_text(question_text)
-        return "idade" in normalized or "anos" in normalized
-
-    def _question_requires_allergy(self, question_text: str) -> bool:
-        normalized = self._normalize_text(question_text)
-        allergy_terms = [
-            "alerg",
-            "penicilina",
-        ]
-        return self._contains_any(normalized, allergy_terms)
-
-    def _question_requires_severity(self, question_text: str) -> bool:
-        normalized = self._normalize_text(question_text)
-        severity_terms = [
-            "gravidade",
-            "febre alta",
-            "dor intensa",
-            "toxemia",
-            "sinais de alarme",
-            "sinais de alerta",
-        ]
-        return self._contains_any(normalized, severity_terms)
-
     def _get_missing_questions(self, perguntas_protocolo: list[str], dados: dict):
         missing = []
 
         if perguntas_protocolo:
             for pergunta in perguntas_protocolo:
-                if self._question_requires_age(pergunta) and dados.get("idade") is None:
-                    missing.append(pergunta)
+                pergunta_normalizada = self._normalize_text(pergunta)
+
+                if "idade" in pergunta_normalizada or "anos" in pergunta_normalizada:
+                    if dados.get("idade") is None:
+                        missing.append(pergunta)
                     continue
 
-                if self._question_requires_severity(pergunta) and dados.get("gravidade") is None:
-                    missing.append(pergunta)
+                if (
+                    "gravidade" in pergunta_normalizada
+                    or "febre alta" in pergunta_normalizada
+                    or "dor intensa" in pergunta_normalizada
+                    or "toxemia" in pergunta_normalizada
+                    or "sinais de alarme" in pergunta_normalizada
+                    or "sinais de alerta" in pergunta_normalizada
+                ):
+                    if dados.get("gravidade") is None:
+                        missing.append(pergunta)
                     continue
 
-                if self._question_requires_allergy(pergunta) and dados.get("alergia") is None:
-                    missing.append(pergunta)
+                if "alerg" in pergunta_normalizada or "penicilina" in pergunta_normalizada:
+                    if dados.get("alergia") is None:
+                        missing.append(pergunta)
                     continue
 
             return missing
