@@ -137,16 +137,28 @@ class ClinicalEngine:
         ]
         return any(token in text for token in neg_tokens)
 
+    def _mentions_ear_pain(self, text: str) -> bool:
+        direct_terms = [
+            "dor de ouvido",
+            "dor no ouvido",
+            "ouvido doendo",
+            "otalgia",
+            "ouvido inflamado",
+            "or de ouvido"
+        ]
+
+        if any(term in text for term in direct_terms):
+            return True
+
+        if "ouvido" in text and any(term in text for term in ["dor", "doendo", "otalgia"]):
+            return True
+
+        return False
+
     def _detect_scenario(self, text: str):
         t = self._normalize(text)
 
-        if any(term in t for term in [
-            "dor de ouvido",
-            "otite",
-            "ouvido inflamado",
-            "ouvido doendo",
-            "otalgia"
-        ]):
+        if self._mentions_ear_pain(t) or "otite" in t:
             return "otite_media_aguda"
 
         if any(term in t for term in [
@@ -413,9 +425,10 @@ class ClinicalEngine:
             "com dor",
             "apresenta dor",
             "dor de ouvido",
+            "dor no ouvido",
+            "or de ouvido",
             "ouvido doendo",
             "otalgia",
-            "dor no ouvido",
             "paciente com dor",
             "dor,"
         ]
@@ -423,7 +436,7 @@ class ClinicalEngine:
         if self._contains_any_expression(text, negative_terms):
             return False
 
-        if self._contains_any_expression(text, positive_terms) or text.startswith("dor"):
+        if self._contains_any_expression(text, positive_terms) or text.startswith("dor") or self._mentions_ear_pain(text):
             return True
 
         return None
@@ -432,7 +445,10 @@ class ClinicalEngine:
         negative_terms = [
             "sem dor intensa",
             "dor leve",
+            "dor media",
+            "dor media a moderada",
             "dor moderada",
+            "dor media/moderada",
             "dor suportavel",
             "dor toleravel",
             "nao e dor intensa",
@@ -488,19 +504,30 @@ class ClinicalEngine:
     def _extract_prostration_status(self, text: str):
         negative_terms = [
             "sem prostracao",
+            "sem prostacao",
             "nega prostracao",
+            "nega prostacao",
             "nao prostrado",
+            "nao prostado",
             "nao esta prostrado",
+            "nao esta prostado",
+            "paciente nao esta prostrado",
+            "paciente nao esta prostado",
             "ativo",
             "bom estado geral"
         ]
 
         positive_terms = [
             "tem prostracao",
+            "tem prostacao",
             "com prostracao",
+            "com prostacao",
             "apresenta prostracao",
+            "apresenta prostacao",
             "prostrado",
+            "prostado",
             "prostracao",
+            "prostacao",
             "abatido importante",
             "estado geral ruim",
             "paciente prostrado"
