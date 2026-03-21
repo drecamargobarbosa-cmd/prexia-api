@@ -16,6 +16,7 @@ class ClinicalEngine:
     - reconhecer intenção clínica:
       tratamento, antibiótico, medicamento e dose
     - ampliar coleta clínica antes de sugerir antibiótico
+    - interpretar melhor respostas parciais
     """
 
     def __init__(self):
@@ -275,13 +276,13 @@ class ClinicalEngine:
         if peso is not None:
             dados["peso"] = peso
 
+        inferred = self._infer_gravity_from_signs(dados)
+        if inferred is not None:
+            dados["gravidade"] = inferred
+
         explicit_gravity = self._extract_explicit_gravity_status(t)
         if explicit_gravity is not None:
             dados["gravidade"] = explicit_gravity
-        else:
-            inferred = self._infer_gravity_from_signs(dados)
-            if inferred is not None:
-                dados["gravidade"] = inferred
 
         context["dados_clinicos"] = dados
         return context
@@ -293,7 +294,8 @@ class ClinicalEngine:
             "nao tem alergia",
             "nao possui alergia",
             "nega alergia",
-            "nega alergias"
+            "nega alergias",
+            "sem alergia a penicilina"
         ]
 
         positive_terms = [
@@ -334,7 +336,8 @@ class ClinicalEngine:
             "tem febre",
             "apresenta febre",
             "febril",
-            "temperatura elevada"
+            "temperatura elevada",
+            "paciente com febre"
         ]
 
         if self._contains_any_expression(text, negative_terms):
@@ -383,7 +386,8 @@ class ClinicalEngine:
             "dor de ouvido",
             "ouvido doendo",
             "otalgia",
-            "dor no ouvido"
+            "dor no ouvido",
+            "paciente com dor"
         ]
 
         if self._contains_any_expression(text, negative_terms):
@@ -400,7 +404,8 @@ class ClinicalEngine:
             "dor leve",
             "dor moderada",
             "dor suportavel",
-            "dor toleravel"
+            "dor toleravel",
+            "nao e dor intensa"
         ]
 
         positive_terms = [
@@ -409,7 +414,8 @@ class ClinicalEngine:
             "dor forte",
             "otalgia intensa",
             "dor importante",
-            "dor muito forte"
+            "dor muito forte",
+            "com dor intensa"
         ]
 
         if self._contains_any_expression(text, negative_terms):
@@ -490,7 +496,8 @@ class ClinicalEngine:
             "otorreia",
             "sai secrecao do ouvido",
             "ouvido vazando",
-            "ouvido escorrendo"
+            "ouvido escorrendo",
+            "com secrecao"
         ]
 
         if self._contains_any_expression(text, negative_terms):
@@ -562,8 +569,8 @@ class ClinicalEngine:
         if any(value is True for value in severe_signs):
             return True
 
-        known_severe_signs = [value for value in severe_signs if value is not None]
-        if len(known_severe_signs) > 0 and all(value is False for value in known_severe_signs):
+        known = [value for value in severe_signs if value is not None]
+        if len(known) == 4 and all(value is False for value in known):
             return False
 
         return None
@@ -572,7 +579,8 @@ class ClinicalEngine:
         patterns = [
             r'(\d{1,3})\s*anos',
             r'idade\s*[:=]?\s*(\d{1,3})',
-            r'paciente\s*de\s*(\d{1,3})\s*anos'
+            r'paciente\s*de\s*(\d{1,3})\s*anos',
+            r'paciente\s*com\s*(\d{1,3})\s*anos'
         ]
 
         for pattern in patterns:
@@ -612,7 +620,8 @@ class ClinicalEngine:
             r'(\d{1,2})\s*dias\s*de\s*sintomas',
             r'(\d{1,2})\s*dias\s*de\s*dor',
             r'comecou\s*ha\s*(\d{1,2})\s*dias',
-            r'inicio\s*ha\s*(\d{1,2})\s*dias'
+            r'inicio\s*ha\s*(\d{1,2})\s*dias',
+            r'sintomas\s*ha\s*(\d{1,2})\s*dias'
         ]
 
         for pattern in patterns:
@@ -683,11 +692,7 @@ class ClinicalEngine:
                     "tipo": "coleta_dados",
                     "cenario": scenario,
                     "resposta": resposta,
-                    "perguntas": [
-                        "Há febre associada ao quadro?",
-                        "Há secreção no ouvido ou saída de pus?",
-                        "Há quantos dias os sintomas começaram?"
-                    ],
+                    "perguntas": self._get_diagnostic_support_questions_for_otitis(dados),
                     "dados_clinicos": dados
                 },
                 "history": context.get("history", []),
@@ -734,10 +739,17 @@ class ClinicalEngine:
             if dados.get("duracao_dias") is None:
                 questions.append("Há quantos dias os sintomas começaram?")
 
-            if dados.get("gravidade") is None:
-                questions.append(
-                    "Há sinais de gravidade, como febre alta, dor intensa, toxemia ou prostração?"
-                )
+            if dados.get("febre_alta") is None:
+                questions.append("A febre é alta?")
+
+            if dados.get("dor_intensa") is None:
+                questions.append("A dor é intensa?")
+
+            if dados.get("toxemia") is None:
+                questions.append("Há sinais de toxemia?")
+
+            if dados.get("prostracao") is None:
+                questions.append("O paciente apresenta prostração?")
 
             if dados.get("alergia") is None:
                 questions.append("O paciente tem alergia à penicilina?")
@@ -752,9 +764,14 @@ class ClinicalEngine:
             return questions
 
         if dados.get("gravidade") is None:
-            questions.append(
-                "Há sinais de gravidade, como febre alta, dor intensa, toxemia ou prostração?"
-            )
+            if dados.get("febre_alta") is None:
+                questions.append("A febre é alta?")
+            if dados.get("dor_intensa") is None:
+                questions.append("A dor é intensa?")
+            if dados.get("toxemia") is None:
+                questions.append("Há sinais de toxemia?")
+            if dados.get("prostracao") is None:
+                questions.append("O paciente apresenta prostração?")
 
         if dados.get("alergia") is None:
             questions.append("O paciente tem alergia à penicilina?")
@@ -765,6 +782,23 @@ class ClinicalEngine:
         idade = dados.get("idade")
         if idade is not None and idade < 12 and dados.get("peso") is None:
             questions.append("Qual é o peso do paciente em kg?")
+
+        return questions
+
+    def _get_diagnostic_support_questions_for_otitis(self, dados: dict):
+        questions = []
+
+        if dados.get("febre") is None:
+            questions.append("Há febre associada ao quadro?")
+
+        if dados.get("secrecao_auricular") is None:
+            questions.append("Há secreção no ouvido ou saída de secreção?")
+
+        if dados.get("duracao_dias") is None:
+            questions.append("Há quantos dias os sintomas começaram?")
+
+        if dados.get("dor_intensa") is None:
+            questions.append("A dor é intensa?")
 
         return questions
 
