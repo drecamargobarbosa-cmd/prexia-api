@@ -5,10 +5,10 @@ from app.services.protocol_engine import ProtocolEngine
 
 class ClinicalEngine:
     """
-    Motor clínico com memória simples em RAM por user_id.
+    Motor clínico stateless.
 
     Objetivos:
-    - acumular dados clínicos entre mensagens
+    - acumular dados clínicos a partir do contexto recebido
     - interpretar respostas curtas e fragmentadas
     - reconhecer afirmações e negações clínicas
     - separar dor presente de dor intensa
@@ -17,8 +17,6 @@ class ClinicalEngine:
       tratamento, antibiótico, medicamento e dose
     """
 
-    MEMORY = {}
-
     def __init__(self):
         self.protocol_engine = ProtocolEngine()
 
@@ -26,9 +24,7 @@ class ClinicalEngine:
         if contexto is None:
             contexto = {}
 
-        saved_context = self._get_saved_context(user_id)
-        merged_context = self._merge_contexts(saved_context, contexto)
-        merged_context = self._ensure_context_structure(merged_context)
+        merged_context = self._ensure_context_structure(deepcopy(contexto))
 
         scenario = merged_context.get("scenario")
         if not scenario:
@@ -53,40 +49,10 @@ class ClinicalEngine:
             "content": response["resposta"]
         })
 
-        self._save_context(user_id, merged_context)
+        response["history"] = merged_context["history"]
+        response["context"] = merged_context
 
         return response
-
-    def _get_saved_context(self, user_id: str) -> dict:
-        return deepcopy(self.MEMORY.get(user_id, {}))
-
-    def _save_context(self, user_id: str, context: dict):
-        self.MEMORY[user_id] = deepcopy(context)
-
-    def _merge_contexts(self, saved: dict, incoming: dict) -> dict:
-        if not saved:
-            return deepcopy(incoming or {})
-
-        merged = deepcopy(saved)
-
-        for key, value in (incoming or {}).items():
-            if isinstance(value, dict) and isinstance(merged.get(key), dict):
-                merged[key] = self._deep_merge_dicts(merged[key], value)
-            elif value is not None:
-                merged[key] = value
-
-        return merged
-
-    def _deep_merge_dicts(self, base: dict, new: dict) -> dict:
-        result = deepcopy(base)
-
-        for key, value in new.items():
-            if isinstance(value, dict) and isinstance(result.get(key), dict):
-                result[key] = self._deep_merge_dicts(result[key], value)
-            elif value is not None:
-                result[key] = value
-
-        return result
 
     def _ensure_context_structure(self, context: dict) -> dict:
         if "history" not in context or not isinstance(context["history"], list):
@@ -592,10 +558,7 @@ class ClinicalEngine:
                     "dados_clinicos": dados
                 },
                 "history": context.get("history", []),
-                "context": {
-                    "scenario": scenario,
-                    "dados_clinicos": dados
-                }
+                "context": context
             }
 
         missing_questions = self._get_missing_questions(scenario, dados)
@@ -612,10 +575,7 @@ class ClinicalEngine:
                     "dados_clinicos": dados
                 },
                 "history": context.get("history", []),
-                "context": {
-                    "scenario": scenario,
-                    "dados_clinicos": dados
-                }
+                "context": context
             }
 
         if intent == "tratamento":
@@ -642,10 +602,7 @@ class ClinicalEngine:
                 "dados_clinicos": dados
             },
             "history": context.get("history", []),
-            "context": {
-                "scenario": scenario,
-                "dados_clinicos": dados
-            }
+            "context": context
         }
 
     def _get_missing_questions(self, scenario: str, dados: dict):
@@ -712,10 +669,7 @@ class ClinicalEngine:
                         "dados_clinicos": dados
                     },
                     "history": context.get("history", []),
-                    "context": {
-                        "scenario": scenario,
-                        "dados_clinicos": dados
-                    }
+                    "context": context
                 }
 
             if dados.get("alergia") is False:
@@ -739,10 +693,7 @@ class ClinicalEngine:
                         "dados_clinicos": dados
                     },
                     "history": context.get("history", []),
-                    "context": {
-                        "scenario": scenario,
-                        "dados_clinicos": dados
-                    }
+                    "context": context
                 }
 
         fallback = self._fallback_response(scenario, dados)
@@ -755,10 +706,7 @@ class ClinicalEngine:
                 "dados_clinicos": dados
             },
             "history": context.get("history", []),
-            "context": {
-                "scenario": scenario,
-                "dados_clinicos": dados
-            }
+            "context": context
         }
 
     def _generate_antibiotic_response(self, context: dict):
@@ -783,10 +731,7 @@ class ClinicalEngine:
                         "dados_clinicos": dados
                     },
                     "history": context.get("history", []),
-                    "context": {
-                        "scenario": scenario,
-                        "dados_clinicos": dados
-                    }
+                    "context": context
                 }
 
             if dados.get("alergia") is False and dados.get("gravidade") is True:
@@ -802,10 +747,7 @@ class ClinicalEngine:
                         "dados_clinicos": dados
                     },
                     "history": context.get("history", []),
-                    "context": {
-                        "scenario": scenario,
-                        "dados_clinicos": dados
-                    }
+                    "context": context
                 }
 
             if dados.get("alergia") is True:
@@ -824,10 +766,7 @@ class ClinicalEngine:
                         "dados_clinicos": dados
                     },
                     "history": context.get("history", []),
-                    "context": {
-                        "scenario": scenario,
-                        "dados_clinicos": dados
-                    }
+                    "context": context
                 }
 
         return {
@@ -838,10 +777,7 @@ class ClinicalEngine:
                 "dados_clinicos": dados
             },
             "history": context.get("history", []),
-            "context": {
-                "scenario": scenario,
-                "dados_clinicos": dados
-            }
+            "context": context
         }
 
     def _generate_medication_response(self, context: dict):
@@ -864,10 +800,7 @@ class ClinicalEngine:
                         "dados_clinicos": dados
                     },
                     "history": context.get("history", []),
-                    "context": {
-                        "scenario": scenario,
-                        "dados_clinicos": dados
-                    }
+                    "context": context
                 }
 
             if dados.get("alergia") is False:
@@ -883,10 +816,7 @@ class ClinicalEngine:
                         "dados_clinicos": dados
                     },
                     "history": context.get("history", []),
-                    "context": {
-                        "scenario": scenario,
-                        "dados_clinicos": dados
-                    }
+                    "context": context
                 }
 
         return {
@@ -897,10 +827,7 @@ class ClinicalEngine:
                 "dados_clinicos": dados
             },
             "history": context.get("history", []),
-            "context": {
-                "scenario": scenario,
-                "dados_clinicos": dados
-            }
+            "context": context
         }
 
     def _generate_dose_response(self, context: dict):
@@ -924,10 +851,7 @@ class ClinicalEngine:
                         "dados_clinicos": dados
                     },
                     "history": context.get("history", []),
-                    "context": {
-                        "scenario": scenario,
-                        "dados_clinicos": dados
-                    }
+                    "context": context
                 }
 
             if dados.get("alergia") is False:
@@ -956,10 +880,7 @@ class ClinicalEngine:
                         "dados_clinicos": dados
                     },
                     "history": context.get("history", []),
-                    "context": {
-                        "scenario": scenario,
-                        "dados_clinicos": dados
-                    }
+                    "context": context
                 }
 
         return {
@@ -970,10 +891,7 @@ class ClinicalEngine:
                 "dados_clinicos": dados
             },
             "history": context.get("history", []),
-            "context": {
-                "scenario": scenario,
-                "dados_clinicos": dados
-            }
+            "context": context
         }
 
     def _fallback_response(self, scenario: str, dados: dict):
