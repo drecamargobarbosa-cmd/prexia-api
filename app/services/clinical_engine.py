@@ -11,6 +11,7 @@ class ClinicalEngine:
     - acumular dados clínicos entre mensagens
     - interpretar respostas curtas e fragmentadas
     - reconhecer afirmações e negações clínicas
+    - separar dor presente de dor intensa
     - evitar loop de perguntas repetidas
     - reconhecer intenção clínica, como pedido de antibiótico ou dose
     """
@@ -99,6 +100,8 @@ class ClinicalEngine:
             "alergia": None,
             "gravidade": None,
             "febre": None,
+            "febre_alta": None,
+            "dor_presente": None,
             "dor_intensa": None,
             "toxemia": None,
             "prostracao": None
@@ -141,6 +144,13 @@ class ClinicalEngine:
             text = text.replace(old, new)
 
         return text
+
+    def _contains_expression(self, text: str, expression: str) -> bool:
+        pattern = r'(^|[\s,;:.!?()])' + re.escape(expression) + r'($|[\s,;:.!?()])'
+        return re.search(pattern, text) is not None
+
+    def _contains_any_expression(self, text: str, expressions: list[str]) -> bool:
+        return any(self._contains_expression(text, exp) for exp in expressions)
 
     def _detect_scenario(self, text: str):
         t = self._normalize(text)
@@ -206,9 +216,21 @@ class ClinicalEngine:
         if febre is not None:
             dados["febre"] = febre
 
-        dor_intensa = self._extract_pain_status(t)
+        febre_alta = self._extract_high_fever_status(t)
+        if febre_alta is not None:
+            dados["febre_alta"] = febre_alta
+            if febre_alta is True:
+                dados["febre"] = True
+
+        dor_presente = self._extract_pain_presence_status(t)
+        if dor_presente is not None:
+            dados["dor_presente"] = dor_presente
+
+        dor_intensa = self._extract_pain_intensity_status(t)
         if dor_intensa is not None:
             dados["dor_intensa"] = dor_intensa
+            if dor_intensa is True:
+                dados["dor_presente"] = True
 
         toxemia = self._extract_toxemia_status(t)
         if toxemia is not None:
@@ -237,9 +259,6 @@ class ClinicalEngine:
         context["dados_clinicos"] = dados
         return context
 
-    def _contains_any(self, text: str, terms: list[str]) -> bool:
-        return any(term in text for term in terms)
-
     def _extract_allergy_status(self, text: str):
         negative_terms = [
             "sem alergia",
@@ -265,10 +284,10 @@ class ClinicalEngine:
             "alergica"
         ]
 
-        if self._contains_any(text, negative_terms):
+        if self._contains_any_expression(text, negative_terms):
             return False
 
-        if self._contains_any(text, positive_terms):
+        if self._contains_any_expression(text, positive_terms):
             return True
 
         return None
@@ -287,46 +306,89 @@ class ClinicalEngine:
             "com febre",
             "tem febre",
             "apresenta febre",
-            "febre",
             "febril",
-            "febre alta",
             "temperatura elevada"
         ]
 
-        if self._contains_any(text, negative_terms):
+        if self._contains_any_expression(text, negative_terms):
             return False
 
-        if self._contains_any(text, positive_terms):
+        if self._contains_expression(text, "febre alta"):
+            return True
+
+        if self._contains_any_expression(text, positive_terms):
             return True
 
         return None
 
-    def _extract_pain_status(self, text: str):
+    def _extract_high_fever_status(self, text: str):
+        negative_terms = [
+            "sem febre alta",
+            "nega febre alta",
+            "nao tem febre alta"
+        ]
+
+        positive_terms = [
+            "febre alta",
+            "temperatura alta"
+        ]
+
+        if self._contains_any_expression(text, negative_terms):
+            return False
+
+        if self._contains_any_expression(text, positive_terms):
+            return True
+
+        return None
+
+    def _extract_pain_presence_status(self, text: str):
         negative_terms = [
             "sem dor",
             "nega dor",
             "nao tem dor",
-            "nao apresenta dor",
-            "sem dor intensa",
-            "dor leve",
-            "dor moderada"
+            "nao apresenta dor"
         ]
 
         positive_terms = [
             "tem dor",
             "com dor",
             "apresenta dor",
+            "dor de ouvido",
+            "ouvido doendo",
+            "otalgia",
+            "dor no ouvido"
+        ]
+
+        if self._contains_any_expression(text, negative_terms):
+            return False
+
+        if self._contains_any_expression(text, positive_terms):
+            return True
+
+        return None
+
+    def _extract_pain_intensity_status(self, text: str):
+        negative_terms = [
+            "sem dor intensa",
+            "dor leve",
+            "dor moderada",
+            "dor suportavel",
+            "dor toleravel"
+        ]
+
+        positive_terms = [
             "dor intensa",
             "muita dor",
             "dor forte",
             "otalgia intensa",
-            "dor importante"
+            "dor importante",
+            "dor muito forte"
         ]
 
-        if self._contains_any(text, negative_terms):
+        if self._contains_any_expression(text, negative_terms):
             return False
 
-        if self._contains_any(text, positive_terms):
+        if self._contains_any_expression(text, positive_terms):
             return True
 
         return None
@@ -347,10 +409,10 @@ class ClinicalEngine:
             "toxemico"
         ]
 
-        if self._contains_any(text, negative_terms):
+        if self._contains_any_expression(text, negative_terms):
             return False
 
-        if self._contains_any(text, positive_terms):
+        if self._contains_any_expression(text, positive_terms):
             return True
 
         return None
@@ -375,10 +437,10 @@ class ClinicalEngine:
             "estado geral ruim"
         ]
 
-        if self._contains_any(text, negative_terms):
+        if self._contains_any_expression(text, negative_terms):
             return False
 
-        if self._contains_any(text, positive_terms):
+        if self._contains_any_expression(text, positive_terms):
             return True
 
         return None
@@ -398,31 +460,30 @@ class ClinicalEngine:
             "com gravidade",
             "apresenta gravidade",
             "sinais de gravidade",
-            "quadro grave",
-            "grave"
+            "quadro grave"
         ]
 
-        if self._contains_any(text, negative_terms):
+        if self._contains_any_expression(text, negative_terms):
             return False
 
-        if self._contains_any(text, positive_terms):
+        if self._contains_any_expression(text, positive_terms):
             return True
 
         return None
 
     def _infer_gravity_from_signs(self, dados: dict):
-        signs = [
-            dados.get("febre"),
+        severe_signs = [
+            dados.get("febre_alta"),
             dados.get("dor_intensa"),
             dados.get("toxemia"),
             dados.get("prostracao")
         ]
 
-        if any(value is True for value in signs):
+        if any(value is True for value in severe_signs):
             return True
 
-        known_signs = [value for value in signs if value is not None]
-        if len(known_signs) > 0 and all(value is False for value in known_signs):
+        known_severe_signs = [value for value in severe_signs if value is not None]
+        if len(known_severe_signs) > 0 and all(value is False for value in known_severe_signs):
             return False
 
         return None
@@ -579,7 +640,7 @@ class ClinicalEngine:
         dados = context.get("dados_clinicos", {})
 
         if scenario == "otite_media_aguda":
-            if dados.get("alergia") is False:
+            if dados.get("alergia") is False and dados.get("gravidade") is False:
                 return {
                     "resposta": (
                         "Para otite média aguda sem sinais de gravidade e sem alergia à penicilina, "
@@ -595,6 +656,25 @@ class ClinicalEngine:
                             "o antibiótico de primeira escolha costuma ser a amoxicilina, conforme protocolo institucional."
                         ),
                         "antibiotico": "amoxicilina",
+                        "dados_clinicos": dados
+                    },
+                    "history": context.get("history", []),
+                    "context": {
+                        "scenario": scenario,
+                        "dados_clinicos": dados
+                    }
+                }
+
+            if dados.get("alergia") is False and dados.get("gravidade") is True:
+                return {
+                    "resposta": (
+                        "Há sinais de gravidade no quadro. A definição do antibiótico e da conduta precisa considerar avaliação clínica mais cuidadosa, "
+                        "além do protocolo institucional adotado pelo serviço."
+                    ),
+                    "clinical_response": {
+                        "tipo": "antibiotico",
+                        "cenario": scenario,
+                        "resposta": "Há sinais de gravidade no quadro.",
                         "dados_clinicos": dados
                     },
                     "history": context.get("history", []),
@@ -708,6 +788,8 @@ class ClinicalEngine:
                         "idade": dados.get("idade"),
                         "peso": dados.get("peso"),
                         "febre": dados.get("febre"),
+                        "febre_alta": dados.get("febre_alta"),
+                        "dor_presente": dados.get("dor_presente"),
                         "dor_intensa": dados.get("dor_intensa"),
                         "toxemia": dados.get("toxemia"),
                         "prostracao": dados.get("prostracao")
@@ -728,6 +810,8 @@ class ClinicalEngine:
                         "idade": dados.get("idade"),
                         "peso": dados.get("peso"),
                         "febre": dados.get("febre"),
+                        "febre_alta": dados.get("febre_alta"),
+                        "dor_presente": dados.get("dor_presente"),
                         "dor_intensa": dados.get("dor_intensa"),
                         "toxemia": dados.get("toxemia"),
                         "prostracao": dados.get("prostracao")
@@ -748,6 +832,8 @@ class ClinicalEngine:
                         "idade": dados.get("idade"),
                         "peso": dados.get("peso"),
                         "febre": dados.get("febre"),
+                        "febre_alta": dados.get("febre_alta"),
+                        "dor_presente": dados.get("dor_presente"),
                         "dor_intensa": dados.get("dor_intensa"),
                         "toxemia": dados.get("toxemia"),
                         "prostracao": dados.get("prostracao")
