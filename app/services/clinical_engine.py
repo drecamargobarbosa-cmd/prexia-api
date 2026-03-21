@@ -242,6 +242,8 @@ class ClinicalEngine:
         febre = self._extract_fever_status(t)
         if febre is not None:
             dados["febre"] = febre
+            if febre is False:
+                dados["febre_alta"] = False
 
         febre_alta = self._extract_high_fever_status(t, dados)
         if febre_alta is not None:
@@ -368,6 +370,9 @@ class ClinicalEngine:
         return None
 
     def _extract_high_fever_status(self, text: str, dados: dict):
+        if dados.get("febre") is False:
+            return False
+
         negative_terms = [
             "sem febre alta",
             "nega febre alta",
@@ -725,7 +730,38 @@ class ClinicalEngine:
                 "context": context
             }
 
-        if scenario == "otite_media_aguda" and not self._has_minimum_diagnostic_support_for_otitis(dados):
+        if scenario == "otite_media_aguda":
+            if self._has_minimum_diagnostic_support_for_otitis(dados):
+                if intent == "tratamento":
+                    return self._generate_treatment_response(context)
+
+                if intent == "antibiotico":
+                    return self._generate_antibiotic_response(context)
+
+                if intent == "medicamento":
+                    return self._generate_medication_response(context)
+
+                if intent == "dose":
+                    return self._generate_dose_response(context)
+
+                protocol_result = self._generate_protocol_response(scenario, dados)
+
+                return {
+                    "resposta": protocol_result["resposta"],
+                    "clinical_response": {
+                        "tipo": "conduta",
+                        "cenario": scenario,
+                        "resposta": protocol_result["resposta"],
+                        "conduta": protocol_result.get("conduta"),
+                        "dados_clinicos": dados
+                    },
+                    "history": context.get("history", []),
+                    "context": context
+                }
+
+            if self._has_sufficient_otitis_assessment_for_observation(dados):
+                return self._generate_non_antibiotic_otitis_response(context)
+
             resposta = (
                 "Ainda não há elementos clínicos suficientes para sustentar indicação de antibiótico com segurança. "
                 "Preciso consolidar melhor os sinais e sintomas do quadro de otite antes de avançar na escolha do medicamento."
@@ -783,7 +819,7 @@ class ClinicalEngine:
             if dados.get("duracao_dias") is None:
                 questions.append("Há quantos dias os sintomas começaram?")
 
-            if dados.get("febre_alta") is None:
+            if dados.get("febre") is True and dados.get("febre_alta") is None:
                 questions.append("A febre é alta?")
 
             if dados.get("toxemia") is None:
@@ -805,7 +841,7 @@ class ClinicalEngine:
             return questions
 
         if dados.get("gravidade") is None:
-            if dados.get("febre_alta") is None:
+            if dados.get("febre_alta") is None and dados.get("febre") is not False:
                 questions.append("A febre é alta?")
             if dados.get("dor_intensa") is None:
                 questions.append("A dor é intensa?")
@@ -865,6 +901,48 @@ class ClinicalEngine:
 
         return any(supporting_features)
 
+    def _has_sufficient_otitis_assessment_for_observation(self, dados: dict) -> bool:
+        required_fields = [
+            "dor_presente",
+            "duracao_dias",
+            "febre",
+            "secrecao_auricular",
+            "dor_intensa",
+            "toxemia",
+            "prostracao",
+            "alergia",
+            "idade"
+        ]
+
+        for field in required_fields:
+            if dados.get(field) is None:
+                return False
+
+        return dados.get("dor_presente") is True
+
+    def _generate_non_antibiotic_otitis_response(self, context: dict):
+        scenario = context.get("scenario")
+        dados = context.get("dados_clinicos", {})
+
+        resposta = (
+            "Com os dados informados até aqui, não há suporte clínico suficiente para sustentar antibioticoterapia empírica com segurança. "
+            "Na ausência de febre, secreção auricular, dor intensa, toxemia e prostração, a conduta inicial tende a priorizar analgesia, "
+            "observação clínica e reavaliação. É importante confirmar o diagnóstico no exame físico, especialmente na otoscopia, e reavaliar "
+            "precocemente se houver piora, persistência dos sintomas ou surgimento de sinais de gravidade."
+        )
+
+        return {
+            "resposta": resposta,
+            "clinical_response": {
+                "tipo": "reavaliacao",
+                "cenario": scenario,
+                "resposta": resposta,
+                "dados_clinicos": dados
+            },
+            "history": context.get("history", []),
+            "context": context
+        }
+
     def _generate_protocol_response(self, scenario: str, dados: dict):
         try:
             protocol_response = self.protocol_engine.generate_recommendation(
@@ -888,6 +966,9 @@ class ClinicalEngine:
 
         if scenario == "otite_media_aguda":
             if not self._has_minimum_diagnostic_support_for_otitis(dados):
+                if self._has_sufficient_otitis_assessment_for_observation(dados):
+                    return self._generate_non_antibiotic_otitis_response(context)
+
                 resposta = (
                     "Antes de definir tratamento para otite, preciso de sinais e sintomas mais consistentes do quadro, "
                     "como febre, secreção auricular, intensidade da dor e tempo de evolução."
@@ -972,6 +1053,25 @@ class ClinicalEngine:
 
         if scenario == "otite_media_aguda":
             if not self._has_minimum_diagnostic_support_for_otitis(dados):
+                if self._has_sufficient_otitis_assessment_for_observation(dados):
+                    return {
+                        "resposta": (
+                            "Com os dados clínicos atuais, não há base suficiente para indicar antibiótico empiricamente com segurança. "
+                            "Na ausência de febre, secreção auricular, dor intensa e sinais sistêmicos, a conduta tende a ser observação clínica, "
+                            "analgesia e reavaliação, com confirmação diagnóstica ao exame físico."
+                        ),
+                        "clinical_response": {
+                            "tipo": "reavaliacao",
+                            "cenario": scenario,
+                            "resposta": (
+                                "Com os dados clínicos atuais, não há base suficiente para indicar antibiótico empiricamente com segurança."
+                            ),
+                            "dados_clinicos": dados
+                        },
+                        "history": context.get("history", []),
+                        "context": context
+                    }
+
                 return {
                     "resposta": (
                         "Ainda não há base clínica suficiente para indicar antibiótico com segurança. "
@@ -1061,6 +1161,24 @@ class ClinicalEngine:
 
         if scenario == "otite_media_aguda":
             if not self._has_minimum_diagnostic_support_for_otitis(dados):
+                if self._has_sufficient_otitis_assessment_for_observation(dados):
+                    return {
+                        "resposta": (
+                            "Com os dados atuais, não há indicação suficiente para definir um antibiótico de rotina. "
+                            "A prioridade tende a ser controle sintomático, observação clínica e reavaliação."
+                        ),
+                        "clinical_response": {
+                            "tipo": "reavaliacao",
+                            "cenario": scenario,
+                            "resposta": (
+                                "Com os dados atuais, não há indicação suficiente para definir um antibiótico de rotina."
+                            ),
+                            "dados_clinicos": dados
+                        },
+                        "history": context.get("history", []),
+                        "context": context
+                    }
+
                 return {
                     "resposta": (
                         "Ainda não há dados clínicos suficientes para definir o medicamento com segurança. "
@@ -1129,6 +1247,24 @@ class ClinicalEngine:
 
         if scenario == "otite_media_aguda":
             if not self._has_minimum_diagnostic_support_for_otitis(dados):
+                if self._has_sufficient_otitis_assessment_for_observation(dados):
+                    return {
+                        "resposta": (
+                            "Como não há indicação clínica suficiente de antibiótico neste momento, não há dose antibiótica a definir. "
+                            "A prioridade tende a ser observação clínica, analgesia e reavaliação."
+                        ),
+                        "clinical_response": {
+                            "tipo": "reavaliacao",
+                            "cenario": scenario,
+                            "resposta": (
+                                "Como não há indicação clínica suficiente de antibiótico neste momento, não há dose antibiótica a definir."
+                            ),
+                            "dados_clinicos": dados
+                        },
+                        "history": context.get("history", []),
+                        "context": context
+                    }
+
                 return {
                     "resposta": (
                         "Antes de definir dose, preciso ter mais segurança sobre a indicação clínica do antibiótico."
@@ -1207,6 +1343,18 @@ class ClinicalEngine:
     def _fallback_response(self, scenario: str, dados: dict):
         if scenario == "otite_media_aguda":
             if not self._has_minimum_diagnostic_support_for_otitis(dados):
+                if self._has_sufficient_otitis_assessment_for_observation(dados):
+                    return {
+                        "resposta": (
+                            "Os dados levantados até aqui não sustentam antibioticoterapia empírica com segurança. "
+                            "Considere manejo sintomático, observação, confirmação diagnóstica ao exame físico e reavaliação clínica."
+                        ),
+                        "conduta": {
+                            "cenario": scenario,
+                            "dados_clinicos": dados
+                        }
+                    }
+
                 return {
                     "resposta": (
                         "Há suspeita clínica de otite, mas os dados ainda são insuficientes para sustentar indicação antibiótica com segurança. "
