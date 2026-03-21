@@ -13,7 +13,8 @@ class ClinicalEngine:
     - reconhecer afirmações e negações clínicas
     - separar dor presente de dor intensa
     - evitar loop de perguntas repetidas
-    - reconhecer intenção clínica, como pedido de antibiótico ou dose
+    - reconhecer intenção clínica:
+      tratamento, antibiótico, medicamento e dose
     """
 
     MEMORY = {}
@@ -185,22 +186,65 @@ class ClinicalEngine:
     def _detect_intent(self, text: str):
         t = self._normalize(text)
 
-        if any(term in t for term in [
+        antibiotic_terms = [
             "qual antibiotico",
-            "qual antibiotico indicado",
-            "antibiotico indicado",
+            "qual o antibiotico",
+            "qual antibiotico",
             "qual seria o antibiotico",
-            "qual o antibiotico"
-        ]):
+            "antibiotico indicado",
+            "antibiotico",
+            "antibiotico de escolha"
+        ]
+
+        medication_terms = [
+            "qual o medicamento",
+            "qual medicamento",
+            "qual seria o medicamento",
+            "qual remedio",
+            "qual o remedio",
+            "qual seria o remedio",
+            "medicamento indicado",
+            "remedio indicado"
+        ]
+
+        dose_terms = [
+            "qual a dose",
+            "qual dose",
+            "qual a dose do antibiotico",
+            "qual dose do antibiotico",
+            "qual a dose de antibiotico",
+            "qual dose de antibiotico",
+            "dose do antibiotico",
+            "dose de antibiotico",
+            "dosagem",
+            "posologia",
+            "quanto mg",
+            "qual a posologia",
+            "qual posologia"
+        ]
+
+        treatment_terms = [
+            "qual o tratamento",
+            "qual tratamento",
+            "qual seria o tratamento",
+            "como tratar",
+            "tratamento",
+            "qual a conduta",
+            "qual conduta",
+            "conduta"
+        ]
+
+        if any(term in t for term in dose_terms):
+            return "dose"
+
+        if any(term in t for term in medication_terms):
+            return "medicamento"
+
+        if any(term in t for term in antibiotic_terms):
             return "antibiotico"
 
-        if any(term in t for term in [
-            "qual dose",
-            "dosagem",
-            "quanto mg",
-            "posologia"
-        ]):
-            return "dose"
+        if any(term in t for term in treatment_terms):
+            return "tratamento"
 
         return "geral"
 
@@ -574,8 +618,14 @@ class ClinicalEngine:
                 }
             }
 
+        if intent == "tratamento":
+            return self._generate_treatment_response(context)
+
         if intent == "antibiotico":
             return self._generate_antibiotic_response(context)
+
+        if intent == "medicamento":
+            return self._generate_medication_response(context)
 
         if intent == "dose":
             return self._generate_dose_response(context)
@@ -635,6 +685,82 @@ class ClinicalEngine:
         except Exception:
             return self._fallback_response(scenario, dados)
 
+    def _generate_treatment_response(self, context: dict):
+        scenario = context.get("scenario")
+        dados = context.get("dados_clinicos", {})
+
+        if scenario == "otite_media_aguda":
+            if dados.get("alergia") is True:
+                if dados.get("gravidade") is True:
+                    resposta = (
+                        "Para otite média aguda com relato de alergia à penicilina e presença de sinais de gravidade, "
+                        "a conduta deve ser individualizada conforme avaliação clínica, perfil da alergia e protocolo institucional. "
+                        "Considere alternativa ao esquema com penicilina, além de analgesia, reavaliação precoce e monitoramento clínico."
+                    )
+                else:
+                    resposta = (
+                        "Para otite média aguda com relato de alergia à penicilina, considerar alternativa terapêutica conforme protocolo institucional, "
+                        "além de analgesia e reavaliação clínica se não houver melhora."
+                    )
+
+                return {
+                    "resposta": resposta,
+                    "clinical_response": {
+                        "tipo": "tratamento",
+                        "cenario": scenario,
+                        "resposta": resposta,
+                        "dados_clinicos": dados
+                    },
+                    "history": context.get("history", []),
+                    "context": {
+                        "scenario": scenario,
+                        "dados_clinicos": dados
+                    }
+                }
+
+            if dados.get("alergia") is False:
+                if dados.get("gravidade") is True:
+                    resposta = (
+                        "Para otite média aguda com sinais de gravidade, a conduta deve considerar avaliação clínica mais cuidadosa, "
+                        "definição do antibiótico conforme protocolo institucional, analgesia e reavaliação precoce."
+                    )
+                else:
+                    resposta = (
+                        "Para otite média aguda sem sinais de gravidade e sem alergia à penicilina, considerar antibioticoterapia conforme protocolo institucional, "
+                        "além de analgesia e reavaliação clínica se não houver melhora."
+                    )
+
+                return {
+                    "resposta": resposta,
+                    "clinical_response": {
+                        "tipo": "tratamento",
+                        "cenario": scenario,
+                        "resposta": resposta,
+                        "dados_clinicos": dados
+                    },
+                    "history": context.get("history", []),
+                    "context": {
+                        "scenario": scenario,
+                        "dados_clinicos": dados
+                    }
+                }
+
+        fallback = self._fallback_response(scenario, dados)
+        return {
+            "resposta": fallback["resposta"],
+            "clinical_response": {
+                "tipo": "tratamento",
+                "cenario": scenario,
+                "resposta": fallback["resposta"],
+                "dados_clinicos": dados
+            },
+            "history": context.get("history", []),
+            "context": {
+                "scenario": scenario,
+                "dados_clinicos": dados
+            }
+        }
+
     def _generate_antibiotic_response(self, context: dict):
         scenario = context.get("scenario")
         dados = context.get("dados_clinicos", {})
@@ -644,9 +770,7 @@ class ClinicalEngine:
                 return {
                     "resposta": (
                         "Para otite média aguda sem sinais de gravidade e sem alergia à penicilina, "
-                        "o antibiótico de primeira escolha costuma ser a amoxicilina, conforme protocolo institucional. "
-                        "Em adultos, uma posologia frequentemente utilizada é 500 mg a cada 8 horas ou 875 mg a cada 12 horas, "
-                        "mas a escolha final deve seguir o protocolo adotado no serviço, a avaliação clínica e o perfil do paciente."
+                        "o antibiótico de primeira escolha costuma ser a amoxicilina, conforme protocolo institucional."
                     ),
                     "clinical_response": {
                         "tipo": "antibiotico",
@@ -668,8 +792,8 @@ class ClinicalEngine:
             if dados.get("alergia") is False and dados.get("gravidade") is True:
                 return {
                     "resposta": (
-                        "Há sinais de gravidade no quadro. A definição do antibiótico e da conduta precisa considerar avaliação clínica mais cuidadosa, "
-                        "além do protocolo institucional adotado pelo serviço."
+                        "Há sinais de gravidade no quadro. A definição do antibiótico precisa considerar avaliação clínica mais cuidadosa "
+                        "e o protocolo institucional adotado pelo serviço."
                     ),
                     "clinical_response": {
                         "tipo": "antibiotico",
@@ -720,43 +844,123 @@ class ClinicalEngine:
             }
         }
 
+    def _generate_medication_response(self, context: dict):
+        scenario = context.get("scenario")
+        dados = context.get("dados_clinicos", {})
+
+        if scenario == "otite_media_aguda":
+            if dados.get("alergia") is True:
+                return {
+                    "resposta": (
+                        "Com relato de alergia à penicilina, o medicamento deve ser uma alternativa ao grupo das penicilinas, "
+                        "como azitromicina ou claritromicina, conforme protocolo institucional e perfil da reação alérgica."
+                    ),
+                    "clinical_response": {
+                        "tipo": "medicamento",
+                        "cenario": scenario,
+                        "resposta": (
+                            "Com relato de alergia à penicilina, considerar alternativa como azitromicina ou claritromicina."
+                        ),
+                        "dados_clinicos": dados
+                    },
+                    "history": context.get("history", []),
+                    "context": {
+                        "scenario": scenario,
+                        "dados_clinicos": dados
+                    }
+                }
+
+            if dados.get("alergia") is False:
+                return {
+                    "resposta": (
+                        "Sem alergia à penicilina, o medicamento de primeira escolha costuma ser a amoxicilina, "
+                        "conforme protocolo institucional."
+                    ),
+                    "clinical_response": {
+                        "tipo": "medicamento",
+                        "cenario": scenario,
+                        "resposta": "Sem alergia à penicilina, o medicamento de primeira escolha costuma ser a amoxicilina.",
+                        "dados_clinicos": dados
+                    },
+                    "history": context.get("history", []),
+                    "context": {
+                        "scenario": scenario,
+                        "dados_clinicos": dados
+                    }
+                }
+
+        return {
+            "resposta": "Ainda não há protocolo específico de medicamento implementado para esse cenário.",
+            "clinical_response": {
+                "tipo": "medicamento",
+                "cenario": scenario,
+                "dados_clinicos": dados
+            },
+            "history": context.get("history", []),
+            "context": {
+                "scenario": scenario,
+                "dados_clinicos": dados
+            }
+        }
+
     def _generate_dose_response(self, context: dict):
         scenario = context.get("scenario")
         dados = context.get("dados_clinicos", {})
 
-        if scenario == "otite_media_aguda" and dados.get("alergia") is False:
-            idade = dados.get("idade")
-            peso = dados.get("peso")
-
-            if idade is not None and idade >= 12:
-                resposta = (
-                    "Para adulto com otite média aguda e sem alergia à penicilina, "
-                    "uma posologia comumente utilizada para amoxicilina é 500 mg a cada 8 horas "
-                    "ou 875 mg a cada 12 horas, conforme avaliação clínica e protocolo institucional."
-                )
-            elif peso is not None:
-                resposta = (
-                    f"Para paciente pediátrico com {peso} kg, a dose deve ser calculada por peso, "
-                    "conforme protocolo institucional adotado pelo serviço."
-                )
-            else:
-                resposta = (
-                    "Para definir a dose com maior segurança, preciso da idade e, se for criança, também do peso."
-                )
-
-            return {
-                "resposta": resposta,
-                "clinical_response": {
-                    "tipo": "dose",
-                    "cenario": scenario,
-                    "dados_clinicos": dados
-                },
-                "history": context.get("history", []),
-                "context": {
-                    "scenario": scenario,
-                    "dados_clinicos": dados
+        if scenario == "otite_media_aguda":
+            if dados.get("alergia") is True:
+                return {
+                    "resposta": (
+                        "Como há relato de alergia à penicilina, a dose depende do antibiótico alternativo escolhido, "
+                        "como azitromicina ou claritromicina. A definição da posologia deve seguir o protocolo institucional, "
+                        "a idade, o peso quando aplicável, e o perfil clínico do paciente."
+                    ),
+                    "clinical_response": {
+                        "tipo": "dose",
+                        "cenario": scenario,
+                        "resposta": (
+                            "Com alergia à penicilina, a dose depende do antibiótico alternativo escolhido."
+                        ),
+                        "dados_clinicos": dados
+                    },
+                    "history": context.get("history", []),
+                    "context": {
+                        "scenario": scenario,
+                        "dados_clinicos": dados
+                    }
                 }
-            }
+
+            if dados.get("alergia") is False:
+                idade = dados.get("idade")
+                peso = dados.get("peso")
+
+                if idade is not None and idade >= 12:
+                    resposta = (
+                        "Para adulto sem alergia à penicilina, a dose deve seguir o protocolo institucional do serviço para amoxicilina."
+                    )
+                elif peso is not None:
+                    resposta = (
+                        f"Para paciente pediátrico com {peso} kg, a dose deve ser calculada por peso, conforme protocolo institucional."
+                    )
+                else:
+                    resposta = (
+                        "Para definir a dose com maior segurança, preciso da idade e, se for criança, também do peso."
+                    )
+
+                return {
+                    "resposta": resposta,
+                    "clinical_response": {
+                        "tipo": "dose",
+                        "cenario": scenario,
+                        "resposta": resposta,
+                        "dados_clinicos": dados
+                    },
+                    "history": context.get("history", []),
+                    "context": {
+                        "scenario": scenario,
+                        "dados_clinicos": dados
+                    }
+                }
 
         return {
             "resposta": "Ainda não há protocolo de dose específico implementado para esse cenário.",
