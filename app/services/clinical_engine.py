@@ -14,7 +14,7 @@ class ClinicalEngine:
 
         texto = question.lower()
 
-        # 🚨 NOVO: detectar piora clínica
+        # Detectar piora clínica
         if "piora" in texto or "não melhorou" in texto or "sem melhora" in texto:
             return {
                 "tipo": "reavaliacao",
@@ -51,7 +51,7 @@ class ClinicalEngine:
         dados_extraidos = self._extract_clinical_data(question)
         dados.update({k: v for k, v in dados_extraidos.items() if v is not None})
 
-        protocolo_base = self.protocol_engine.load_protocol(scenario)
+        protocolo_base = self.protocol_engine.get_protocol(scenario)
         perguntas_protocolo = protocolo_base.get("perguntas_obrigatorias", []) if protocolo_base else []
 
         missing = []
@@ -85,7 +85,7 @@ class ClinicalEngine:
                 "dados_clinicos": dados,
             }
 
-        protocolo = self.protocol_engine.get_protocol(scenario, dados)
+        protocolo = self.protocol_engine.get_protocol(scenario)
 
         if not protocolo:
             return {
@@ -139,42 +139,47 @@ class ClinicalEngine:
     def _format_protocol(self, scenario, protocolo, dados):
         linhas = []
 
-        linhas.append("🩺 Avaliação Clínica")
+        linhas.append("Avaliação Clínica:")
         linhas.append(f"Diagnóstico provável: {scenario.replace('_', ' ').title()}")
         linhas.append("")
 
-        primeira = protocolo.get("primeira_linha")
-        alergia_alt = protocolo.get("alergia_penicilina")
+        tratamento = protocolo.get("tratamento", {})
+        primeira = tratamento.get("primeira_linha")
+        alergia_alt = tratamento.get("alergia_penicilina")
         alternativa = protocolo.get("alternativa")
 
         if dados.get("alergia") is True:
             if alergia_alt:
                 med = alergia_alt
-                motivo = "Devido à alergia à penicilina"
+                motivo = "Devido à alergia à penicilina."
             elif alternativa:
                 med = alternativa
-                motivo = "Devido à alergia à penicilina"
+                motivo = "Devido à alergia à penicilina."
             else:
                 med = primeira
-                motivo = "Sem alternativa específica disponível"
+                motivo = "Sem alternativa específica disponível."
         else:
             med = primeira
-            motivo = "Esquema de primeira linha"
+            motivo = "Esquema de primeira linha."
 
         if not med:
             return "Protocolo encontrado, mas sem medicação configurada."
 
-        linhas.append("💊 Conduta recomendada")
-        linhas.append(f"Medicação: {med['medicamento']}")
-        linhas.append(f"Dose: {med['dose']}")
-        linhas.append(f"Duração: {med['duracao']}")
+        linhas.append("Conduta recomendada:")
+        linhas.append(f"Medicação: {med.get('medicamento', 'Não informado')}")
+        linhas.append(f"Dose: {med.get('dose', med.get('posologia', 'Não informada'))}")
+        linhas.append(f"Duração: {med.get('duracao', 'Não informada')}")
         linhas.append("")
         linhas.append(f"Justificativa: {motivo}")
-        linhas.append("")
+
+        justificativa_protocolo = med.get("justificativa")
+        if justificativa_protocolo:
+            linhas.append(f"Observações clínicas: {justificativa_protocolo}")
 
         obs = protocolo.get("observacoes", [])
         if obs:
-            linhas.append("📌 Observações clínicas")
+            linhas.append("")
+            linhas.append("Observações clínicas:")
             for o in obs:
                 linhas.append(f"• {o}")
 
