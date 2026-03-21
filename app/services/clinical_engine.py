@@ -15,6 +15,7 @@ class ClinicalEngine:
     - evitar loop de perguntas repetidas
     - reconhecer intenção clínica:
       tratamento, antibiótico, medicamento e dose
+    - ampliar coleta clínica antes de sugerir antibiótico
     """
 
     def __init__(self):
@@ -71,7 +72,10 @@ class ClinicalEngine:
             "dor_presente": None,
             "dor_intensa": None,
             "toxemia": None,
-            "prostracao": None
+            "prostracao": None,
+            "secrecao_auricular": None,
+            "secrecao_purulenta": None,
+            "duracao_dias": None
         }
 
         for key, value in defaults.items():
@@ -155,7 +159,6 @@ class ClinicalEngine:
         antibiotic_terms = [
             "qual antibiotico",
             "qual o antibiotico",
-            "qual antibiotico",
             "qual seria o antibiotico",
             "antibiotico indicado",
             "antibiotico",
@@ -249,6 +252,20 @@ class ClinicalEngine:
         prostracao = self._extract_prostration_status(t)
         if prostracao is not None:
             dados["prostracao"] = prostracao
+
+        secrecao_auricular = self._extract_ear_discharge_status(t)
+        if secrecao_auricular is not None:
+            dados["secrecao_auricular"] = secrecao_auricular
+
+        secrecao_purulenta = self._extract_purulent_discharge_status(t)
+        if secrecao_purulenta is not None:
+            dados["secrecao_purulenta"] = secrecao_purulenta
+            if secrecao_purulenta is True:
+                dados["secrecao_auricular"] = True
+
+        duracao_dias = self._extract_duration_days(t)
+        if duracao_dias is not None:
+            dados["duracao_dias"] = duracao_dias
 
         idade = self._extract_age(t)
         if idade is not None:
@@ -455,6 +472,59 @@ class ClinicalEngine:
 
         return None
 
+    def _extract_ear_discharge_status(self, text: str):
+        negative_terms = [
+            "sem secrecao no ouvido",
+            "sem secrecao auricular",
+            "sem otorreia",
+            "nega secrecao no ouvido",
+            "nega secrecao auricular",
+            "nao tem secrecao no ouvido",
+            "nao apresenta secrecao no ouvido",
+            "ouvido seco"
+        ]
+
+        positive_terms = [
+            "secrecao no ouvido",
+            "secrecao auricular",
+            "otorreia",
+            "sai secrecao do ouvido",
+            "ouvido vazando",
+            "ouvido escorrendo"
+        ]
+
+        if self._contains_any_expression(text, negative_terms):
+            return False
+
+        if self._contains_any_expression(text, positive_terms):
+            return True
+
+        return None
+
+    def _extract_purulent_discharge_status(self, text: str):
+        negative_terms = [
+            "sem secrecao purulenta",
+            "sem pus",
+            "nega pus",
+            "nao tem pus"
+        ]
+
+        positive_terms = [
+            "secrecao purulenta",
+            "pus",
+            "secrecao com pus",
+            "saida de pus",
+            "otorreia purulenta"
+        ]
+
+        if self._contains_any_expression(text, negative_terms):
+            return False
+
+        if self._contains_any_expression(text, positive_terms):
+            return True
+
+        return None
+
     def _extract_explicit_gravity_status(self, text: str):
         negative_terms = [
             "sem gravidade",
@@ -536,6 +606,30 @@ class ClinicalEngine:
 
         return None
 
+    def _extract_duration_days(self, text: str):
+        patterns = [
+            r'ha\s*(\d{1,2})\s*dias',
+            r'(\d{1,2})\s*dias\s*de\s*sintomas',
+            r'(\d{1,2})\s*dias\s*de\s*dor',
+            r'comecou\s*ha\s*(\d{1,2})\s*dias',
+            r'inicio\s*ha\s*(\d{1,2})\s*dias'
+        ]
+
+        for pattern in patterns:
+            match = re.search(pattern, text)
+            if match:
+                try:
+                    dias = int(match.group(1))
+                    if 0 <= dias <= 60:
+                        return dias
+                except ValueError:
+                    pass
+
+        if self._contains_expression(text, "hoje"):
+            return 0
+
+        return None
+
     def _build_response(self, context: dict) -> dict:
         scenario = context.get("scenario")
         dados = context.get("dados_clinicos", {})
@@ -578,6 +672,28 @@ class ClinicalEngine:
                 "context": context
             }
 
+        if scenario == "otite_media_aguda" and not self._has_minimum_diagnostic_support_for_otitis(dados):
+            resposta = (
+                "Ainda não há elementos clínicos suficientes para sustentar indicação de antibiótico com segurança. "
+                "Preciso consolidar melhor os sinais e sintomas do quadro de otite antes de avançar na escolha do medicamento."
+            )
+            return {
+                "resposta": resposta,
+                "clinical_response": {
+                    "tipo": "coleta_dados",
+                    "cenario": scenario,
+                    "resposta": resposta,
+                    "perguntas": [
+                        "Há febre associada ao quadro?",
+                        "Há secreção no ouvido ou saída de pus?",
+                        "Há quantos dias os sintomas começaram?"
+                    ],
+                    "dados_clinicos": dados
+                },
+                "history": context.get("history", []),
+                "context": context
+            }
+
         if intent == "tratamento":
             return self._generate_treatment_response(context)
 
@@ -608,6 +724,33 @@ class ClinicalEngine:
     def _get_missing_questions(self, scenario: str, dados: dict):
         questions = []
 
+        if scenario == "otite_media_aguda":
+            if dados.get("febre") is None:
+                questions.append("Há febre no quadro?")
+
+            if dados.get("secrecao_auricular") is None:
+                questions.append("Há secreção no ouvido ou otorreia?")
+
+            if dados.get("duracao_dias") is None:
+                questions.append("Há quantos dias os sintomas começaram?")
+
+            if dados.get("gravidade") is None:
+                questions.append(
+                    "Há sinais de gravidade, como febre alta, dor intensa, toxemia ou prostração?"
+                )
+
+            if dados.get("alergia") is None:
+                questions.append("O paciente tem alergia à penicilina?")
+
+            if dados.get("idade") is None:
+                questions.append("Qual é a idade do paciente?")
+
+            idade = dados.get("idade")
+            if idade is not None and idade < 12 and dados.get("peso") is None:
+                questions.append("Qual é o peso do paciente em kg?")
+
+            return questions
+
         if dados.get("gravidade") is None:
             questions.append(
                 "Há sinais de gravidade, como febre alta, dor intensa, toxemia ou prostração?"
@@ -624,6 +767,28 @@ class ClinicalEngine:
             questions.append("Qual é o peso do paciente em kg?")
 
         return questions
+
+    def _has_minimum_diagnostic_support_for_otitis(self, dados: dict) -> bool:
+        dor_presente = dados.get("dor_presente")
+        febre = dados.get("febre")
+        secrecao_auricular = dados.get("secrecao_auricular")
+        secrecao_purulenta = dados.get("secrecao_purulenta")
+        duracao_dias = dados.get("duracao_dias")
+
+        if dor_presente is not True:
+            return False
+
+        if duracao_dias is None:
+            return False
+
+        supporting_features = [
+            febre is True,
+            secrecao_auricular is True,
+            secrecao_purulenta is True,
+            dados.get("dor_intensa") is True
+        ]
+
+        return any(supporting_features)
 
     def _generate_protocol_response(self, scenario: str, dados: dict):
         try:
@@ -647,17 +812,34 @@ class ClinicalEngine:
         dados = context.get("dados_clinicos", {})
 
         if scenario == "otite_media_aguda":
+            if not self._has_minimum_diagnostic_support_for_otitis(dados):
+                resposta = (
+                    "Antes de definir tratamento para otite, preciso de sinais e sintomas mais consistentes do quadro, "
+                    "como febre, secreção auricular, intensidade da dor e tempo de evolução."
+                )
+                return {
+                    "resposta": resposta,
+                    "clinical_response": {
+                        "tipo": "tratamento",
+                        "cenario": scenario,
+                        "resposta": resposta,
+                        "dados_clinicos": dados
+                    },
+                    "history": context.get("history", []),
+                    "context": context
+                }
+
             if dados.get("alergia") is True:
                 if dados.get("gravidade") is True:
                     resposta = (
-                        "Para otite média aguda com relato de alergia à penicilina e presença de sinais de gravidade, "
+                        "Para quadro compatível com otite média aguda, com alergia à penicilina e sinais de gravidade, "
                         "a conduta deve ser individualizada conforme avaliação clínica, perfil da alergia e protocolo institucional. "
                         "Considere alternativa ao esquema com penicilina, além de analgesia, reavaliação precoce e monitoramento clínico."
                     )
                 else:
                     resposta = (
-                        "Para otite média aguda com relato de alergia à penicilina, considerar alternativa terapêutica conforme protocolo institucional, "
-                        "além de analgesia e reavaliação clínica se não houver melhora."
+                        "Para quadro compatível com otite média aguda, com alergia à penicilina e dados clínicos mínimos já levantados, "
+                        "considerar alternativa terapêutica conforme protocolo institucional, além de analgesia e reavaliação clínica."
                     )
 
                 return {
@@ -675,13 +857,13 @@ class ClinicalEngine:
             if dados.get("alergia") is False:
                 if dados.get("gravidade") is True:
                     resposta = (
-                        "Para otite média aguda com sinais de gravidade, a conduta deve considerar avaliação clínica mais cuidadosa, "
+                        "Para quadro compatível com otite média aguda com sinais de gravidade, a conduta deve considerar avaliação clínica mais cuidadosa, "
                         "definição do antibiótico conforme protocolo institucional, analgesia e reavaliação precoce."
                     )
                 else:
                     resposta = (
-                        "Para otite média aguda sem sinais de gravidade e sem alergia à penicilina, considerar antibioticoterapia conforme protocolo institucional, "
-                        "além de analgesia e reavaliação clínica se não houver melhora."
+                        "Para quadro compatível com otite média aguda, sem sinais de gravidade e sem alergia à penicilina, "
+                        "considerar antibioticoterapia conforme protocolo institucional, além de analgesia e reavaliação clínica."
                     )
 
                 return {
@@ -714,17 +896,35 @@ class ClinicalEngine:
         dados = context.get("dados_clinicos", {})
 
         if scenario == "otite_media_aguda":
+            if not self._has_minimum_diagnostic_support_for_otitis(dados):
+                return {
+                    "resposta": (
+                        "Ainda não há base clínica suficiente para indicar antibiótico com segurança. "
+                        "Preciso confirmar melhor febre, secreção auricular, intensidade da dor e tempo de evolução."
+                    ),
+                    "clinical_response": {
+                        "tipo": "antibiotico",
+                        "cenario": scenario,
+                        "resposta": (
+                            "Ainda não há base clínica suficiente para indicar antibiótico com segurança."
+                        ),
+                        "dados_clinicos": dados
+                    },
+                    "history": context.get("history", []),
+                    "context": context
+                }
+
             if dados.get("alergia") is False and dados.get("gravidade") is False:
                 return {
                     "resposta": (
-                        "Para otite média aguda sem sinais de gravidade e sem alergia à penicilina, "
+                        "Para quadro compatível com otite média aguda, sem sinais de gravidade e sem alergia à penicilina, "
                         "o antibiótico de primeira escolha costuma ser a amoxicilina, conforme protocolo institucional."
                     ),
                     "clinical_response": {
                         "tipo": "antibiotico",
                         "cenario": scenario,
                         "resposta": (
-                            "Para otite média aguda sem sinais de gravidade e sem alergia à penicilina, "
+                            "Para quadro compatível com otite média aguda, sem sinais de gravidade e sem alergia à penicilina, "
                             "o antibiótico de primeira escolha costuma ser a amoxicilina, conforme protocolo institucional."
                         ),
                         "antibiotico": "amoxicilina",
@@ -785,6 +985,24 @@ class ClinicalEngine:
         dados = context.get("dados_clinicos", {})
 
         if scenario == "otite_media_aguda":
+            if not self._has_minimum_diagnostic_support_for_otitis(dados):
+                return {
+                    "resposta": (
+                        "Ainda não há dados clínicos suficientes para definir o medicamento com segurança. "
+                        "Preciso confirmar melhor o quadro antes de avançar."
+                    ),
+                    "clinical_response": {
+                        "tipo": "medicamento",
+                        "cenario": scenario,
+                        "resposta": (
+                            "Ainda não há dados clínicos suficientes para definir o medicamento com segurança."
+                        ),
+                        "dados_clinicos": dados
+                    },
+                    "history": context.get("history", []),
+                    "context": context
+                }
+
             if dados.get("alergia") is True:
                 return {
                     "resposta": (
@@ -835,6 +1053,23 @@ class ClinicalEngine:
         dados = context.get("dados_clinicos", {})
 
         if scenario == "otite_media_aguda":
+            if not self._has_minimum_diagnostic_support_for_otitis(dados):
+                return {
+                    "resposta": (
+                        "Antes de definir dose, preciso ter mais segurança sobre a indicação clínica do antibiótico."
+                    ),
+                    "clinical_response": {
+                        "tipo": "dose",
+                        "cenario": scenario,
+                        "resposta": (
+                            "Antes de definir dose, preciso ter mais segurança sobre a indicação clínica do antibiótico."
+                        ),
+                        "dados_clinicos": dados
+                    },
+                    "history": context.get("history", []),
+                    "context": context
+                }
+
             if dados.get("alergia") is True:
                 return {
                     "resposta": (
@@ -896,6 +1131,18 @@ class ClinicalEngine:
 
     def _fallback_response(self, scenario: str, dados: dict):
         if scenario == "otite_media_aguda":
+            if not self._has_minimum_diagnostic_support_for_otitis(dados):
+                return {
+                    "resposta": (
+                        "Há suspeita clínica de otite, mas os dados ainda são insuficientes para sustentar indicação antibiótica com segurança. "
+                        "É necessário consolidar melhor sinais e sintomas do quadro."
+                    ),
+                    "conduta": {
+                        "cenario": scenario,
+                        "dados_clinicos": dados
+                    }
+                }
+
             if dados.get("gravidade") is False and dados.get("alergia") is False:
                 return {
                     "resposta": (
@@ -914,7 +1161,10 @@ class ClinicalEngine:
                         "dor_presente": dados.get("dor_presente"),
                         "dor_intensa": dados.get("dor_intensa"),
                         "toxemia": dados.get("toxemia"),
-                        "prostracao": dados.get("prostracao")
+                        "prostracao": dados.get("prostracao"),
+                        "secrecao_auricular": dados.get("secrecao_auricular"),
+                        "secrecao_purulenta": dados.get("secrecao_purulenta"),
+                        "duracao_dias": dados.get("duracao_dias")
                     }
                 }
 
@@ -936,7 +1186,10 @@ class ClinicalEngine:
                         "dor_presente": dados.get("dor_presente"),
                         "dor_intensa": dados.get("dor_intensa"),
                         "toxemia": dados.get("toxemia"),
-                        "prostracao": dados.get("prostracao")
+                        "prostracao": dados.get("prostracao"),
+                        "secrecao_auricular": dados.get("secrecao_auricular"),
+                        "secrecao_purulenta": dados.get("secrecao_purulenta"),
+                        "duracao_dias": dados.get("duracao_dias")
                     }
                 }
 
@@ -958,7 +1211,10 @@ class ClinicalEngine:
                         "dor_presente": dados.get("dor_presente"),
                         "dor_intensa": dados.get("dor_intensa"),
                         "toxemia": dados.get("toxemia"),
-                        "prostracao": dados.get("prostracao")
+                        "prostracao": dados.get("prostracao"),
+                        "secrecao_auricular": dados.get("secrecao_auricular"),
+                        "secrecao_purulenta": dados.get("secrecao_purulenta"),
+                        "duracao_dias": dados.get("duracao_dias")
                     }
                 }
 
