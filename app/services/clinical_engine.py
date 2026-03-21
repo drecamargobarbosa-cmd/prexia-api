@@ -814,25 +814,97 @@ class ClinicalEngine:
 
         return "\n\n".join(sections)
 
+    def _has_meaningful_pre_collected_data(self, dados: dict) -> bool:
+        relevant_fields = [
+            "idade",
+            "alergia",
+            "gravidade",
+            "febre",
+            "febre_alta",
+            "dor_presente",
+            "dor_intensa",
+            "toxemia",
+            "prostracao",
+            "duracao_dias"
+        ]
+        return any(dados.get(field) is not None for field in relevant_fields)
+
+    def _build_initial_context_message(self, dados: dict) -> str:
+        partes = []
+
+        if dados.get("idade") is not None:
+            partes.append(f"idade: {dados.get('idade')} anos")
+
+        if dados.get("alergia") is not None:
+            partes.append(f"alergia medicamentosa: {self._format_boolean_label(dados.get('alergia'))}")
+
+        if dados.get("febre") is not None:
+            partes.append(f"febre: {self._format_boolean_label(dados.get('febre'))}")
+
+        if dados.get("febre_alta") is not None:
+            partes.append(f"febre alta: {self._format_boolean_label(dados.get('febre_alta'))}")
+
+        if dados.get("dor_intensa") is not None:
+            partes.append(f"dor intensa: {self._format_boolean_label(dados.get('dor_intensa'))}")
+
+        if dados.get("toxemia") is not None:
+            partes.append(f"toxemia: {self._format_boolean_label(dados.get('toxemia'))}")
+
+        if dados.get("prostracao") is not None:
+            partes.append(f"prostração: {self._format_boolean_label(dados.get('prostracao'))}")
+
+        if dados.get("gravidade") is not None:
+            partes.append(f"sinais de gravidade: {self._format_boolean_label(dados.get('gravidade'))}")
+
+        if not partes:
+            return "Preciso entender melhor o quadro clínico para orientar a conduta."
+
+        return (
+            "Já identifiquei alguns dados clínicos informados, "
+            + "; ".join(partes)
+            + ". "
+            + "Agora preciso definir melhor o cenário clínico para orientar a conduta."
+        )
+
+    def _get_missing_questions_without_scenario(self, dados: dict):
+        questions = ["Qual é a hipótese clínica principal ou o diagnóstico suspeito?"]
+
+        if dados.get("idade") is None:
+            questions.append("Qual é a idade do paciente?")
+
+        if dados.get("alergia") is None:
+            questions.append("Há alergia medicamentosa?")
+
+        if dados.get("gravidade") is None:
+            questions.append("Há sinais de gravidade?")
+
+        return questions
+
     def _build_response(self, context: dict) -> dict:
         scenario = context.get("scenario")
         dados = context.get("dados_clinicos", {})
         intent = context.get("intent", "geral")
 
         if not scenario:
-            resposta = "Preciso entender melhor o quadro clínico para orientar a conduta."
+            if self._has_meaningful_pre_collected_data(dados):
+                resposta = self._build_initial_context_message(dados)
+                perguntas = self._get_missing_questions_without_scenario(dados)
+            else:
+                resposta = "Preciso entender melhor o quadro clínico para orientar a conduta."
+                perguntas = [
+                    "Qual é a hipótese clínica principal ou o diagnóstico suspeito?",
+                    "Qual é a idade do paciente?",
+                    "Há alergia medicamentosa?",
+                    "Há sinais de gravidade?"
+                ]
+
             return {
                 "resposta": resposta,
                 "clinical_response": {
                     "tipo": "coleta_dados",
                     "cenario": None,
                     "resposta": resposta,
-                    "perguntas": [
-                        "Qual é a hipótese clínica principal?",
-                        "Qual é a idade do paciente?",
-                        "Há alergia medicamentosa?",
-                        "Há sinais de gravidade?"
-                    ],
+                    "perguntas": perguntas,
                     "dados_clinicos": dados
                 },
                 "history": context.get("history", []),
