@@ -514,7 +514,7 @@ class ClinicalEngine:
             "sem secrecao no ouvido",
             "sem secrecao auricular",
             "sem otorreia",
-            "sem otorréia",
+            "sem otorreia",
             "sem otorria",
             "nega secrecao no ouvido",
             "nega secrecao auricular",
@@ -529,7 +529,6 @@ class ClinicalEngine:
             "secrecao no ouvido",
             "secrecao auricular",
             "otorreia",
-            "otorréia",
             "otorria",
             "sai secrecao do ouvido",
             "ouvido vazando",
@@ -666,7 +665,7 @@ class ClinicalEngine:
             r'comecou\s*ha\s*(\d{1,2})\s*dias',
             r'inicio\s*ha\s*(\d{1,2})\s*dias',
             r'sintomas\s*ha\s*(\d{1,2})\s*dias',
-            r'(\d{1,2})\s*dias\s*de\evolucao'
+            r'(\d{1,2})\s*dias\s*de\s*evolucao'
         ]
 
         for pattern in patterns:
