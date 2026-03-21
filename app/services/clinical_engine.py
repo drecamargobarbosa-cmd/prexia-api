@@ -116,22 +116,55 @@ class ClinicalEngine:
 
         import re
 
+        # IDADE
         match_idade = re.search(r"(\d+)\s*ano", text)
         if match_idade:
             data["idade"] = int(match_idade.group(1))
 
+        # PESO
         match_peso = re.search(r"(\d+)\s*kg", text)
         if match_peso:
             data["peso"] = int(match_peso.group(1))
 
-        if "sem alerg" in text:
+        # ALERGIA
+        sinais_sem_alergia = [
+            "sem alerg",
+            "nega alerg",
+            "nao tem alerg",
+            "não tem alerg",
+            "sem alergia",
+            "nega alergia",
+        ]
+
+        if any(sinal in text for sinal in sinais_sem_alergia):
             data["alergia"] = False
         elif "alerg" in text:
             data["alergia"] = True
 
-        if "sem grav" in text:
+        # GRAVIDADE
+        sinais_leves = [
+            "sem febre",
+            "afebril",
+            "sem dor intensa",
+            "dor leve",
+            "sem sinais de gravidade",
+            "sem gravidade",
+            "sem toxemia",
+            "bom estado geral",
+        ]
+
+        sinais_graves = [
+            "febre alta",
+            "toxemia",
+            "prostrado",
+            "dor intensa",
+            "grave",
+            "mal estado geral",
+        ]
+
+        if any(sinal in text for sinal in sinais_leves):
             data["gravidade"] = False
-        elif "grave" in text or "toxemia" in text:
+        elif any(sinal in text for sinal in sinais_graves):
             data["gravidade"] = True
 
         return data
