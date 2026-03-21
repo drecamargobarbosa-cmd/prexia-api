@@ -781,6 +781,7 @@ class ClinicalEngine:
         observacoes_clinicas: str = "",
         medicacao: str = "",
         dose: str = "",
+        posologia: str = "",
         duracao: str = ""
     ) -> str:
         sections = [
@@ -794,6 +795,9 @@ class ClinicalEngine:
 
         if dose:
             sections.append(f"Dose: {dose}")
+
+        if posologia:
+            sections.append(f"Posologia: {posologia}")
 
         if duracao:
             sections.append(f"Duração: {duracao}")
@@ -850,17 +854,8 @@ class ClinicalEngine:
 
         if scenario == "otite_media_aguda":
             if self._has_minimum_diagnostic_support_for_otitis(dados):
-                if intent == "tratamento":
-                    return self._generate_treatment_response(context)
-
-                if intent == "antibiotico":
-                    return self._generate_antibiotic_response(context)
-
-                if intent == "medicamento":
-                    return self._generate_medication_response(context)
-
-                if intent == "dose":
-                    return self._generate_dose_response(context)
+                if intent in ["tratamento", "antibiotico", "medicamento", "dose", "geral"]:
+                    return self._generate_complete_otitis_therapeutic_response(context)
 
                 protocol_result = self._generate_protocol_response(scenario, dados)
 
@@ -1038,6 +1033,158 @@ class ClinicalEngine:
 
         return dados.get("dor_presente") is True
 
+    def _resolve_otitis_therapeutic_plan(self, dados: dict) -> dict:
+        idade = dados.get("idade")
+        peso = dados.get("peso")
+        alergia = dados.get("alergia")
+        gravidade = dados.get("gravidade")
+
+        if alergia is True:
+            return {
+                "medicacao": "Azitromicina",
+                "dose": "500 mg" if idade is not None and idade >= 12 else "10 mg/kg/dia",
+                "posologia": "1 vez ao dia",
+                "duracao": "5 dias",
+                "justificativa_plano": (
+                    "Há suporte clínico para tratamento antimicrobiano e, devido à alergia à penicilina, "
+                    "foi priorizada alternativa terapêutica."
+                )
+            }
+
+        if idade is not None and idade >= 12:
+            if gravidade is True:
+                return {
+                    "medicacao": "Amoxicilina",
+                    "dose": "875 mg",
+                    "posologia": "12/12 horas",
+                    "duracao": "7 a 10 dias",
+                    "justificativa_plano": (
+                        "Em adulto com quadro compatível com otite média aguda e sinais de gravidade, "
+                        "a antibioticoterapia deve ser considerada com seguimento mais próximo."
+                    )
+                }
+
+            return {
+                "medicacao": "Amoxicilina",
+                "dose": "500 mg",
+                "posologia": "8/8 horas",
+                "duracao": "7 dias",
+                "justificativa_plano": (
+                    "Em adulto sem alergia à penicilina e com dados clínicos suficientes, "
+                    "a amoxicilina permanece como primeira escolha no cenário implementado."
+                )
+            }
+
+        if peso is not None:
+            if gravidade is True:
+                return {
+                    "medicacao": "Amoxicilina",
+                    "dose": "80 a 90 mg/kg/dia",
+                    "posologia": "dividida em 2 tomadas ao dia",
+                    "duracao": "10 dias",
+                    "justificativa_plano": (
+                        "Em pediatria com maior gravidade, a dose deve ser ajustada ao peso e acompanhada de reavaliação precoce."
+                    )
+                }
+
+            return {
+                "medicacao": "Amoxicilina",
+                "dose": "50 mg/kg/dia",
+                "posologia": "dividida em 2 a 3 tomadas ao dia",
+                "duracao": "7 a 10 dias",
+                "justificativa_plano": (
+                    "Em paciente pediátrico sem alergia à penicilina, a posologia deve ser calculada por peso."
+                )
+            }
+
+        return {
+            "medicacao": "Amoxicilina",
+            "dose": "Seguir protocolo institucional conforme faixa etária",
+            "posologia": "Conforme protocolo institucional",
+            "duracao": "7 dias",
+            "justificativa_plano": (
+                "Há indicação clínica, porém faltam elementos adicionais para detalhar melhor a posologia individual."
+            )
+        }
+
+    def _generate_complete_otitis_therapeutic_response(self, context: dict):
+        scenario = context.get("scenario")
+        dados = context.get("dados_clinicos", {})
+
+        if not self._has_minimum_diagnostic_support_for_otitis(dados):
+            if self._has_sufficient_otitis_assessment_for_observation(dados):
+                return self._generate_non_antibiotic_otitis_response(context)
+
+            resposta = (
+                "Ainda não há base clínica suficiente para definir tratamento antimicrobiano completo com segurança. "
+                "Preciso confirmar melhor febre, secreção auricular, intensidade da dor e tempo de evolução."
+            )
+            return {
+                "resposta": resposta,
+                "clinical_response": {
+                    "tipo": "coleta_dados",
+                    "cenario": scenario,
+                    "resposta": resposta,
+                    "dados_clinicos": dados
+                },
+                "history": context.get("history", []),
+                "context": context
+            }
+
+        avaliacao = self._otitis_summary(dados)
+
+        if dados.get("gravidade") is True:
+            diagnostico = "Quadro compatível com otite média aguda com sinais de gravidade."
+            conduta = (
+                "Considerar antibioticoterapia, analgesia, seguimento mais próximo e reavaliação precoce, "
+                "com maior atenção ao estado geral e à evolução clínica."
+            )
+        else:
+            diagnostico = "Quadro compatível com otite média aguda sem sinais de gravidade."
+            conduta = (
+                "Indicar tratamento antimicrobiano conforme protocolo implementado, associado a analgesia e reavaliação clínica."
+            )
+
+        plano = self._resolve_otitis_therapeutic_plan(dados)
+
+        justificativa = (
+            f"{plano['justificativa_plano']} "
+            "A consolidação terapêutica foi possível porque já há dados clínicos suficientes para sustentar decisão clínica nesta etapa."
+        )
+
+        observacoes = (
+            "Monitorar evolução da dor, febre, secreção auricular e estado geral. "
+            "Reavaliar precocemente se houver piora clínica, ausência de melhora ou surgimento de novos sinais de gravidade."
+        )
+
+        resposta = self._build_structured_text(
+            avaliacao_clinica=avaliacao,
+            diagnostico_provavel=diagnostico,
+            conduta_recomendada=conduta,
+            medicacao=plano["medicacao"],
+            dose=plano["dose"],
+            posologia=plano["posologia"],
+            duracao=plano["duracao"],
+            justificativa=justificativa,
+            observacoes_clinicas=observacoes
+        )
+
+        return {
+            "resposta": resposta,
+            "clinical_response": {
+                "tipo": "tratamento",
+                "cenario": scenario,
+                "resposta": resposta,
+                "medicacao": plano["medicacao"],
+                "dose": plano["dose"],
+                "posologia": plano["posologia"],
+                "duracao": plano["duracao"],
+                "dados_clinicos": dados
+            },
+            "history": context.get("history", []),
+            "context": context
+        }
+
     def _generate_non_antibiotic_otitis_response(self, context: dict):
         scenario = context.get("scenario")
         dados = context.get("dados_clinicos", {})
@@ -1106,112 +1253,7 @@ class ClinicalEngine:
         dados = context.get("dados_clinicos", {})
 
         if scenario == "otite_media_aguda":
-            if not self._has_minimum_diagnostic_support_for_otitis(dados):
-                if self._has_sufficient_otitis_assessment_for_observation(dados):
-                    return self._generate_non_antibiotic_otitis_response(context)
-
-                resposta = (
-                    "Antes de definir tratamento para otite, preciso de sinais e sintomas mais consistentes do quadro, "
-                    "como febre, secreção auricular, intensidade da dor e tempo de evolução."
-                )
-                return {
-                    "resposta": resposta,
-                    "clinical_response": {
-                        "tipo": "tratamento",
-                        "cenario": scenario,
-                        "resposta": resposta,
-                        "dados_clinicos": dados
-                    },
-                    "history": context.get("history", []),
-                    "context": context
-                }
-
-            if dados.get("alergia") is True:
-                avaliacao = self._otitis_summary(dados)
-                diagnostico = "Quadro compatível com otite média aguda, com relato de alergia à penicilina."
-                conduta = (
-                    "Considerar alternativa terapêutica ao esquema com penicilina, analgesia e reavaliação clínica, "
-                    "de acordo com o protocolo institucional e o perfil da reação alérgica."
-                )
-                justificativa = (
-                    "Há dados clínicos mínimos para sustentar o quadro, porém a presença de alergia à penicilina "
-                    "exige individualização da escolha antimicrobiana."
-                )
-
-                if dados.get("gravidade") is True:
-                    observacoes = (
-                        "A presença de sinais de gravidade reforça a necessidade de avaliação clínica cuidadosa, "
-                        "monitoramento e eventual reavaliação precoce."
-                    )
-                else:
-                    observacoes = (
-                        "Reavaliar evolução clínica, resposta à analgesia e eventual necessidade de ajuste terapêutico."
-                    )
-
-                resposta = self._build_structured_text(
-                    avaliacao_clinica=avaliacao,
-                    diagnostico_provavel=diagnostico,
-                    conduta_recomendada=conduta,
-                    justificativa=justificativa,
-                    observacoes_clinicas=observacoes
-                )
-
-                return {
-                    "resposta": resposta,
-                    "clinical_response": {
-                        "tipo": "tratamento",
-                        "cenario": scenario,
-                        "resposta": resposta,
-                        "dados_clinicos": dados
-                    },
-                    "history": context.get("history", []),
-                    "context": context
-                }
-
-            if dados.get("alergia") is False:
-                avaliacao = self._otitis_summary(dados)
-
-                if dados.get("gravidade") is True:
-                    diagnostico = "Quadro compatível com otite média aguda com sinais de gravidade."
-                    conduta = (
-                        "Considerar antibioticoterapia conforme protocolo institucional, analgesia e reavaliação precoce, "
-                        "com maior atenção ao estado geral e à evolução clínica."
-                    )
-                    justificativa = (
-                        "A presença de sinais de gravidade torna o caso mais sensível para definição terapêutica e seguimento."
-                    )
-                else:
-                    diagnostico = "Quadro compatível com otite média aguda sem sinais de gravidade."
-                    conduta = (
-                        "Considerar antibioticoterapia conforme protocolo institucional, associada a analgesia e reavaliação clínica."
-                    )
-                    justificativa = (
-                        "O conjunto de dados clínicos é compatível com o cenário protocolar já implementado para otite média aguda."
-                    )
-
-                observacoes = (
-                    "Manter acompanhamento da evolução, especialmente quanto à dor, febre, secreção auricular e piora do estado geral."
-                )
-
-                resposta = self._build_structured_text(
-                    avaliacao_clinica=avaliacao,
-                    diagnostico_provavel=diagnostico,
-                    conduta_recomendada=conduta,
-                    justificativa=justificativa,
-                    observacoes_clinicas=observacoes
-                )
-
-                return {
-                    "resposta": resposta,
-                    "clinical_response": {
-                        "tipo": "tratamento",
-                        "cenario": scenario,
-                        "resposta": resposta,
-                        "dados_clinicos": dados
-                    },
-                    "history": context.get("history", []),
-                    "context": context
-                }
+            return self._generate_complete_otitis_therapeutic_response(context)
 
         fallback = self._fallback_response(scenario, dados)
         return {
@@ -1231,144 +1273,7 @@ class ClinicalEngine:
         dados = context.get("dados_clinicos", {})
 
         if scenario == "otite_media_aguda":
-            if not self._has_minimum_diagnostic_support_for_otitis(dados):
-                if self._has_sufficient_otitis_assessment_for_observation(dados):
-                    avaliacao = self._otitis_summary(dados)
-                    diagnostico = (
-                        "Otalgia sem base clínica suficiente, neste momento, para indicar antibiótico empírico com segurança."
-                    )
-                    conduta = (
-                        "Não indicar antibiótico empiricamente neste estágio. Priorizar analgesia, exame físico e reavaliação clínica."
-                    )
-                    justificativa = (
-                        "Ausência de febre, secreção auricular, dor intensa e sinais sistêmicos que aumentariam a suspeita de quadro bacteriano "
-                        "com necessidade imediata de antibioticoterapia."
-                    )
-                    observacoes = (
-                        "Reavaliar se houver piora da dor, febre, otorreia ou alteração do estado geral."
-                    )
-
-                    resposta = self._build_structured_text(
-                        avaliacao_clinica=avaliacao,
-                        diagnostico_provavel=diagnostico,
-                        conduta_recomendada=conduta,
-                        justificativa=justificativa,
-                        observacoes_clinicas=observacoes
-                    )
-
-                    return {
-                        "resposta": resposta,
-                        "clinical_response": {
-                            "tipo": "reavaliacao",
-                            "cenario": scenario,
-                            "resposta": resposta,
-                            "dados_clinicos": dados
-                        },
-                        "history": context.get("history", []),
-                        "context": context
-                    }
-
-                return {
-                    "resposta": (
-                        "Ainda não há base clínica suficiente para indicar antibiótico com segurança. "
-                        "Preciso confirmar melhor febre, secreção auricular, intensidade da dor e tempo de evolução."
-                    ),
-                    "clinical_response": {
-                        "tipo": "antibiotico",
-                        "cenario": scenario,
-                        "resposta": (
-                            "Ainda não há base clínica suficiente para indicar antibiótico com segurança."
-                        ),
-                        "dados_clinicos": dados
-                    },
-                    "history": context.get("history", []),
-                    "context": context
-                }
-
-            avaliacao = self._otitis_summary(dados)
-
-            if dados.get("alergia") is False and dados.get("gravidade") is False:
-                resposta = self._build_structured_text(
-                    avaliacao_clinica=avaliacao,
-                    diagnostico_provavel="Quadro compatível com otite média aguda sem sinais de gravidade.",
-                    conduta_recomendada="Antibiótico de primeira escolha conforme protocolo institucional.",
-                    medicacao="Amoxicilina.",
-                    justificativa=(
-                        "No cenário atual implementado, a amoxicilina é a opção de primeira escolha para esse perfil clínico."
-                    ),
-                    observacoes_clinicas=(
-                        "Associar analgesia e reavaliar se não houver melhora clínica ou se surgirem sinais de gravidade."
-                    )
-                )
-
-                return {
-                    "resposta": resposta,
-                    "clinical_response": {
-                        "tipo": "antibiotico",
-                        "cenario": scenario,
-                        "resposta": resposta,
-                        "antibiotico": "amoxicilina",
-                        "dados_clinicos": dados
-                    },
-                    "history": context.get("history", []),
-                    "context": context
-                }
-
-            if dados.get("alergia") is False and dados.get("gravidade") is True:
-                resposta = self._build_structured_text(
-                    avaliacao_clinica=avaliacao,
-                    diagnostico_provavel="Quadro compatível com otite média aguda com sinais de gravidade.",
-                    conduta_recomendada=(
-                        "Definir o antibiótico conforme protocolo institucional e avaliação clínica mais cuidadosa."
-                    ),
-                    justificativa=(
-                        "Os sinais de gravidade tornam a escolha antimicrobiana mais sensível ao contexto clínico e à necessidade de seguimento mais próximo."
-                    ),
-                    observacoes_clinicas=(
-                        "Monitorar evolução clínica, estado geral e necessidade de reavaliação precoce."
-                    )
-                )
-
-                return {
-                    "resposta": resposta,
-                    "clinical_response": {
-                        "tipo": "antibiotico",
-                        "cenario": scenario,
-                        "resposta": resposta,
-                        "dados_clinicos": dados
-                    },
-                    "history": context.get("history", []),
-                    "context": context
-                }
-
-            if dados.get("alergia") is True:
-                resposta = self._build_structured_text(
-                    avaliacao_clinica=avaliacao,
-                    diagnostico_provavel="Quadro compatível com otite média aguda com alergia à penicilina.",
-                    conduta_recomendada=(
-                        "Considerar alternativa ao grupo das penicilinas, conforme protocolo institucional e perfil da reação alérgica."
-                    ),
-                    medicacao="Alternativas possíveis no cenário implementado: azitromicina ou claritromicina.",
-                    justificativa=(
-                        "A alergia à penicilina modifica a escolha do antimicrobiano e exige individualização terapêutica."
-                    ),
-                    observacoes_clinicas=(
-                        "Levar em conta gravidade da alergia, quadro clínico e necessidade de reavaliação."
-                    )
-                )
-
-                return {
-                    "resposta": resposta,
-                    "clinical_response": {
-                        "tipo": "antibiotico",
-                        "cenario": scenario,
-                        "resposta": resposta,
-                        "alternativa": True,
-                        "dados_clinicos": dados
-                    },
-                    "history": context.get("history", []),
-                    "context": context
-                }
+            return self._generate_complete_otitis_therapeutic_response(context)
 
         return {
             "resposta": "Ainda não há protocolo específico de antibiótico implementado para esse cenário.",
@@ -1386,99 +1291,7 @@ class ClinicalEngine:
         dados = context.get("dados_clinicos", {})
 
         if scenario == "otite_media_aguda":
-            if not self._has_minimum_diagnostic_support_for_otitis(dados):
-                if self._has_sufficient_otitis_assessment_for_observation(dados):
-                    avaliacao = self._otitis_summary(dados)
-                    resposta = self._build_structured_text(
-                        avaliacao_clinica=avaliacao,
-                        diagnostico_provavel=(
-                            "Otalgia sem indicação suficiente, neste momento, para definir antibiótico de rotina."
-                        ),
-                        conduta_recomendada=(
-                            "Priorizar controle sintomático, observação clínica e reavaliação."
-                        ),
-                        justificativa=(
-                            "Os dados atuais não sustentam antibioticoterapia empírica imediata."
-                        ),
-                        observacoes_clinicas=(
-                            "Confirmar diagnóstico ao exame físico, especialmente com otoscopia."
-                        )
-                    )
-
-                    return {
-                        "resposta": resposta,
-                        "clinical_response": {
-                            "tipo": "reavaliacao",
-                            "cenario": scenario,
-                            "resposta": resposta,
-                            "dados_clinicos": dados
-                        },
-                        "history": context.get("history", []),
-                        "context": context
-                    }
-
-                return {
-                    "resposta": (
-                        "Ainda não há dados clínicos suficientes para definir o medicamento com segurança. "
-                        "Preciso confirmar melhor o quadro antes de avançar."
-                    ),
-                    "clinical_response": {
-                        "tipo": "medicamento",
-                        "cenario": scenario,
-                        "resposta": (
-                            "Ainda não há dados clínicos suficientes para definir o medicamento com segurança."
-                        ),
-                        "dados_clinicos": dados
-                    },
-                    "history": context.get("history", []),
-                    "context": context
-                }
-
-            avaliacao = self._otitis_summary(dados)
-
-            if dados.get("alergia") is True:
-                resposta = self._build_structured_text(
-                    avaliacao_clinica=avaliacao,
-                    diagnostico_provavel="Quadro compatível com otite média aguda com alergia à penicilina.",
-                    conduta_recomendada="Escolher alternativa terapêutica ao grupo das penicilinas.",
-                    medicacao="Alternativas possíveis no cenário implementado: azitromicina ou claritromicina.",
-                    justificativa="A alergia à penicilina modifica a escolha do medicamento.",
-                    observacoes_clinicas="A escolha final deve considerar o perfil da reação alérgica e o protocolo institucional."
-                )
-
-                return {
-                    "resposta": resposta,
-                    "clinical_response": {
-                        "tipo": "medicamento",
-                        "cenario": scenario,
-                        "resposta": resposta,
-                        "dados_clinicos": dados
-                    },
-                    "history": context.get("history", []),
-                    "context": context
-                }
-
-            if dados.get("alergia") is False:
-                resposta = self._build_structured_text(
-                    avaliacao_clinica=avaliacao,
-                    diagnostico_provavel="Quadro compatível com otite média aguda sem alergia à penicilina.",
-                    conduta_recomendada="Utilizar medicamento de primeira escolha conforme protocolo institucional.",
-                    medicacao="Amoxicilina.",
-                    justificativa="Sem alergia à penicilina, a amoxicilina permanece como primeira escolha no cenário implementado.",
-                    observacoes_clinicas="Associar analgesia e acompanhar evolução clínica."
-                )
-
-                return {
-                    "resposta": resposta,
-                    "clinical_response": {
-                        "tipo": "medicamento",
-                        "cenario": scenario,
-                        "resposta": resposta,
-                        "dados_clinicos": dados
-                    },
-                    "history": context.get("history", []),
-                    "context": context
-                }
+            return self._generate_complete_otitis_therapeutic_response(context)
 
         return {
             "resposta": "Ainda não há protocolo específico de medicamento implementado para esse cenário.",
@@ -1496,114 +1309,7 @@ class ClinicalEngine:
         dados = context.get("dados_clinicos", {})
 
         if scenario == "otite_media_aguda":
-            if not self._has_minimum_diagnostic_support_for_otitis(dados):
-                if self._has_sufficient_otitis_assessment_for_observation(dados):
-                    avaliacao = self._otitis_summary(dados)
-                    resposta = self._build_structured_text(
-                        avaliacao_clinica=avaliacao,
-                        diagnostico_provavel=(
-                            "Sem indicação clínica suficiente de antibiótico neste momento."
-                        ),
-                        conduta_recomendada=(
-                            "Não há dose antibiótica a definir nesta etapa."
-                        ),
-                        justificativa=(
-                            "A definição de dose depende de indicação clínica mais bem estabelecida para antibioticoterapia."
-                        ),
-                        observacoes_clinicas=(
-                            "Priorizar observação clínica, analgesia e reavaliação."
-                        )
-                    )
-
-                    return {
-                        "resposta": resposta,
-                        "clinical_response": {
-                            "tipo": "reavaliacao",
-                            "cenario": scenario,
-                            "resposta": resposta,
-                            "dados_clinicos": dados
-                        },
-                        "history": context.get("history", []),
-                        "context": context
-                    }
-
-                return {
-                    "resposta": (
-                        "Antes de definir dose, preciso ter mais segurança sobre a indicação clínica do antibiótico."
-                    ),
-                    "clinical_response": {
-                        "tipo": "dose",
-                        "cenario": scenario,
-                        "resposta": (
-                            "Antes de definir dose, preciso ter mais segurança sobre a indicação clínica do antibiótico."
-                        ),
-                        "dados_clinicos": dados
-                    },
-                    "history": context.get("history", []),
-                    "context": context
-                }
-
-            avaliacao = self._otitis_summary(dados)
-
-            if dados.get("alergia") is True:
-                resposta = self._build_structured_text(
-                    avaliacao_clinica=avaliacao,
-                    diagnostico_provavel="Quadro compatível com otite média aguda com alergia à penicilina.",
-                    conduta_recomendada="Definir a posologia conforme o antibiótico alternativo escolhido.",
-                    justificativa=(
-                        "A dose depende da alternativa terapêutica selecionada, do perfil clínico do paciente e do protocolo institucional."
-                    ),
-                    observacoes_clinicas=(
-                        "Considerar idade, peso quando aplicável e gravidade da reação alérgica."
-                    )
-                )
-
-                return {
-                    "resposta": resposta,
-                    "clinical_response": {
-                        "tipo": "dose",
-                        "cenario": scenario,
-                        "resposta": resposta,
-                        "dados_clinicos": dados
-                    },
-                    "history": context.get("history", []),
-                    "context": context
-                }
-
-            if dados.get("alergia") is False:
-                idade = dados.get("idade")
-                peso = dados.get("peso")
-
-                if idade is not None and idade >= 12:
-                    dose = "Seguir a posologia institucional para amoxicilina em adulto."
-                    justificativa = "A dose em adulto deve seguir o protocolo do serviço."
-                elif peso is not None:
-                    dose = f"Calcular a dose por peso para paciente pediátrico com {peso} kg."
-                    justificativa = "Em pediatria, a posologia deve ser ajustada ao peso."
-                else:
-                    dose = "Preciso da idade e, se for criança, também do peso para definir a dose com maior segurança."
-                    justificativa = "A faixa etária e o peso interferem diretamente na posologia."
-
-                resposta = self._build_structured_text(
-                    avaliacao_clinica=avaliacao,
-                    diagnostico_provavel="Quadro compatível com otite média aguda.",
-                    conduta_recomendada="Definir dose conforme protocolo institucional.",
-                    dose=dose,
-                    justificativa=justificativa,
-                    observacoes_clinicas="Associar avaliação clínica, analgesia e seguimento conforme evolução."
-                )
-
-                return {
-                    "resposta": resposta,
-                    "clinical_response": {
-                        "tipo": "dose",
-                        "cenario": scenario,
-                        "resposta": resposta,
-                        "dados_clinicos": dados
-                    },
-                    "history": context.get("history", []),
-                    "context": context
-                }
+            return self._generate_complete_otitis_therapeutic_response(context)
 
         return {
             "resposta": "Ainda não há protocolo de dose específico implementado para esse cenário.",
@@ -1658,12 +1364,17 @@ class ClinicalEngine:
                 }
 
             if dados.get("gravidade") is False and dados.get("alergia") is False:
+                plano = self._resolve_otitis_therapeutic_plan(dados)
                 resposta = self._build_structured_text(
                     avaliacao_clinica=avaliacao,
                     diagnostico_provavel="Quadro compatível com otite média aguda sem sinais de gravidade.",
                     conduta_recomendada=(
                         "Considerar antibioticoterapia conforme protocolo institucional, além de analgesia e reavaliação clínica."
                     ),
+                    medicacao=plano["medicacao"],
+                    dose=plano["dose"],
+                    posologia=plano["posologia"],
+                    duracao=plano["duracao"],
                     justificativa=(
                         "O conjunto de informações clínicas é compatível com o cenário de otite média aguda já implementado."
                     ),
@@ -1693,12 +1404,17 @@ class ClinicalEngine:
                 }
 
             if dados.get("gravidade") is True and dados.get("alergia") is False:
+                plano = self._resolve_otitis_therapeutic_plan(dados)
                 resposta = self._build_structured_text(
                     avaliacao_clinica=avaliacao,
                     diagnostico_provavel="Quadro compatível com otite média aguda com sinais de gravidade.",
                     conduta_recomendada=(
                         "Avaliar com maior cautela, considerar antibioticoterapia conforme protocolo institucional e reavaliação precoce."
                     ),
+                    medicacao=plano["medicacao"],
+                    dose=plano["dose"],
+                    posologia=plano["posologia"],
+                    duracao=plano["duracao"],
                     justificativa=(
                         "A gravidade do quadro exige decisão clínica mais cuidadosa e acompanhamento mais próximo."
                     ),
@@ -1728,12 +1444,17 @@ class ClinicalEngine:
                 }
 
             if dados.get("alergia") is True:
+                plano = self._resolve_otitis_therapeutic_plan(dados)
                 resposta = self._build_structured_text(
                     avaliacao_clinica=avaliacao,
                     diagnostico_provavel="Quadro compatível com otite média aguda com relato de alergia à penicilina.",
                     conduta_recomendada=(
                         "Considerar alternativa terapêutica conforme protocolo institucional e perfil da reação alérgica."
                     ),
+                    medicacao=plano["medicacao"],
+                    dose=plano["dose"],
+                    posologia=plano["posologia"],
+                    duracao=plano["duracao"],
                     justificativa=(
                         "A alergia à penicilina interfere diretamente na escolha do antimicrobiano."
                     ),
