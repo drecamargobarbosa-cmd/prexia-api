@@ -1,7 +1,7 @@
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 
-from app.services.clinical_engine import ClinicalEngine
+from app.services.conversation_engine import ConversationEngine
 
 app = FastAPI()
 
@@ -14,7 +14,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-clinical_engine = ClinicalEngine()
+conversation_engine = ConversationEngine()
 
 
 @app.post("/chat")
@@ -24,13 +24,8 @@ async def chat(request: Request):
     message = body.get("message", "")
     user_id = body.get("user_id", "default")
 
-    # 🔴 NÃO CONFIE NO CONTEXTO DO FRONTEND
-    # Isso estava quebrando tudo
-    contexto = {}
-
-    result = clinical_engine.evaluate(
-        question=message,
-        contexto=contexto,
+    result = conversation_engine.process(
+        message=message,
         user_id=user_id
     )
 
