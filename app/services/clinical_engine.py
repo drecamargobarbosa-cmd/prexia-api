@@ -1054,13 +1054,13 @@ class ClinicalEngine:
         if idade is not None and idade >= 12:
             if gravidade is True:
                 return {
-                    "medicacao": "Amoxicilina",
-                    "dose": "875 mg",
+                    "medicacao": "Amoxicilina + Clavulanato",
+                    "dose": "875/125 mg",
                     "posologia": "12/12 horas",
                     "duracao": "7 a 10 dias",
                     "justificativa_plano": (
                         "Em adulto com quadro compatível com otite média aguda e sinais de gravidade, "
-                        "a antibioticoterapia deve ser considerada com seguimento mais próximo."
+                        "optou-se por ampliar cobertura com associação de clavulanato."
                     )
                 }
 
@@ -1070,20 +1070,20 @@ class ClinicalEngine:
                 "posologia": "8/8 horas",
                 "duracao": "7 dias",
                 "justificativa_plano": (
-                    "Em adulto sem alergia à penicilina e com dados clínicos suficientes, "
-                    "a amoxicilina permanece como primeira escolha no cenário implementado."
+                    "Em adulto sem alergia à penicilina e sem sinais de gravidade, "
+                    "a amoxicilina permanece como primeira escolha."
                 )
             }
 
         if peso is not None:
             if gravidade is True:
                 return {
-                    "medicacao": "Amoxicilina",
-                    "dose": "80 a 90 mg/kg/dia",
+                    "medicacao": "Amoxicilina + Clavulanato",
+                    "dose": "80 a 90 mg/kg/dia (componente amoxicilina)",
                     "posologia": "dividida em 2 tomadas ao dia",
                     "duracao": "10 dias",
                     "justificativa_plano": (
-                        "Em pediatria com maior gravidade, a dose deve ser ajustada ao peso e acompanhada de reavaliação precoce."
+                        "Em pediatria com sinais de gravidade, pode-se considerar ampliação de cobertura."
                     )
                 }
 
@@ -1093,7 +1093,7 @@ class ClinicalEngine:
                 "posologia": "dividida em 2 a 3 tomadas ao dia",
                 "duracao": "7 a 10 dias",
                 "justificativa_plano": (
-                    "Em paciente pediátrico sem alergia à penicilina, a posologia deve ser calculada por peso."
+                    "Em paciente pediátrico sem gravidade, a amoxicilina isolada é adequada."
                 )
             }
 
@@ -1103,7 +1103,7 @@ class ClinicalEngine:
             "posologia": "Conforme protocolo institucional",
             "duracao": "7 dias",
             "justificativa_plano": (
-                "Há indicação clínica, porém faltam elementos adicionais para detalhar melhor a posologia individual."
+                "Há indicação clínica, porém faltam elementos adicionais para detalhar melhor a posologia."
             )
         }
 
