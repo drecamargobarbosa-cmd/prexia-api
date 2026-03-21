@@ -16,7 +16,7 @@ class ClinicalEngine:
     - reconhecer intenção clínica:
       tratamento, antibiótico, medicamento e dose
     - ampliar coleta clínica antes de sugerir antibiótico
-    - interpretar melhor respostas parciais
+    - interpretar melhor respostas parciais e frases compostas
     """
 
     def __init__(self):
@@ -124,6 +124,19 @@ class ClinicalEngine:
     def _contains_any_expression(self, text: str, expressions: list[str]) -> bool:
         return any(self._contains_expression(text, exp) for exp in expressions)
 
+    def _contains_any_token(self, text: str, tokens: list[str]) -> bool:
+        return any(token in text for token in tokens)
+
+    def _has_any_negation(self, text: str) -> bool:
+        neg_tokens = [
+            "sem ",
+            "nao ",
+            "nega ",
+            "ausencia de",
+            "ausente"
+        ]
+        return any(token in text for token in neg_tokens)
+
     def _detect_scenario(self, text: str):
         t = self._normalize(text)
 
@@ -230,7 +243,7 @@ class ClinicalEngine:
         if febre is not None:
             dados["febre"] = febre
 
-        febre_alta = self._extract_high_fever_status(t)
+        febre_alta = self._extract_high_fever_status(t, dados)
         if febre_alta is not None:
             dados["febre_alta"] = febre_alta
             if febre_alta is True:
@@ -295,7 +308,9 @@ class ClinicalEngine:
             "nao possui alergia",
             "nega alergia",
             "nega alergias",
-            "sem alergia a penicilina"
+            "sem alergia a penicilina",
+            "sem alergia a antibiotico",
+            "sem alergia medicamentosa"
         ]
 
         positive_terms = [
@@ -337,36 +352,45 @@ class ClinicalEngine:
             "apresenta febre",
             "febril",
             "temperatura elevada",
-            "paciente com febre"
+            "paciente com febre",
+            "febre,"
         ]
 
         if self._contains_any_expression(text, negative_terms):
             return False
 
-        if self._contains_expression(text, "febre alta"):
+        if "febre alta" in text:
             return True
 
-        if self._contains_any_expression(text, positive_terms):
+        if self._contains_any_expression(text, positive_terms) or " febre" in text or text.startswith("febre"):
             return True
 
         return None
 
-    def _extract_high_fever_status(self, text: str):
+    def _extract_high_fever_status(self, text: str, dados: dict):
         negative_terms = [
             "sem febre alta",
             "nega febre alta",
-            "nao tem febre alta"
+            "nao tem febre alta",
+            "febre nao e alta",
+            "a febre nao e alta",
+            "febre baixa"
         ]
 
         positive_terms = [
             "febre alta",
-            "temperatura alta"
+            "temperatura alta",
+            "temperatura muito alta",
+            "a febre e alta"
         ]
 
         if self._contains_any_expression(text, negative_terms):
             return False
 
         if self._contains_any_expression(text, positive_terms):
+            return True
+
+        if text in ["alta", "muito alta"] and dados.get("febre") is True:
             return True
 
         return None
@@ -387,13 +411,14 @@ class ClinicalEngine:
             "ouvido doendo",
             "otalgia",
             "dor no ouvido",
-            "paciente com dor"
+            "paciente com dor",
+            "dor,"
         ]
 
         if self._contains_any_expression(text, negative_terms):
             return False
 
-        if self._contains_any_expression(text, positive_terms):
+        if self._contains_any_expression(text, positive_terms) or text.startswith("dor"):
             return True
 
         return None
@@ -405,7 +430,8 @@ class ClinicalEngine:
             "dor moderada",
             "dor suportavel",
             "dor toleravel",
-            "nao e dor intensa"
+            "nao e dor intensa",
+            "a dor nao e intensa"
         ]
 
         positive_terms = [
@@ -430,7 +456,10 @@ class ClinicalEngine:
         negative_terms = [
             "sem toxemia",
             "nega toxemia",
-            "nao apresenta toxemia"
+            "nao apresenta toxemia",
+            "sem sinais de toxemia",
+            "sem sinais toxicos",
+            "sem sinais toxicos"
         ]
 
         positive_terms = [
@@ -439,7 +468,8 @@ class ClinicalEngine:
             "apresenta toxemia",
             "toxemia",
             "toxico",
-            "toxemico"
+            "toxemico",
+            "sinais de toxemia"
         ]
 
         if self._contains_any_expression(text, negative_terms):
@@ -467,7 +497,8 @@ class ClinicalEngine:
             "prostrado",
             "prostracao",
             "abatido importante",
-            "estado geral ruim"
+            "estado geral ruim",
+            "paciente prostrado"
         ]
 
         if self._contains_any_expression(text, negative_terms):
@@ -483,27 +514,40 @@ class ClinicalEngine:
             "sem secrecao no ouvido",
             "sem secrecao auricular",
             "sem otorreia",
+            "sem otorréia",
+            "sem otorria",
             "nega secrecao no ouvido",
             "nega secrecao auricular",
             "nao tem secrecao no ouvido",
             "nao apresenta secrecao no ouvido",
-            "ouvido seco"
+            "ouvido seco",
+            "sem secrecao",
+            "sem saida de secrecao"
         ]
 
         positive_terms = [
             "secrecao no ouvido",
             "secrecao auricular",
             "otorreia",
+            "otorréia",
+            "otorria",
             "sai secrecao do ouvido",
             "ouvido vazando",
             "ouvido escorrendo",
-            "com secrecao"
+            "com secrecao",
+            "existe secrecao",
+            "paciente com secrecao",
+            "saida de secrecao",
+            "secrecao"
         ]
 
         if self._contains_any_expression(text, negative_terms):
             return False
 
         if self._contains_any_expression(text, positive_terms):
+            return True
+
+        if "secrecao" in text and not self._has_any_negation(text):
             return True
 
         return None
@@ -621,7 +665,8 @@ class ClinicalEngine:
             r'(\d{1,2})\s*dias\s*de\s*dor',
             r'comecou\s*ha\s*(\d{1,2})\s*dias',
             r'inicio\s*ha\s*(\d{1,2})\s*dias',
-            r'sintomas\s*ha\s*(\d{1,2})\s*dias'
+            r'sintomas\s*ha\s*(\d{1,2})\s*dias',
+            r'(\d{1,2})\s*dias\s*de\evolucao'
         ]
 
         for pattern in patterns:
@@ -741,9 +786,6 @@ class ClinicalEngine:
 
             if dados.get("febre_alta") is None:
                 questions.append("A febre é alta?")
-
-            if dados.get("dor_intensa") is None:
-                questions.append("A dor é intensa?")
 
             if dados.get("toxemia") is None:
                 questions.append("Há sinais de toxemia?")
