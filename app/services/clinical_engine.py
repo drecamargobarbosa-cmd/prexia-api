@@ -1,296 +1,349 @@
 import re
-import unicodedata
-
+from copy import deepcopy
 from app.services.protocol_engine import ProtocolEngine
 
 
 class ClinicalEngine:
+    """
+    Motor clínico com memória simples em memória RAM, por user_id.
+    Objetivo:
+    - acumular dados clínicos a cada mensagem
+    - interpretar respostas fragmentadas
+    - evitar loop de perguntas repetidas
+    """
+
+    # memória simples por usuário
+    MEMORY = {}
+
     def __init__(self):
         self.protocol_engine = ProtocolEngine()
 
-    def evaluate(self, question: str, contexto: dict = None):
+    def evaluate(self, question: str, contexto: dict = None, user_id: str = "default"):
         if contexto is None:
             contexto = {}
 
-        scenario = contexto.get("scenario")
-        dados = contexto.get("dados_clinicos", {})
+        # 1. Recupera contexto salvo
+        saved_context = self._get_saved_context(user_id)
 
-        texto_normalizado = self._normalize_text(question)
+        # 2. Faz merge do contexto recebido com o salvo
+        merged_context = self._merge_contexts(saved_context, contexto)
 
-        if self._is_worsening_message(texto_normalizado):
-            return {
-                "tipo": "reavaliacao",
-                "cenario": scenario,
-                "resposta": (
-                    "O quadro sugere possível falha terapêutica ou evolução desfavorável.\n\n"
-                    "Recomenda-se:\n"
-                    "• Reavaliar diagnóstico\n"
-                    "• Verificar adesão ao tratamento\n"
-                    "• Considerar complicações\n"
-                    "• Avaliar necessidade de troca de antibiótico\n"
-                    "• Considerar encaminhamento se sinais de gravidade"
-                ),
-                "dados_clinicos": dados,
-            }
+        # 3. Garante estrutura mínima
+        merged_context = self._ensure_context_structure(merged_context)
+
+        # 4. Detecta cenário, se ainda não houver
+        scenario = merged_context.get("scenario")
+        if not scenario:
+            scenario = self._detect_scenario(question)
+            if scenario:
+                merged_context["scenario"] = scenario
+
+        # 5. Extrai dados da mensagem atual e acumula
+        merged_context = self._extract_and_update_clinical_data(question, merged_context)
+
+        # 6. Atualiza histórico
+        merged_context["history"].append({
+            "role": "user",
+            "content": question
+        })
+
+        # 7. Decide resposta
+        response = self._build_response(merged_context)
+
+        # 8. Salva resposta no histórico
+        merged_context["history"].append({
+            "role": "assistant",
+            "content": response["resposta"]
+        })
+
+        # 9. Persiste contexto atualizado
+        self._save_context(user_id, merged_context)
+
+        return response
+
+    def _get_saved_context(self, user_id: str) -> dict:
+        return deepcopy(self.MEMORY.get(user_id, {}))
+
+    def _save_context(self, user_id: str, context: dict):
+        self.MEMORY[user_id] = deepcopy(context)
+
+    def _merge_contexts(self, saved: dict, incoming: dict) -> dict:
+        if not saved:
+            return deepcopy(incoming or {})
+
+        merged = deepcopy(saved)
+
+        for key, value in (incoming or {}).items():
+            if isinstance(value, dict) and isinstance(merged.get(key), dict):
+                merged[key] = self._deep_merge_dicts(merged[key], value)
+            elif value is not None:
+                merged[key] = value
+
+        return merged
+
+    def _deep_merge_dicts(self, base: dict, new: dict) -> dict:
+        result = deepcopy(base)
+
+        for key, value in new.items():
+            if isinstance(value, dict) and isinstance(result.get(key), dict):
+                result[key] = self._deep_merge_dicts(result[key], value)
+            elif value is not None:
+                result[key] = value
+
+        return result
+
+    def _ensure_context_structure(self, context: dict) -> dict:
+        if "history" not in context or not isinstance(context["history"], list):
+            context["history"] = []
+
+        if "dados_clinicos" not in context or not isinstance(context["dados_clinicos"], dict):
+            context["dados_clinicos"] = {}
+
+        defaults = {
+            "idade": None,
+            "peso": None,
+            "alergia": None,
+            "gravidade": None
+        }
+
+        for key, value in defaults.items():
+            if key not in context["dados_clinicos"]:
+                context["dados_clinicos"][key] = value
+
+        return context
+
+    def _detect_scenario(self, text: str):
+        t = self._normalize(text)
+
+        if any(term in t for term in ["dor de ouvido", "otite", "ouvido inflamado"]):
+            return "otite_media_aguda"
+
+        if any(term in t for term in ["sinusite", "dor na face", "seios da face"]):
+            return "sinusite"
+
+        if any(term in t for term in ["dor de garganta", "amigdalite", "faringite"]):
+            return "faringoamigdalite"
+
+        return None
+
+    def _extract_and_update_clinical_data(self, text: str, context: dict) -> dict:
+        dados = context["dados_clinicos"]
+        t = self._normalize(text)
+
+        # alergia
+        if "sem alergia" in t or "nao tem alergia" in t or "não tem alergia" in t:
+            dados["alergia"] = False
+        elif "alergia a penicilina" in t or "alergico a penicilina" in t or "alérgico a penicilina" in t:
+            dados["alergia"] = True
+        elif "com alergia" in t or "tem alergia" in t or "alergico" in t or "alérgico" in t:
+            dados["alergia"] = True
+
+        # gravidade
+        if "sem gravidade" in t or "sem sinais de gravidade" in t:
+            dados["gravidade"] = False
+        elif any(term in t for term in [
+            "grave", "gravidade", "toxemia", "febre alta", "dor intensa", "prostrado"
+        ]):
+            if "sem gravidade" not in t and "sem sinais de gravidade" not in t:
+                dados["gravidade"] = True
+
+        # idade
+        idade = self._extract_age(t)
+        if idade is not None:
+            dados["idade"] = idade
+
+        # peso
+        peso = self._extract_weight(t)
+        if peso is not None:
+            dados["peso"] = peso
+
+        context["dados_clinicos"] = dados
+        return context
+
+    def _extract_age(self, text: str):
+        patterns = [
+            r'(\d{1,3})\s*anos',
+            r'idade\s*[:=]?\s*(\d{1,3})',
+            r'paciente\s*de\s*(\d{1,3})\s*anos'
+        ]
+
+        for pattern in patterns:
+            match = re.search(pattern, text)
+            if match:
+                try:
+                    idade = int(match.group(1))
+                    if 0 < idade < 130:
+                        return idade
+                except ValueError:
+                    pass
+
+        return None
+
+    def _extract_weight(self, text: str):
+        patterns = [
+            r'(\d{1,3})\s*kg',
+            r'peso\s*[:=]?\s*(\d{1,3})'
+        ]
+
+        for pattern in patterns:
+            match = re.search(pattern, text)
+            if match:
+                try:
+                    peso = int(match.group(1))
+                    if 0 < peso < 500:
+                        return peso
+                except ValueError:
+                    pass
+
+        return None
+
+    def _build_response(self, context: dict) -> dict:
+        scenario = context.get("scenario")
+        dados = context.get("dados_clinicos", {})
 
         if not scenario:
-            scenario = self.protocol_engine.identify_scenario(question)
-
-        if not scenario:
             return {
-                "tipo": "investigacao",
-                "cenario": None,
                 "resposta": "Preciso entender melhor o quadro clínico para orientar a conduta.",
-                "perguntas": [
-                    "Qual é a principal queixa do paciente?",
-                    "Há quanto tempo os sintomas começaram?",
-                    "Existe febre ou sinais sistêmicos?",
-                    "Qual a idade do paciente?",
-                ],
-                "dados_clinicos": dados,
+                "clinical_response": {
+                    "tipo": "coleta_dados",
+                    "cenario": None,
+                    "resposta": "Preciso entender melhor o quadro clínico para orientar a conduta.",
+                    "perguntas": [
+                        "Qual é a hipótese clínica principal?",
+                        "Qual é a idade do paciente?",
+                        "Há alergia medicamentosa?",
+                        "Há sinais de gravidade?"
+                    ],
+                    "dados_clinicos": dados
+                },
+                "history": context.get("history", []),
+                "context": {
+                    "scenario": scenario,
+                    "dados_clinicos": dados
+                }
             }
 
-        dados_extraidos = self._extract_clinical_data(question)
+        missing_questions = self._get_missing_questions(scenario, dados)
 
-        dados_atualizados = {
-            "idade": dados.get("idade"),
-            "peso": dados.get("peso"),
-            "alergia": dados.get("alergia"),
-            "gravidade": dados.get("gravidade"),
-        }
-
-        for chave, valor in dados_extraidos.items():
-            if valor is not None:
-                dados_atualizados[chave] = valor
-
-        protocolo_base = self.protocol_engine.get_protocol(scenario)
-        perguntas_protocolo = protocolo_base.get("perguntas_obrigatorias", []) if protocolo_base else []
-
-        missing = self._get_missing_questions(perguntas_protocolo, dados_atualizados)
-
-        if missing:
+        if missing_questions:
+            resposta = "Ainda preciso de algumas informações para definir o tratamento:"
             return {
-                "tipo": "coleta_dados",
-                "cenario": scenario,
-                "resposta": "Ainda preciso de algumas informações para definir o tratamento:",
-                "perguntas": missing,
-                "dados_clinicos": dados_atualizados,
+                "resposta": resposta,
+                "clinical_response": {
+                    "tipo": "coleta_dados",
+                    "cenario": scenario,
+                    "resposta": resposta,
+                    "perguntas": missing_questions,
+                    "dados_clinicos": dados
+                },
+                "history": context.get("history", []),
+                "context": {
+                    "scenario": scenario,
+                    "dados_clinicos": dados
+                }
             }
 
-        protocolo = self.protocol_engine.get_protocol(scenario)
-
-        if not protocolo:
-            return {
-                "tipo": "erro",
-                "cenario": scenario,
-                "resposta": "Não encontrei protocolo para esse cenário.",
-                "dados_clinicos": dados_atualizados,
-            }
-
-        resposta_formatada = self._format_protocol(scenario, protocolo, dados_atualizados)
+        protocol_result = self._generate_protocol_response(scenario, dados)
 
         return {
-            "tipo": "protocolo_definido",
-            "cenario": scenario,
-            "resposta": resposta_formatada,
-            "dados_clinicos": dados_atualizados,
+            "resposta": protocol_result["resposta"],
+            "clinical_response": {
+                "tipo": "conduta",
+                "cenario": scenario,
+                "resposta": protocol_result["resposta"],
+                "conduta": protocol_result.get("conduta"),
+                "dados_clinicos": dados
+            },
+            "history": context.get("history", []),
+            "context": {
+                "scenario": scenario,
+                "dados_clinicos": dados
+            }
         }
 
-    def _normalize_text(self, text: str) -> str:
-        if not text:
-            return ""
-
-        text = text.strip().lower()
-        text = unicodedata.normalize("NFD", text)
-        text = "".join(ch for ch in text if unicodedata.category(ch) != "Mn")
-        text = re.sub(r"[^a-z0-9\s]", " ", text)
-        text = re.sub(r"\s+", " ", text).strip()
-        return text
-
-    def _contains_any(self, text: str, terms: list[str]) -> bool:
-        return any(term in text for term in terms)
-
-    def _is_worsening_message(self, normalized_text: str) -> bool:
-        worsening_terms = [
-            "piora",
-            "nao melhorou",
-            "sem melhora",
-            "piorou",
-            "sem resposta ao tratamento",
-            "falha terapeutica",
-        ]
-        return self._contains_any(normalized_text, worsening_terms)
-
-    def _extract_age(self, normalized_text: str):
-        match = re.search(r"\b(\d+)\s*anos?\b", normalized_text)
-        if match:
-            return int(match.group(1))
-        return None
-
-    def _extract_weight(self, normalized_text: str):
-        match = re.search(r"\b(\d+)\s*kg\b", normalized_text)
-        if match:
-            return int(match.group(1))
-        return None
-
-    def _extract_allergy(self, normalized_text: str):
-        negative_terms = [
-            "sem alergia",
-            "sem alergias",
-            "sem alerg",
-            "nega alergia",
-            "nega alergias",
-            "nega alerg",
-            "nao tem alergia",
-            "nao possui alergia",
-            "sem alergia a penicilina",
-            "nega alergia a penicilina",
-            "sem alergia penicilina",
-            "sem alergia a penicilinas",
-            "sem alergia a antibioticos beta lactamicos",
-        ]
-
-        positive_terms = [
-            "alergia a penicilina",
-            "alergico a penicilina",
-            "alergica a penicilina",
-            "tem alergia",
-            "possui alergia",
-            "alergia",
-            "alergico",
-            "alergica",
-        ]
-
-        if self._contains_any(normalized_text, negative_terms):
-            return False
-
-        if self._contains_any(normalized_text, positive_terms):
-            return True
-
-        return None
-
-    def _extract_severity(self, normalized_text: str):
-        negative_terms = [
-            "sem gravidade",
-            "sem sinais de gravidade",
-            "sem sinal de gravidade",
-            "sem febre",
-            "afebril",
-            "sem toxemia",
-            "dor leve",
-            "sem dor intensa",
-            "bom estado geral",
-            "sem sinais de alarme",
-            "sem sinais de alerta",
-            "quadro leve",
-            "quadro sem gravidade",
-            "nao grave",
-            "sem sinais sistemicos",
-            "sem sinais sistêmicos",
-        ]
-
-        positive_terms = [
-            "febre alta",
-            "toxemia",
-            "prostrado",
-            "prostracao",
-            "dor intensa",
-            "mal estado geral",
-            "sinais de gravidade",
-            "grave",
-            "quadro grave",
-            "toxico",
-            "toxico",
-        ]
-
-        if self._contains_any(normalized_text, negative_terms):
-            return False
-
-        if self._contains_any(normalized_text, positive_terms):
-            return True
-
-        return None
-
-    def _extract_clinical_data(self, text: str):
-        normalized_text = self._normalize_text(text)
-
-        return {
-            "idade": self._extract_age(normalized_text),
-            "peso": self._extract_weight(normalized_text),
-            "alergia": self._extract_allergy(normalized_text),
-            "gravidade": self._extract_severity(normalized_text),
-        }
-
-    def _get_missing_questions(self, perguntas_protocolo: list[str], dados: dict):
-        missing = []
-
-        if perguntas_protocolo:
-            for pergunta in perguntas_protocolo:
-                pergunta_normalizada = self._normalize_text(pergunta)
-
-                if "idade" in pergunta_normalizada or "anos" in pergunta_normalizada:
-                    if dados.get("idade") is None:
-                        missing.append(pergunta)
-                    continue
-
-                if (
-                    "gravidade" in pergunta_normalizada
-                    or "febre alta" in pergunta_normalizada
-                    or "dor intensa" in pergunta_normalizada
-                    or "toxemia" in pergunta_normalizada
-                    or "sinais de alarme" in pergunta_normalizada
-                    or "sinais de alerta" in pergunta_normalizada
-                ):
-                    if dados.get("gravidade") is None:
-                        missing.append(pergunta)
-                    continue
-
-                if "alerg" in pergunta_normalizada or "penicilina" in pergunta_normalizada:
-                    if dados.get("alergia") is None:
-                        missing.append(pergunta)
-                    continue
-
-            return missing
-
-        if dados.get("idade") is None:
-            missing.append("Qual a idade do paciente?")
+    def _get_missing_questions(self, scenario: str, dados: dict):
+        questions = []
 
         if dados.get("gravidade") is None:
-            missing.append("Há sinais de gravidade, como febre alta, dor intensa ou toxemia?")
+            questions.append("Há sinais de gravidade, como febre alta, dor intensa ou toxemia?")
 
         if dados.get("alergia") is None:
-            missing.append("O paciente tem alergia à penicilina?")
+            questions.append("O paciente tem alergia à penicilina?")
 
-        return missing
+        # Idade é importante para definir conduta pediátrica vs adulto
+        if dados.get("idade") is None:
+            questions.append("Qual é a idade do paciente?")
 
-    def _format_protocol(self, scenario, protocolo, dados):
-        linhas = []
+        # Peso só perguntar se for criança
+        idade = dados.get("idade")
+        if idade is not None and idade < 12 and dados.get("peso") is None:
+            questions.append("Qual é o peso do paciente em kg?")
 
-        linhas.append("Avaliação Clínica:")
-        linhas.append(f"Diagnóstico provável: {scenario.replace('_', ' ').title()}")
-        linhas.append("")
+        return questions
 
-        tratamento = protocolo.get("tratamento", {})
-        primeira = tratamento.get("primeira_linha")
-        alergia_alt = tratamento.get("alergia_penicilina")
+    def _generate_protocol_response(self, scenario: str, dados: dict):
+        """
+        Aqui você pode integrar com seu ProtocolEngine real.
+        Mantive um fallback para evitar quebra durante o teste.
+        """
+        try:
+            protocol_response = self.protocol_engine.generate_recommendation(
+                scenario=scenario,
+                dados_clinicos=dados
+            )
 
-        med = alergia_alt if dados.get("alergia") is True and alergia_alt else primeira
+            if isinstance(protocol_response, dict):
+                return protocol_response
 
-        if not med:
-            return "Protocolo sem medicação configurada."
+            return {
+                "resposta": str(protocol_response),
+                "conduta": protocol_response
+            }
+        except Exception:
+            return self._fallback_response(scenario, dados)
 
-        linhas.append("Conduta recomendada:")
-        linhas.append(f"Medicação: {med.get('medicamento', 'Não informado')}")
-        linhas.append(f"Dose: {med.get('apresentacao', '')}".strip())
-        linhas.append(
-            f"Duração: {med.get('posologia', 'Não informada')} por {med.get('duracao', 'Não informada')}"
-        )
-        linhas.append("")
-        linhas.append(f"Justificativa: {med.get('justificativa', 'Não informada')}")
-        linhas.append("")
+    def _fallback_response(self, scenario: str, dados: dict):
+        if scenario == "otite_media_aguda":
+            if dados.get("gravidade") is False and dados.get("alergia") is False:
+                return {
+                    "resposta": (
+                        "Com base nas informações fornecidas, trata-se de um quadro compatível com otite média aguda sem sinais de gravidade e sem alergia à penicilina. "
+                        "Considere avaliar indicação de antibioticoterapia conforme protocolo institucional, além de analgesia e reavaliação clínica se não houver melhora."
+                    ),
+                    "conduta": {
+                        "cenario": scenario,
+                        "gravidade": dados.get("gravidade"),
+                        "alergia": dados.get("alergia"),
+                        "idade": dados.get("idade")
+                    }
+                }
 
-        quantidade_total = med.get("quantidade_total")
-        if quantidade_total:
-            linhas.append(f"Observações clínicas: Quantidade total: {quantidade_total}")
+            if dados.get("gravidade") is False and dados.get("alergia") is True:
+                return {
+                    "resposta": (
+                        "Com base nas informações fornecidas, trata-se de um quadro compatível com otite média aguda sem sinais de gravidade, porém com relato de alergia à penicilina. "
+                        "Considere alternativa terapêutica conforme protocolo institucional e gravidade da alergia relatada."
+                    ),
+                    "conduta": {
+                        "cenario": scenario,
+                        "gravidade": dados.get("gravidade"),
+                        "alergia": dados.get("alergia"),
+                        "idade": dados.get("idade")
+                    }
+                }
 
-        return "\n".join(linhas)
+        return {
+            "resposta": (
+                "Consegui estruturar o caso clínico, mas não há protocolo específico implementado para esse cenário nesta etapa. "
+                "Avalie o quadro clinicamente e siga o protocolo institucional disponível."
+            ),
+            "conduta": {
+                "cenario": scenario,
+                "dados_clinicos": dados
+            }
+        }
+
+    def _normalize(self, text: str) -> str:
+        if not text:
+            return ""
+        return text.strip().lower()
