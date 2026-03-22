@@ -18,7 +18,7 @@ class ClinicalEngine:
     - interpretar respostas curtas dentro do contexto clínico atual
     - chamar o reasoning_engine para avaliar prontidão
     - chamar o decision_engine quando houver base suficiente
-    - anexar confidence, risco, explicabilidade e segurança
+    - separar resposta principal, interpretação e segurança
     """
 
     def __init__(self):
@@ -450,6 +450,15 @@ class ClinicalEngine:
             confidence=confidence
         )
 
+        interpretation_payload = self._build_interpretation_payload(explanation=explanation)
+        safety_payload = self._build_safety_payload(
+            scenario=scenario,
+            dados=dados,
+            confidence=confidence,
+            risk_level=risk_level,
+            safety=safety
+        )
+
         if status == "insufficient_data":
             resposta = "Preciso entender melhor o quadro clínico para orientar a conduta."
             return {
@@ -460,13 +469,8 @@ class ClinicalEngine:
                     "resposta": resposta,
                     "perguntas": reasoning.get("missing", []),
                     "dados_clinicos": dados,
-                    "confidence": confidence,
-                    "risk_level": risk_level,
-                    "explanation": explanation,
-                    "nivel_seguranca": safety["nivel_seguranca"],
-                    "reavaliacao_necessaria": safety["reavaliacao_necessaria"],
-                    "dados_relevantes_ausentes": safety["dados_relevantes_ausentes"],
-                    "alertas_clinicos": safety["alertas_clinicos"]
+                    "interpretation": interpretation_payload,
+                    "safety": safety_payload
                 }
             }
 
@@ -480,13 +484,8 @@ class ClinicalEngine:
                     "resposta": resposta,
                     "perguntas": reasoning.get("missing", []),
                     "dados_clinicos": dados,
-                    "confidence": confidence,
-                    "risk_level": risk_level,
-                    "explanation": explanation,
-                    "nivel_seguranca": safety["nivel_seguranca"],
-                    "reavaliacao_necessaria": safety["reavaliacao_necessaria"],
-                    "dados_relevantes_ausentes": safety["dados_relevantes_ausentes"],
-                    "alertas_clinicos": safety["alertas_clinicos"]
+                    "interpretation": interpretation_payload,
+                    "safety": safety_payload
                 }
             }
 
@@ -494,14 +493,8 @@ class ClinicalEngine:
             response = self.decision_engine.decide(question=question, context=context)
 
             clinical_response = response.get("clinical_response", {})
-            clinical_response["confidence"] = confidence
-            clinical_response["risk_level"] = risk_level
-            clinical_response["explanation"] = explanation
-            clinical_response["missing_relevant_data"] = self._relevant_missing_data(scenario, dados)
-            clinical_response["nivel_seguranca"] = safety["nivel_seguranca"]
-            clinical_response["reavaliacao_necessaria"] = safety["reavaliacao_necessaria"]
-            clinical_response["dados_relevantes_ausentes"] = safety["dados_relevantes_ausentes"]
-            clinical_response["alertas_clinicos"] = safety["alertas_clinicos"]
+            clinical_response["interpretation"] = interpretation_payload
+            clinical_response["safety"] = safety_payload
 
             response["clinical_response"] = clinical_response
             return response
@@ -515,14 +508,32 @@ class ClinicalEngine:
                 "resposta": resposta,
                 "perguntas": ["Descreva melhor o quadro clínico atual."],
                 "dados_clinicos": dados,
-                "confidence": confidence,
-                "risk_level": risk_level,
-                "explanation": explanation,
-                "nivel_seguranca": safety["nivel_seguranca"],
-                "reavaliacao_necessaria": safety["reavaliacao_necessaria"],
-                "dados_relevantes_ausentes": safety["dados_relevantes_ausentes"],
-                "alertas_clinicos": safety["alertas_clinicos"]
+                "interpretation": interpretation_payload,
+                "safety": safety_payload
             }
+        }
+
+    def _build_interpretation_payload(self, explanation: str) -> dict:
+        return {
+            "explanation": explanation
+        }
+
+    def _build_safety_payload(
+        self,
+        scenario: str,
+        dados: dict,
+        confidence: str,
+        risk_level: str,
+        safety: dict
+    ) -> dict:
+        return {
+            "confidence": confidence,
+            "risk_level": risk_level,
+            "nivel_seguranca": safety["nivel_seguranca"],
+            "reavaliacao_necessaria": safety["reavaliacao_necessaria"],
+            "dados_relevantes_ausentes": safety["dados_relevantes_ausentes"],
+            "alertas_clinicos": safety["alertas_clinicos"],
+            "missing_relevant_data": self._relevant_missing_data(scenario, dados)
         }
 
     def _calculate_confidence(self, scenario: str, dados: dict, reasoning: dict) -> str:
@@ -648,8 +659,8 @@ class ClinicalEngine:
 
             return self._join_explanation(
                 "Ainda faltam elementos para uma decisão final porque",
-                    reasons,
-                    "o quadro ainda precisa de melhor definição etiológica."
+                reasons,
+                "o quadro ainda precisa de melhor definição etiológica."
             )
 
         if scenario == "sinusite":
