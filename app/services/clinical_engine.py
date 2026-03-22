@@ -123,7 +123,7 @@ class ClinicalEngine:
         return any(token in text for token in negations)
 
     def _is_short_contextual_answer(self, text: str) -> bool:
-        return len(text.split()) <= 8
+        return len(text.split()) <= 10
 
     def _detect_scenario(self, normalized_text: str):
         if self._contains_any(normalized_text, [
@@ -257,6 +257,8 @@ class ClinicalEngine:
                 "pus no ouvido"
             ]):
                 dados["secrecao_auricular"] = True
+                if self._contains_any(text, ["pus no ouvido", "otorreia purulenta"]):
+                    dados["secrecao_purulenta"] = True
 
             if self._contains_any(text, [
                 "sem secrecao no ouvido",
@@ -265,12 +267,23 @@ class ClinicalEngine:
                 dados["secrecao_auricular"] = False
 
             if self._is_short_contextual_answer(text):
-                if self._contains_any(text, ["secrecao", "pus"]) and not self._has_negation(text):
+                # melhora para respostas como:
+                # "secrecao", "febre e secrecao", "com secrecao", "secrecao e febre", "pus"
+                if self._contains_any(text, [
+                    "secrecao",
+                    "com secrecao",
+                    "febre e secrecao",
+                    "secrecao e febre",
+                    "pus"
+                ]) and not self._has_negation(text):
                     dados["secrecao_auricular"] = True
                     if self._contains_any(text, ["pus"]):
                         dados["secrecao_purulenta"] = True
 
-                if self._contains_any(text, ["sem secrecao", "sem pus"]) or (
+                if self._contains_any(text, [
+                    "sem secrecao",
+                    "sem pus"
+                ]) or (
                     self._has_negation(text) and self._contains_any(text, ["secrecao", "pus"])
                 ):
                     dados["secrecao_auricular"] = False
