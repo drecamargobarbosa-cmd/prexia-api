@@ -1,8 +1,8 @@
 import re
 from copy import deepcopy
 from app.services.protocol_engine import ProtocolEngine
+from app.services.reasoning_engine import ReasoningEngine
 
-# NOVO: integração com interaction_engine
 from app.services.interaction_engine import (
     check_drug_interactions,
     check_disease_interactions
@@ -12,8 +12,8 @@ from app.services.interaction_engine import (
 class ClinicalEngine:
     def __init__(self):
         self.protocol_engine = ProtocolEngine()
+        self.reasoning_engine = ReasoningEngine()
 
-        # NOVO: armazenar funções de interação
         self.check_drug_interactions = check_drug_interactions
         self.check_disease_interactions = check_disease_interactions
 
@@ -23,88 +23,107 @@ class ClinicalEngine:
 
         merged_context = self._ensure_context_structure(deepcopy(contexto))
 
+        # Detectar cenário
         scenario = merged_context.get("scenario")
         if not scenario:
             scenario = self._detect_scenario(question)
             if scenario:
                 merged_context["scenario"] = scenario
 
+        # Extrair dados clínicos
         merged_context = self._extract_and_update_clinical_data(question, merged_context)
 
-        intent = self._detect_intent(question)
-        merged_context["intent"] = intent
-
+        # Histórico
         merged_context["history"].append({
             "role": "user",
             "content": question
         })
 
-        response = self._build_response(merged_context, question)
+        # 🧠 NOVO: RACIOCÍNIO CLÍNICO
+        reasoning = self.reasoning_engine.evaluate_readiness(merged_context)
 
-        merged_context["history"].append({
-            "role": "assistant",
-            "content": response["resposta"]
-        })
+        # 🚨 CASO 1: dados insuficientes
+        if reasoning["status"] == "insufficient_data":
+            resposta = "Preciso entender melhor o quadro clínico."
+            return self._build_basic_response(resposta, merged_context, "coleta_dados")
 
-        response["history"] = merged_context["history"]
-        response["context"] = merged_context
+        # ❓ CASO 2: precisa de mais dados
+        if reasoning["status"] == "need_more_data":
+            perguntas = reasoning.get("missing", [])
+            resposta = "Ainda preciso de algumas informações:"
+            return {
+                "resposta": resposta,
+                "clinical_response": {
+                    "tipo": "coleta_dados",
+                    "perguntas": perguntas
+                },
+                "context": merged_context
+            }
 
-        return response
+        # ✅ CASO 3: pronto para tratar
+        if reasoning["status"] == "ready_for_treatment":
+            protocol = self.protocol_engine.generate_recommendation(
+                scenario=merged_context.get("scenario"),
+                dados_clinicos=merged_context.get("dados_clinicos")
+            )
 
-    def _ensure_context_structure(self, context: dict) -> dict:
-        if "history" not in context or not isinstance(context["history"], list):
-            context["history"] = []
+            resposta = protocol.get("resposta", "Conduta definida.")
 
-        if "dados_clinicos" not in context or not isinstance(context["dados_clinicos"], dict):
-            context["dados_clinicos"] = {}
+            # 🔍 Interações
+            interacoes = self.check_drug_interactions(
+                question,
+                protocol.get("medicacao")
+            )
 
-        defaults = {
-            "idade": None,
-            "peso": None,
-            "alergia": None,
-            "gravidade": None,
-            "febre": None,
-            "febre_alta": None,
-            "dor_presente": None,
-            "dor_intensa": None,
-            "toxemia": None,
-            "prostracao": None,
-            "secrecao_auricular": None,
-            "secrecao_purulenta": None,
-            "duracao_dias": None
+            doencas = self.check_disease_interactions(
+                question,
+                protocol.get("medicacao")
+            )
+
+            alertas = interacoes + doencas
+
+            if alertas:
+                resposta += "\n\nAtenção:\n" + "\n".join(alertas)
+
+            return {
+                "resposta": resposta,
+                "clinical_response": {
+                    "tipo": "conduta",
+                    "cenario": merged_context.get("scenario"),
+                    "alertas": alertas
+                },
+                "context": merged_context
+            }
+
+        # fallback
+        return self._build_basic_response(
+            "Não consegui definir conduta com segurança.",
+            merged_context,
+            "erro"
+        )
+
+    def _build_basic_response(self, resposta, contexto, tipo):
+        return {
+            "resposta": resposta,
+            "clinical_response": {
+                "tipo": tipo
+            },
+            "context": contexto
         }
 
-        for key, value in defaults.items():
-            if key not in context["dados_clinicos"]:
-                context["dados_clinicos"][key] = value
+    def _ensure_context_structure(self, context: dict) -> dict:
+        if "history" not in context:
+            context["history"] = []
 
-        if "scenario" not in context:
-            context["scenario"] = None
-
-        if "intent" not in context:
-            context["intent"] = "geral"
+        if "dados_clinicos" not in context:
+            context["dados_clinicos"] = {}
 
         return context
 
     def _normalize(self, text: str) -> str:
         if not text:
             return ""
-
-        text = text.strip().lower()
-
-        replacements = {
-            "á": "a", "à": "a", "ã": "a", "â": "a",
-            "é": "e", "ê": "e",
-            "í": "i",
-            "ó": "o", "ô": "o", "õ": "o",
-            "ú": "u",
-            "ç": "c"
-        }
-
-        for old, new in replacements.items():
-            text = text.replace(old, new)
-
-        return text
+        return text.lower()
 
     def _detect_scenario(self, text: str):
         t = self._normalize(text)
@@ -120,83 +139,24 @@ class ClinicalEngine:
 
         return None
 
-    def _detect_intent(self, text: str):
-        t = self._normalize(text)
-
-        if "dose" in t or "posologia" in t:
-            return "dose"
-
-        if "antibiotico" in t:
-            return "antibiotico"
-
-        if "tratamento" in t:
-            return "tratamento"
-
-        return "geral"
-
     def _extract_and_update_clinical_data(self, text: str, context: dict) -> dict:
         dados = context["dados_clinicos"]
         t = self._normalize(text)
 
-        if "sem alergia" in t:
-            dados["alergia"] = False
-        elif "alergia" in t:
-            dados["alergia"] = True
-
         if "febre" in t:
             dados["febre"] = True
+
         if "sem febre" in t:
             dados["febre"] = False
 
+        if "alergia" in t:
+            dados["alergia"] = True
+
+        if "sem alergia" in t:
+            dados["alergia"] = False
+
         if "grave" in t:
             dados["gravidade"] = True
-        if "sem gravidade" in t:
-            dados["gravidade"] = False
 
         context["dados_clinicos"] = dados
         return context
-
-    def _build_response(self, context: dict, question: str) -> dict:
-        scenario = context.get("scenario")
-        dados = context.get("dados_clinicos", {})
-
-        if not scenario:
-            return {
-                "resposta": "Preciso entender melhor o quadro clínico.",
-                "clinical_response": {
-                    "tipo": "coleta_dados"
-                }
-            }
-
-        protocol = self.protocol_engine.generate_recommendation(
-            scenario=scenario,
-            dados_clinicos=dados
-        )
-
-        resposta = protocol.get("resposta", "Conduta definida.")
-
-        # NOVO: checar interações
-        interacoes = self.check_drug_interactions(
-            question,
-            protocol.get("medicacao")
-        )
-
-        doencas = self.check_disease_interactions(
-            question,
-            protocol.get("medicacao")
-        )
-
-        alertas = interacoes + doencas
-
-        if alertas:
-            resposta += "\n\nAtenção:\n" + "\n".join(alertas)
-
-        return {
-            "resposta": resposta,
-            "clinical_response": {
-                "tipo": "conduta",
-                "cenario": scenario,
-                "dados_clinicos": dados,
-                "alertas": alertas
-            }
-        }
