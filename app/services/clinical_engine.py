@@ -4,6 +4,7 @@ from copy import deepcopy
 
 from app.services.reasoning_engine import ReasoningEngine
 from app.services.decision_engine import DecisionEngine
+from app.services.safety_engine import assess_case_safety
 
 
 class ClinicalEngine:
@@ -17,7 +18,7 @@ class ClinicalEngine:
     - interpretar respostas curtas dentro do contexto clínico atual
     - chamar o reasoning_engine para avaliar prontidão
     - chamar o decision_engine quando houver base suficiente
-    - anexar confidence, risco e explicabilidade
+    - anexar confidence, risco, explicabilidade e segurança
     """
 
     def __init__(self):
@@ -443,6 +444,11 @@ class ClinicalEngine:
         confidence = self._calculate_confidence(scenario, dados, reasoning)
         risk_level = self._calculate_risk_level(scenario, dados)
         explanation = self._build_explanation(scenario, dados, reasoning)
+        safety = assess_case_safety(
+            scenario=scenario,
+            dados_clinicos=dados,
+            confidence=confidence
+        )
 
         if status == "insufficient_data":
             resposta = "Preciso entender melhor o quadro clínico para orientar a conduta."
@@ -456,7 +462,11 @@ class ClinicalEngine:
                     "dados_clinicos": dados,
                     "confidence": confidence,
                     "risk_level": risk_level,
-                    "explanation": explanation
+                    "explanation": explanation,
+                    "nivel_seguranca": safety["nivel_seguranca"],
+                    "reavaliacao_necessaria": safety["reavaliacao_necessaria"],
+                    "dados_relevantes_ausentes": safety["dados_relevantes_ausentes"],
+                    "alertas_clinicos": safety["alertas_clinicos"]
                 }
             }
 
@@ -472,7 +482,11 @@ class ClinicalEngine:
                     "dados_clinicos": dados,
                     "confidence": confidence,
                     "risk_level": risk_level,
-                    "explanation": explanation
+                    "explanation": explanation,
+                    "nivel_seguranca": safety["nivel_seguranca"],
+                    "reavaliacao_necessaria": safety["reavaliacao_necessaria"],
+                    "dados_relevantes_ausentes": safety["dados_relevantes_ausentes"],
+                    "alertas_clinicos": safety["alertas_clinicos"]
                 }
             }
 
@@ -484,6 +498,10 @@ class ClinicalEngine:
             clinical_response["risk_level"] = risk_level
             clinical_response["explanation"] = explanation
             clinical_response["missing_relevant_data"] = self._relevant_missing_data(scenario, dados)
+            clinical_response["nivel_seguranca"] = safety["nivel_seguranca"]
+            clinical_response["reavaliacao_necessaria"] = safety["reavaliacao_necessaria"]
+            clinical_response["dados_relevantes_ausentes"] = safety["dados_relevantes_ausentes"]
+            clinical_response["alertas_clinicos"] = safety["alertas_clinicos"]
 
             response["clinical_response"] = clinical_response
             return response
@@ -499,7 +517,11 @@ class ClinicalEngine:
                 "dados_clinicos": dados,
                 "confidence": confidence,
                 "risk_level": risk_level,
-                "explanation": explanation
+                "explanation": explanation,
+                "nivel_seguranca": safety["nivel_seguranca"],
+                "reavaliacao_necessaria": safety["reavaliacao_necessaria"],
+                "dados_relevantes_ausentes": safety["dados_relevantes_ausentes"],
+                "alertas_clinicos": safety["alertas_clinicos"]
             }
         }
 
@@ -626,8 +648,8 @@ class ClinicalEngine:
 
             return self._join_explanation(
                 "Ainda faltam elementos para uma decisão final porque",
-                reasons,
-                "o quadro ainda precisa de melhor definição etiológica."
+                    reasons,
+                    "o quadro ainda precisa de melhor definição etiológica."
             )
 
         if scenario == "sinusite":
