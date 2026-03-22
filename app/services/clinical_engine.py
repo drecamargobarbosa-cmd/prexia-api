@@ -2,12 +2,8 @@ import re
 import unicodedata
 from copy import deepcopy
 
-from app.services.protocol_engine import ProtocolEngine
 from app.services.reasoning_engine import ReasoningEngine
-from app.services.interaction_engine import (
-    check_drug_interactions,
-    check_disease_interactions
-)
+from app.services.decision_engine import DecisionEngine
 
 
 class ClinicalEngine:
@@ -19,15 +15,12 @@ class ClinicalEngine:
     - detectar ou trocar cenário clínico
     - extrair dados clínicos da fala do usuário
     - chamar o reasoning_engine para avaliar prontidão
-    - chamar o protocol_engine apenas quando já houver base suficiente
-    - anexar alertas de interação
+    - chamar o decision_engine quando houver base suficiente
     """
 
     def __init__(self):
-        self.protocol_engine = ProtocolEngine()
         self.reasoning_engine = ReasoningEngine()
-        self.check_drug_interactions = check_drug_interactions
-        self.check_disease_interactions = check_disease_interactions
+        self.decision_engine = DecisionEngine()
 
     def evaluate(self, question: str, contexto: dict = None, user_id: str = "default"):
         if contexto is None:
@@ -36,34 +29,26 @@ class ClinicalEngine:
         merged_context = self._ensure_context_structure(deepcopy(contexto))
         normalized_question = self._normalize(question)
 
-        # 1. detectar cenário atual e permitir troca quando o usuário muda de caso
         detected_scenario = self._detect_scenario(normalized_question)
         if detected_scenario and detected_scenario != merged_context.get("scenario"):
             merged_context["scenario"] = detected_scenario
 
-        # 2. extrair dados clínicos da mensagem atual
         merged_context = self._extract_and_update_clinical_data(question, merged_context)
-
-        # 3. detectar intenção
         merged_context["intent"] = self._detect_intent(normalized_question)
 
-        # 4. registrar histórico
         merged_context["history"].append({
             "role": "user",
             "content": question
         })
 
-        # 5. raciocínio clínico
         reasoning = self.reasoning_engine.evaluate_readiness(merged_context)
 
-        # 6. montar resposta
         response = self._build_response(
             question=question,
             context=merged_context,
             reasoning=reasoning
         )
 
-        # 7. salvar resposta no histórico
         merged_context["history"].append({
             "role": "assistant",
             "content": response["resposta"]
@@ -217,13 +202,13 @@ class ClinicalEngine:
         if self._contains_any(t, ["sem secrecao", "sem otorreia", "sem secrecao no ouvido"]):
             dados["secrecao_auricular"] = False
 
-        if self._contains_any(t, ["dor de garganta", "odinofagia", "garganta inflamda", "garganta inflamada"]):
+        if self._contains_any(t, ["dor de garganta", "odinofagia", "garganta inflamada", "garganta inflamda"]):
             dados["dor_garganta"] = True
 
         if self._contains_any(t, ["sem dor de garganta"]):
             dados["dor_garganta"] = False
 
-        if self._contains_any(t, ["placas", "placa na garganta", "exsudato", "pus na amigdala", "pus na amigdalas"]):
+        if self._contains_any(t, ["placas", "placa na garganta", "exsudato", "pus na amigdala", "pus nas amigdalas"]):
             dados["placas_amigdalianas"] = True
 
         if self._contains_any(t, ["sem placas", "sem exsudato"]):
@@ -354,12 +339,12 @@ class ClinicalEngine:
 
     def _extract_prostration_status(self, text: str):
         if self._contains_any(text, [
-            "sem prostracao", "bom estado geral", "ativo"
+            "sem prostracao", "bom estado geral", "ativo", "sem prostração"
         ]):
             return False
 
         if self._contains_any(text, [
-            "prostrado", "prostracao", "abatido"
+            "prostrado", "prostracao", "prostração", "abatido"
         ]):
             return True
 
@@ -368,7 +353,6 @@ class ClinicalEngine:
     def _build_response(self, question: str, context: dict, reasoning: dict) -> dict:
         scenario = context.get("scenario")
         dados = context.get("dados_clinicos", {})
-        intent = context.get("intent", "geral")
         status = reasoning.get("status")
 
         if status == "insufficient_data":
@@ -398,36 +382,7 @@ class ClinicalEngine:
             }
 
         if status == "ready_for_treatment":
-            protocol_result = self._generate_protocol_response(scenario, dados)
-
-            resposta = protocol_result.get("resposta", "Conduta definida.")
-            medicacao = (
-                protocol_result.get("medicacao")
-                or protocol_result.get("conduta", {}).get("medicacao")
-                if isinstance(protocol_result.get("conduta"), dict) else None
-            )
-
-            drug_alerts = self.check_drug_interactions(question, medicacao)
-            disease_alerts = self.check_disease_interactions(question, medicacao)
-            alertas = drug_alerts + disease_alerts
-
-            if alertas:
-                resposta = resposta + "\n\nAtenção:\n" + "\n".join(f"• {a}" for a in alertas)
-
-            response_type = "tratamento" if intent in [
-                "tratamento", "antibiotico", "medicamento", "dose", "geral"
-            ] else "conduta"
-
-            return {
-                "resposta": resposta,
-                "clinical_response": {
-                    "tipo": response_type,
-                    "cenario": scenario,
-                    "resposta": resposta,
-                    "dados_clinicos": dados,
-                    "alertas": alertas
-                }
-            }
+            return self.decision_engine.decide(question=question, context=context)
 
         resposta = "Ainda não consegui estruturar a conduta com segurança. Preciso de mais dados clínicos."
         return {
@@ -440,29 +395,3 @@ class ClinicalEngine:
                 "dados_clinicos": dados
             }
         }
-
-    def _generate_protocol_response(self, scenario: str, dados: dict):
-        try:
-            protocol_response = self.protocol_engine.generate_recommendation(
-                scenario=scenario,
-                dados_clinicos=dados
-            )
-
-            if isinstance(protocol_response, dict):
-                return protocol_response
-
-            return {
-                "resposta": str(protocol_response),
-                "conduta": protocol_response
-            }
-        except Exception:
-            return {
-                "resposta": (
-                    "Consegui estruturar o caso clínico, mas não há protocolo específico implementado "
-                    "ou o motor de protocolo não conseguiu gerar a recomendação nesta etapa."
-                ),
-                "conduta": {
-                    "cenario": scenario,
-                    "dados_clinicos": dados
-                }
-            }
