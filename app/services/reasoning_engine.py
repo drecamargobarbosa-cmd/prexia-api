@@ -35,11 +35,11 @@ class ReasoningEngine:
             return self._evaluate_sinusitis(dados)
 
         return {
-          "status": "insufficient_data",
-          "reason": "Cenário ainda não suportado",
-          "missing": [
-              "Descreva melhor o quadro clínico para eu definir o cenário."
-          ]
+            "status": "insufficient_data",
+            "reason": "Cenário ainda não suportado",
+            "missing": [
+                "Descreva melhor o quadro clínico para eu definir o cenário."
+            ]
         }
 
     def _evaluate_otitis(self, dados: dict) -> dict:
@@ -82,7 +82,6 @@ class ReasoningEngine:
                 "missing": missing
             }
 
-        # prontidão mínima para considerar avanço terapêutico
         if dados.get("dor_presente") is True and (
             dados.get("febre") is True or
             dados.get("secrecao_auricular") is True or
@@ -119,6 +118,10 @@ class ReasoningEngine:
 
         if dados.get("duracao_dias") is None:
             missing.append("Há quantos dias os sintomas começaram?")
+
+        idade = dados.get("idade")
+        if idade is not None and idade < 12 and dados.get("peso") is None:
+            missing.append("Qual é o peso do paciente em kg?")
 
         if missing:
             return {
@@ -158,6 +161,10 @@ class ReasoningEngine:
 
         if dados.get("duracao_dias") is None:
             missing.append("Há quantos dias os sintomas começaram?")
+
+        idade = dados.get("idade")
+        if idade is not None and idade < 12 and dados.get("peso") is None:
+            missing.append("Qual é o peso do paciente em kg?")
 
         if missing:
             return {
