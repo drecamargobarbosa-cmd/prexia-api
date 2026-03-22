@@ -1,4 +1,4 @@
-from typing import Dict, Optional
+from typing import Dict
 
 
 class ProtocolEngine:
@@ -41,27 +41,59 @@ class ProtocolEngine:
         secrecao = dados.get("secrecao_auricular")
         toxemia = dados.get("toxemia")
         prostracao = dados.get("prostracao")
+        duracao = dados.get("duracao_dias")
 
         gravidade = any(v is True for v in [dor_intensa, toxemia, prostracao])
-
         avaliacao = self._build_otitis_assessment(dados)
+
+        # Regra de observação em quadro inicial sem gravidade e sem sinais mais fortes
+        if (
+            duracao is not None and duracao < 3 and
+            gravidade is False and
+            febre is not True and
+            secrecao is not True
+        ):
+            diagnostico = "Quadro compatível com otite média aguda sem critérios fortes para antibioticoterapia imediata."
+            conduta = (
+                "Considerar manejo sintomático inicial, analgesia e reavaliação clínica conforme evolução."
+            )
+            justificativa = (
+                "Quadros iniciais, sem sinais de maior gravidade, febre relevante ou otorreia, podem ser acompanhados clinicamente."
+            )
+
+            return {
+                "resposta": self._build_structured_text(
+                    avaliacao_clinica=avaliacao,
+                    diagnostico_provavel=diagnostico,
+                    conduta_recomendada=conduta,
+                    justificativa=justificativa,
+                    observacoes_clinicas=(
+                        "Orientar retorno se houver piora da dor, febre, secreção auricular, prostração ou ausência de melhora."
+                    )
+                ),
+                "conduta": {
+                    "cenario": "otite_media_aguda",
+                    "dados_clinicos": dados,
+                    "tipo": "observacao"
+                }
+            }
 
         if alergia is True:
             if idade is not None and idade >= 12:
                 medicacao = "Azitromicina"
                 dose = "500 mg"
                 posologia = "1 vez ao dia"
-                duracao = "5 dias"
+                duracao_txt = "5 dias"
             else:
+                if peso is None:
+                    return self._missing_weight_response("otite_media_aguda", dados)
                 medicacao = "Azitromicina"
                 dose = "10 mg/kg/dia"
                 posologia = "1 vez ao dia"
-                duracao = "5 dias"
+                duracao_txt = "5 dias"
 
             diagnostico = "Quadro compatível com otite média aguda com alergia à penicilina."
-            conduta = (
-                "Considerar antibiótico alternativo, analgesia e reavaliação clínica conforme evolução."
-            )
+            conduta = "Considerar antibiótico alternativo, analgesia e reavaliação clínica."
             justificativa = (
                 "Há suporte clínico para tratamento antimicrobiano e a alergia à penicilina direciona a escolha para alternativa terapêutica."
             )
@@ -75,7 +107,7 @@ class ProtocolEngine:
                 medicacao=medicacao,
                 dose=dose,
                 posologia=posologia,
-                duracao=duracao,
+                duracao=duracao_txt,
                 justificativa=justificativa,
                 observacoes=(
                     "Reavaliar se houver piora clínica, manutenção de febre, otorreia persistente ou comprometimento do estado geral."
@@ -83,32 +115,30 @@ class ProtocolEngine:
             )
 
         if idade is not None and idade >= 12:
-            if gravidade:
+            if gravidade or secrecao is True:
                 medicacao = "Amoxicilina + Clavulanato"
                 dose = "875/125 mg"
                 posologia = "12/12 horas"
-                duracao = "7 a 10 dias"
+                duracao_txt = "7 a 10 dias"
                 justificativa = (
-                    "Em adulto com quadro compatível com otite média aguda e sinais de maior gravidade, pode-se ampliar cobertura."
+                    "Em adulto com otite média aguda e sinais de maior gravidade ou otorreia, pode-se ampliar cobertura."
                 )
             else:
                 medicacao = "Amoxicilina"
                 dose = "500 mg"
                 posologia = "8/8 horas"
-                duracao = "7 dias"
+                duracao_txt = "7 dias"
                 justificativa = (
                     "Em adulto sem alergia à penicilina, a amoxicilina é opção de primeira linha."
                 )
 
             diagnostico = (
                 "Quadro compatível com otite média aguda com sinais de maior gravidade."
-                if gravidade else
-                "Quadro compatível com otite média aguda sem sinais maiores de gravidade."
+                if gravidade or secrecao is True else
+                "Quadro compatível com otite média aguda."
             )
 
-            conduta = (
-                "Indicar antibioticoterapia, analgesia e reavaliação clínica."
-            )
+            conduta = "Considerar antibioticoterapia, analgesia e reavaliação clínica."
 
             return self._build_protocol_response(
                 scenario="otite_media_aguda",
@@ -119,7 +149,7 @@ class ProtocolEngine:
                 medicacao=medicacao,
                 dose=dose,
                 posologia=posologia,
-                duracao=duracao,
+                duracao=duracao_txt,
                 justificativa=justificativa,
                 observacoes=(
                     "Monitorar dor, febre, secreção auricular e estado geral. Reavaliar precocemente se houver piora."
@@ -128,37 +158,30 @@ class ProtocolEngine:
 
         if idade is not None and idade < 12:
             if peso is None:
-                return self._missing_weight_response(
-                    scenario="otite_media_aguda",
-                    dados=dados
-                )
+                return self._missing_weight_response("otite_media_aguda", dados)
 
-            if gravidade:
+            if gravidade or secrecao is True:
                 medicacao = "Amoxicilina + Clavulanato"
                 dose = "80 a 90 mg/kg/dia (componente amoxicilina)"
                 posologia = "dividida em 2 tomadas ao dia"
-                duracao = "10 dias"
+                duracao_txt = "10 dias"
                 justificativa = (
-                    "Em pediatria com sinais de maior gravidade, pode-se considerar ampliação de cobertura."
+                    "Em pediatria com sinais de maior gravidade ou otorreia, pode-se considerar ampliação de cobertura."
                 )
             else:
                 medicacao = "Amoxicilina"
                 dose = "50 mg/kg/dia"
                 posologia = "dividida em 2 a 3 tomadas ao dia"
-                duracao = "7 a 10 dias"
+                duracao_txt = "7 a 10 dias"
                 justificativa = (
-                    "Em paciente pediátrico sem gravidade, amoxicilina é opção de primeira linha."
+                    "Em paciente pediátrico sem sinais maiores de gravidade, amoxicilina é opção de primeira linha."
                 )
 
             diagnostico = (
-                "Quadro compatível com otite média aguda em pediatria com sinais de maior gravidade."
-                if gravidade else
-                "Quadro compatível com otite média aguda em pediatria sem sinais maiores de gravidade."
+                "Quadro compatível com otite média aguda em pediatria."
             )
 
-            conduta = (
-                "Indicar antibioticoterapia conforme peso, analgesia e acompanhamento clínico."
-            )
+            conduta = "Considerar antibioticoterapia conforme peso, analgesia e acompanhamento clínico."
 
             return self._build_protocol_response(
                 scenario="otite_media_aguda",
@@ -169,17 +192,14 @@ class ProtocolEngine:
                 medicacao=medicacao,
                 dose=dose,
                 posologia=posologia,
-                duracao=duracao,
+                duracao=duracao_txt,
                 justificativa=justificativa,
                 observacoes=(
                     "Ajustar dose conforme apresentação disponível e peso. Reavaliar se houver piora clínica."
                 )
             )
 
-        return self._fallback_incomplete_protocol(
-            scenario="otite_media_aguda",
-            dados=dados
-        )
+        return self._fallback_incomplete_protocol("otite_media_aguda", dados)
 
     def _pharyngotonsillitis_protocol(self, dados: Dict) -> Dict:
         idade = dados.get("idade")
@@ -187,29 +207,59 @@ class ProtocolEngine:
         alergia = dados.get("alergia")
         febre = dados.get("febre")
         placas = dados.get("placas_amigdalianas")
+        dor_garganta = dados.get("dor_garganta")
+        duracao = dados.get("duracao_dias")
         toxemia = dados.get("toxemia")
         prostracao = dados.get("prostracao")
 
         gravidade = any(v is True for v in [toxemia, prostracao])
-
         avaliacao = self._build_pharyngotonsillitis_assessment(dados)
+
+        # Observação quando não há combinação sugestiva de quadro bacteriano
+        if (
+            dor_garganta is True and
+            febre is not True and
+            placas is not True and
+            gravidade is False
+        ):
+            diagnostico = "Quadro compatível com dor de garganta sem critérios fortes para etiologia bacteriana."
+            conduta = (
+                "Considerar manejo sintomático inicial, analgesia, hidratação e reavaliação clínica."
+            )
+            justificativa = (
+                "Na ausência de febre, exsudato/placas ou sinais sistêmicos, o quadro pode ser viral e não requer antibiótico inicial."
+            )
+
+            return {
+                "resposta": self._build_structured_text(
+                    avaliacao_clinica=avaliacao,
+                    diagnostico_provavel=diagnostico,
+                    conduta_recomendada=conduta,
+                    justificativa=justificativa,
+                    observacoes_clinicas=(
+                        "Orientar retorno se houver piora, persistência, prostração importante, dificuldade para deglutir ou febre."
+                    )
+                ),
+                "conduta": {
+                    "cenario": "faringoamigdalite",
+                    "dados_clinicos": dados,
+                    "tipo": "observacao"
+                }
+            }
 
         if alergia is True:
             if idade is not None and idade >= 12:
                 medicacao = "Azitromicina"
                 dose = "500 mg"
                 posologia = "1 vez ao dia"
-                duracao = "5 dias"
+                duracao_txt = "5 dias"
             else:
                 if peso is None:
-                    return self._missing_weight_response(
-                        scenario="faringoamigdalite",
-                        dados=dados
-                    )
+                    return self._missing_weight_response("faringoamigdalite", dados)
                 medicacao = "Azitromicina"
                 dose = "12 mg/kg/dia"
                 posologia = "1 vez ao dia"
-                duracao = "5 dias"
+                duracao_txt = "5 dias"
 
             diagnostico = "Quadro compatível com faringoamigdalite com alergia à penicilina."
             conduta = "Considerar antibiótico alternativo, analgesia e reavaliação clínica."
@@ -226,43 +276,60 @@ class ProtocolEngine:
                 medicacao=medicacao,
                 dose=dose,
                 posologia=posologia,
-                duracao=duracao,
+                duracao=duracao_txt,
                 justificativa=justificativa,
                 observacoes=(
                     "Reavaliar se houver piora clínica, dificuldade para deglutir, prostração importante ou falta de resposta."
                 )
             )
 
+        criterio_bacteriano = False
+        if febre is True and placas is True:
+            criterio_bacteriano = True
+        if gravidade:
+            criterio_bacteriano = True
+
+        if not criterio_bacteriano:
+            return {
+                "resposta": self._build_structured_text(
+                    avaliacao_clinica=avaliacao,
+                    diagnostico_provavel="Quadro ainda não característico de faringoamigdalite bacteriana.",
+                    conduta_recomendada=(
+                        "Manter acompanhamento clínico e tratamento sintomático. Reavaliar evolução antes de iniciar antibiótico."
+                    ),
+                    justificativa=(
+                        "Não há critérios clínicos suficientes neste momento para indicar antibioticoterapia."
+                    ),
+                    observacoes_clinicas=(
+                        "Orientar retorno se houver piora, febre persistente, placas, prostração importante ou dificuldade para deglutir."
+                    )
+                ),
+                "conduta": {
+                    "cenario": "faringoamigdalite",
+                    "dados_clinicos": dados,
+                    "tipo": "observacao"
+                }
+            }
+
         if idade is not None and idade >= 12:
             medicacao = "Amoxicilina"
             dose = "500 mg"
             posologia = "8/8 horas"
-            duracao = "10 dias"
+            duracao_txt = "10 dias"
         else:
             if peso is None:
-                return self._missing_weight_response(
-                    scenario="faringoamigdalite",
-                    dados=dados
-                )
+                return self._missing_weight_response("faringoamigdalite", dados)
             medicacao = "Amoxicilina"
             dose = "50 mg/kg/dia"
             posologia = "dividida em 2 a 3 tomadas ao dia"
-            duracao = "10 dias"
+            duracao_txt = "10 dias"
 
         diagnostico = (
-            "Quadro compatível com faringoamigdalite com sinais de maior gravidade."
-            if gravidade else
-            "Quadro compatível com faringoamigdalite."
+            "Quadro compatível com faringoamigdalite com provável etiologia bacteriana."
         )
-
-        conduta = (
-            "Considerar antibioticoterapia, analgesia, hidratação e acompanhamento clínico."
-        )
-
+        conduta = "Considerar antibioticoterapia, analgesia, hidratação e acompanhamento clínico."
         justificativa = (
             "A presença de febre e placas/exsudato aumenta a plausibilidade de infecção bacteriana de garganta."
-            if febre is True and placas is True else
-            "O conjunto clínico permite considerar conduta antimicrobiana conforme protocolo."
         )
 
         return self._build_protocol_response(
@@ -274,7 +341,7 @@ class ProtocolEngine:
             medicacao=medicacao,
             dose=dose,
             posologia=posologia,
-            duracao=duracao,
+            duracao=duracao_txt,
             justificativa=justificativa,
             observacoes=(
                 "Monitorar dor, febre, estado geral e capacidade de ingestão oral. Reavaliar se houver piora."
@@ -285,105 +352,111 @@ class ProtocolEngine:
         idade = dados.get("idade")
         peso = dados.get("peso")
         alergia = dados.get("alergia")
+        duracao = dados.get("duracao_dias")
+        febre = dados.get("febre")
+        dor_facial = dados.get("dor_facial")
+        secrecao = dados.get("secrecao_nasal_purulenta")
         toxemia = dados.get("toxemia")
         prostracao = dados.get("prostracao")
 
         gravidade = any(v is True for v in [toxemia, prostracao])
-
         avaliacao = self._build_sinusitis_assessment(dados)
+
+        if duracao is not None and duracao < 10 and not gravidade:
+            diagnostico = "Quadro sugestivo de rinossinusite aguda provavelmente viral."
+            conduta = (
+                "Não há indicação inicial de antibioticoterapia. Recomenda-se tratamento sintomático e reavaliação clínica."
+            )
+            justificativa = (
+                "Quadros com menos de 10 dias de evolução, sem sinais de gravidade, são mais frequentemente virais e autolimitados."
+            )
+
+            return {
+                "resposta": self._build_structured_text(
+                    avaliacao_clinica=avaliacao,
+                    diagnostico_provavel=diagnostico,
+                    conduta_recomendada=conduta,
+                    justificativa=justificativa,
+                    observacoes_clinicas=(
+                        "Orientar retorno se houver piora, persistência dos sintomas por mais de 10 dias ou surgimento de sinais de gravidade."
+                    )
+                ),
+                "conduta": {
+                    "cenario": "sinusite",
+                    "dados_clinicos": dados,
+                    "tipo": "expectante"
+                }
+            }
+
+        criterio_bacteriano = False
+        if duracao is not None and duracao >= 10:
+            criterio_bacteriano = True
+        if febre is True and dor_facial is True:
+            criterio_bacteriano = True
+        if secrecao is True and dor_facial is True:
+            criterio_bacteriano = True
+
+        if not criterio_bacteriano:
+            return {
+                "resposta": self._build_structured_text(
+                    avaliacao_clinica=avaliacao,
+                    diagnostico_provavel="Quadro ainda não característico de sinusite bacteriana.",
+                    conduta_recomendada=(
+                        "Manter acompanhamento clínico e tratamento sintomático. Reavaliar evolução antes de iniciar antibiótico."
+                    ),
+                    justificativa=(
+                        "Não há critérios clínicos suficientes neste momento para indicar antibioticoterapia."
+                    )
+                ),
+                "conduta": {
+                    "cenario": "sinusite",
+                    "dados_clinicos": dados,
+                    "tipo": "observacao"
+                }
+            }
 
         if alergia is True:
             if idade is not None and idade >= 12:
                 medicacao = "Azitromicina"
                 dose = "500 mg"
                 posologia = "1 vez ao dia"
-                duracao = "5 dias"
+                duracao_txt = "5 dias"
             else:
                 if peso is None:
-                    return self._missing_weight_response(
-                        scenario="sinusite",
-                        dados=dados
-                    )
+                    return self._missing_weight_response("sinusite", dados)
                 medicacao = "Azitromicina"
                 dose = "10 mg/kg/dia"
                 posologia = "1 vez ao dia"
-                duracao = "5 dias"
-
-            diagnostico = "Quadro compatível com sinusite com alergia à penicilina."
-            conduta = "Considerar antibiótico alternativo, medidas de suporte e reavaliação clínica."
-            justificativa = (
-                "Há critérios clínicos compatíveis com sinusite e a alergia à penicilina exige alternativa."
-            )
-
-            return self._build_protocol_response(
-                scenario="sinusite",
-                dados=dados,
-                avaliacao=avaliacao,
-                diagnostico=diagnostico,
-                conduta=conduta,
-                medicacao=medicacao,
-                dose=dose,
-                posologia=posologia,
-                duracao=duracao,
-                justificativa=justificativa,
-                observacoes=(
-                    "Reavaliar se houver piora, persistência importante dos sintomas ou sinais sistêmicos."
-                )
-            )
-
-        if idade is not None and idade >= 12:
-            if gravidade:
-                medicacao = "Amoxicilina + Clavulanato"
-                dose = "875/125 mg"
-                posologia = "12/12 horas"
-                duracao = "7 a 10 dias"
-                justificativa = (
-                    "Em adulto com quadro compatível com sinusite e maior gravidade, pode-se ampliar cobertura."
-                )
-            else:
-                medicacao = "Amoxicilina + Clavulanato"
-                dose = "875/125 mg"
-                posologia = "12/12 horas"
-                duracao = "5 a 7 dias"
-                justificativa = (
-                    "Em adulto com critérios clínicos para sinusite bacteriana, a associação com clavulanato é opção frequente."
-                )
+                duracao_txt = "5 dias"
         else:
-            if peso is None:
-                return self._missing_weight_response(
-                    scenario="sinusite",
-                    dados=dados
-                )
-
-            medicacao = "Amoxicilina + Clavulanato"
-            dose = "45 mg/kg/dia (componente amoxicilina)"
-            posologia = "dividida em 2 tomadas ao dia"
-            duracao = "10 dias"
-            justificativa = (
-                "Em pediatria, a decisão deve considerar peso e apresentação disponível."
-            )
-
-        diagnostico = (
-            "Quadro compatível com sinusite com sinais de maior gravidade."
-            if gravidade else
-            "Quadro compatível com sinusite."
-        )
-
-        conduta = "Considerar antibioticoterapia, medidas sintomáticas e reavaliação clínica."
+            if idade is not None and idade >= 12:
+                medicacao = "Amoxicilina + Clavulanato"
+                dose = "875/125 mg"
+                posologia = "12/12 horas"
+                duracao_txt = "5 a 7 dias"
+            else:
+                if peso is None:
+                    return self._missing_weight_response("sinusite", dados)
+                medicacao = "Amoxicilina + Clavulanato"
+                dose = "45 mg/kg/dia"
+                posologia = "dividida em 2 tomadas"
+                duracao_txt = "10 dias"
 
         return self._build_protocol_response(
             scenario="sinusite",
             dados=dados,
             avaliacao=avaliacao,
-            diagnostico=diagnostico,
-            conduta=conduta,
+            diagnostico="Quadro compatível com sinusite bacteriana.",
+            conduta="Indicar antibioticoterapia e acompanhamento clínico.",
             medicacao=medicacao,
             dose=dose,
             posologia=posologia,
-            duracao=duracao,
-            justificativa=justificativa,
+            duracao=duracao_txt,
+            justificativa=(
+                "Critérios clínicos compatíveis com sinusite bacteriana foram identificados."
+            ),
             observacoes=(
-                "Monitorar febre, dor facial, secreção e evolução clínica. Reavaliar se não houver melhora."
+                "Reavaliar resposta ao tratamento e orientar retorno em caso de piora."
             )
         )
 
@@ -431,7 +504,8 @@ class ProtocolEngine:
                 "medicacao": medicacao,
                 "dose": dose,
                 "posologia": posologia,
-                "duracao": duracao
+                "duracao": duracao,
+                "tipo": "tratamento"
             }
         }
 
