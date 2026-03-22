@@ -17,6 +17,7 @@ class ClinicalEngine:
     - interpretar respostas curtas dentro do contexto clínico atual
     - chamar o reasoning_engine para avaliar prontidão
     - chamar o decision_engine quando houver base suficiente
+    - anexar confidence, risco e explicabilidade
     """
 
     def __init__(self):
@@ -122,8 +123,7 @@ class ClinicalEngine:
         return any(token in text for token in negations)
 
     def _is_short_contextual_answer(self, text: str) -> bool:
-        tokens = text.split()
-        return len(tokens) <= 8
+        return len(text.split()) <= 8
 
     def _detect_scenario(self, normalized_text: str):
         if self._contains_any(normalized_text, [
@@ -433,6 +433,10 @@ class ClinicalEngine:
         dados = context.get("dados_clinicos", {})
         status = reasoning.get("status")
 
+        confidence = self._calculate_confidence(scenario, dados, reasoning)
+        risk_level = self._calculate_risk_level(scenario, dados)
+        explanation = self._build_explanation(scenario, dados, reasoning)
+
         if status == "insufficient_data":
             resposta = "Preciso entender melhor o quadro clínico para orientar a conduta."
             return {
@@ -442,7 +446,10 @@ class ClinicalEngine:
                     "cenario": scenario,
                     "resposta": resposta,
                     "perguntas": reasoning.get("missing", []),
-                    "dados_clinicos": dados
+                    "dados_clinicos": dados,
+                    "confidence": confidence,
+                    "risk_level": risk_level,
+                    "explanation": explanation
                 }
             }
 
@@ -455,12 +462,24 @@ class ClinicalEngine:
                     "cenario": scenario,
                     "resposta": resposta,
                     "perguntas": reasoning.get("missing", []),
-                    "dados_clinicos": dados
+                    "dados_clinicos": dados,
+                    "confidence": confidence,
+                    "risk_level": risk_level,
+                    "explanation": explanation
                 }
             }
 
         if status == "ready_for_treatment":
-            return self.decision_engine.decide(question=question, context=context)
+            response = self.decision_engine.decide(question=question, context=context)
+
+            clinical_response = response.get("clinical_response", {})
+            clinical_response["confidence"] = confidence
+            clinical_response["risk_level"] = risk_level
+            clinical_response["explanation"] = explanation
+            clinical_response["missing_relevant_data"] = self._relevant_missing_data(scenario, dados)
+
+            response["clinical_response"] = clinical_response
+            return response
 
         resposta = "Ainda não consegui estruturar a conduta com segurança. Preciso de mais dados clínicos."
         return {
@@ -470,6 +489,194 @@ class ClinicalEngine:
                 "cenario": scenario,
                 "resposta": resposta,
                 "perguntas": ["Descreva melhor o quadro clínico atual."],
-                "dados_clinicos": dados
+                "dados_clinicos": dados,
+                "confidence": confidence,
+                "risk_level": risk_level,
+                "explanation": explanation
             }
         }
+
+    def _calculate_confidence(self, scenario: str, dados: dict, reasoning: dict) -> str:
+        status = reasoning.get("status")
+
+        if status in ["insufficient_data", "need_more_data"]:
+            known_fields = sum(1 for v in dados.values() if v is not None)
+            if known_fields <= 2:
+                return "baixa"
+            if known_fields <= 5:
+                return "moderada"
+            return "moderada"
+
+        strong_markers = 0
+        uncertain_markers = 0
+
+        if scenario == "otite_media_aguda":
+            if dados.get("dor_presente") is True:
+                strong_markers += 1
+            if dados.get("febre") is True:
+                strong_markers += 1
+            if dados.get("secrecao_auricular") is True:
+                strong_markers += 1
+            if dados.get("dor_intensa") is True:
+                strong_markers += 1
+            if dados.get("dor_intensa") is None:
+                uncertain_markers += 1
+            if dados.get("toxemia") is None:
+                uncertain_markers += 1
+            if dados.get("prostracao") is None:
+                uncertain_markers += 1
+
+        elif scenario == "faringoamigdalite":
+            if dados.get("dor_garganta") is True:
+                strong_markers += 1
+            if dados.get("febre") is True:
+                strong_markers += 1
+            if dados.get("placas_amigdalianas") is True:
+                strong_markers += 1
+            if dados.get("toxemia") is None:
+                uncertain_markers += 1
+            if dados.get("prostracao") is None:
+                uncertain_markers += 1
+
+        elif scenario == "sinusite":
+            if dados.get("dor_facial") is True:
+                strong_markers += 1
+            if dados.get("secrecao_nasal_purulenta") is True:
+                strong_markers += 1
+            if dados.get("duracao_dias") is not None and dados.get("duracao_dias") >= 10:
+                strong_markers += 1
+            if dados.get("febre") is True:
+                strong_markers += 1
+            if dados.get("toxemia") is None:
+                uncertain_markers += 1
+            if dados.get("prostracao") is None:
+                uncertain_markers += 1
+
+        if strong_markers >= 3 and uncertain_markers == 0:
+            return "alta"
+        if strong_markers >= 2:
+            return "moderada"
+        return "baixa"
+
+    def _calculate_risk_level(self, scenario: str, dados: dict) -> str:
+        if dados.get("toxemia") is True or dados.get("prostracao") is True:
+            return "alto"
+
+        if dados.get("dor_intensa") is True or dados.get("gravidade") is True:
+            return "moderado"
+
+        if scenario == "sinusite" and dados.get("febre") is True and dados.get("duracao_dias") is not None and dados.get("duracao_dias") >= 10:
+            return "moderado"
+
+        return "baixo"
+
+    def _build_explanation(self, scenario: str, dados: dict, reasoning: dict) -> str:
+        status = reasoning.get("status")
+
+        if scenario == "otite_media_aguda":
+            reasons = []
+            if dados.get("dor_presente") is True:
+                reasons.append("há otalgia")
+            if dados.get("febre") is True:
+                reasons.append("há febre")
+            if dados.get("secrecao_auricular") is True:
+                reasons.append("há secreção auricular")
+            if dados.get("dor_intensa") is True:
+                reasons.append("há dor intensa")
+            if dados.get("alergia") is True:
+                reasons.append("há alergia à penicilina")
+
+            if status == "ready_for_treatment":
+                return self._join_explanation(
+                    "A decisão clínica foi apoiada porque",
+                    reasons,
+                    "o conjunto aumenta a plausibilidade de otite média aguda com necessidade de conduta ativa."
+                )
+
+            return self._join_explanation(
+                "Ainda faltam elementos para uma decisão final porque",
+                reasons,
+                "o caso ainda precisa de melhor definição clínica."
+            )
+
+        if scenario == "faringoamigdalite":
+            reasons = []
+            if dados.get("dor_garganta") is True:
+                reasons.append("há dor de garganta")
+            if dados.get("febre") is True:
+                reasons.append("há febre")
+            if dados.get("placas_amigdalianas") is True:
+                reasons.append("há placas ou exsudato")
+            if dados.get("alergia") is True:
+                reasons.append("há alergia à penicilina")
+
+            if status == "ready_for_treatment":
+                return self._join_explanation(
+                    "A decisão clínica foi apoiada porque",
+                    reasons,
+                    "o conjunto aumenta a plausibilidade de infecção bacteriana de garganta."
+                )
+
+            return self._join_explanation(
+                "Ainda faltam elementos para uma decisão final porque",
+                reasons,
+                "o quadro ainda precisa de melhor definição etiológica."
+            )
+
+        if scenario == "sinusite":
+            reasons = []
+            if dados.get("dor_facial") is True:
+                reasons.append("há dor facial")
+            if dados.get("secrecao_nasal_purulenta") is True:
+                reasons.append("há secreção nasal purulenta")
+            if dados.get("duracao_dias") is not None:
+                reasons.append(f"há {dados.get('duracao_dias')} dias de evolução")
+            if dados.get("febre") is True:
+                reasons.append("há febre")
+
+            if status == "ready_for_treatment":
+                return self._join_explanation(
+                    "A decisão clínica foi apoiada porque",
+                    reasons,
+                    "esses elementos ajudam a diferenciar quadro bacteriano de quadro viral."
+                )
+
+            return self._join_explanation(
+                "Ainda faltam elementos para uma decisão final porque",
+                reasons,
+                "a evolução clínica ainda precisa ser melhor caracterizada."
+            )
+
+        return "A resposta foi construída com base nos dados clínicos disponíveis até o momento."
+
+    def _join_explanation(self, intro: str, reasons: list[str], ending: str) -> str:
+        if not reasons:
+            return f"{intro} ainda há poucos dados clínicos disponíveis, e {ending}"
+        return f"{intro} " + ", ".join(reasons) + f", e {ending}"
+
+    def _relevant_missing_data(self, scenario: str, dados: dict) -> list[str]:
+        missing = []
+
+        if scenario == "otite_media_aguda":
+            if dados.get("dor_intensa") is None:
+                missing.append("intensidade da dor")
+            if dados.get("toxemia") is None:
+                missing.append("toxemia")
+            if dados.get("prostracao") is None:
+                missing.append("prostração")
+
+        elif scenario == "faringoamigdalite":
+            if dados.get("toxemia") is None:
+                missing.append("toxemia")
+            if dados.get("prostracao") is None:
+                missing.append("prostração")
+
+        elif scenario == "sinusite":
+            if dados.get("febre") is None:
+                missing.append("febre")
+            if dados.get("toxemia") is None:
+                missing.append("toxemia")
+            if dados.get("prostracao") is None:
+                missing.append("prostração")
+
+        return missing
