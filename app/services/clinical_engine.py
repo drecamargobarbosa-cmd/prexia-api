@@ -123,7 +123,7 @@ class ClinicalEngine:
 
     def _is_short_contextual_answer(self, text: str) -> bool:
         tokens = text.split()
-        return len(tokens) <= 6
+        return len(tokens) <= 8
 
     def _detect_scenario(self, normalized_text: str):
         if self._contains_any(normalized_text, [
@@ -248,15 +248,6 @@ class ClinicalEngine:
         return context
 
     def _extract_contextual_shorthand(self, text: str, scenario: str, dados: dict):
-        """
-        Interpreta respostas curtas e contextuais.
-        Exemplo:
-        - "secreção" em cenário de otite -> secrecao_auricular = True
-        - "secreção" em cenário de sinusite -> secrecao_nasal_purulenta = True
-        - "placas" em garganta -> placas_amigdalianas = True
-        """
-
-        # Secreção / pus em contexto de otite
         if scenario == "otite_media_aguda":
             if self._contains_any(text, [
                 "secrecao no ouvido",
@@ -276,13 +267,16 @@ class ClinicalEngine:
             if self._is_short_contextual_answer(text):
                 if self._contains_any(text, ["secrecao", "pus"]) and not self._has_negation(text):
                     dados["secrecao_auricular"] = True
+                    if self._contains_any(text, ["pus"]):
+                        dados["secrecao_purulenta"] = True
 
                 if self._contains_any(text, ["sem secrecao", "sem pus"]) or (
                     self._has_negation(text) and self._contains_any(text, ["secrecao", "pus"])
                 ):
                     dados["secrecao_auricular"] = False
+                    if self._contains_any(text, ["pus"]):
+                        dados["secrecao_purulenta"] = False
 
-        # Respostas curtas para garganta
         if scenario == "faringoamigdalite":
             if self._is_short_contextual_answer(text):
                 if self._contains_any(text, ["placas", "exsudato", "pus"]) and not self._has_negation(text):
@@ -293,7 +287,6 @@ class ClinicalEngine:
                 ):
                     dados["placas_amigdalianas"] = False
 
-        # Respostas curtas para sinusite
         if scenario == "sinusite":
             if self._is_short_contextual_answer(text):
                 if self._contains_any(text, ["secrecao", "coriza", "pus"]) and not self._has_negation(text):
