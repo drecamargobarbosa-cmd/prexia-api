@@ -14,6 +14,7 @@ class ClinicalEngine:
     - manter contexto e histórico
     - detectar ou trocar cenário clínico
     - extrair dados clínicos da fala do usuário
+    - interpretar respostas curtas dentro do contexto clínico atual
     - chamar o reasoning_engine para avaliar prontidão
     - chamar o decision_engine quando houver base suficiente
     """
@@ -109,6 +110,21 @@ class ClinicalEngine:
     def _contains_any(self, text: str, terms: list[str]) -> bool:
         return any(term in text for term in terms)
 
+    def _has_negation(self, text: str) -> bool:
+        negations = [
+            "sem ",
+            "nao ",
+            "nega ",
+            "ausencia de",
+            "ausente",
+            "sem sinais de"
+        ]
+        return any(token in text for token in negations)
+
+    def _is_short_contextual_answer(self, text: str) -> bool:
+        tokens = text.split()
+        return len(tokens) <= 6
+
     def _detect_scenario(self, normalized_text: str):
         if self._contains_any(normalized_text, [
             "dor de ouvido", "dor no ouvido", "otalgia", "otite", "ouvido doendo"
@@ -152,6 +168,7 @@ class ClinicalEngine:
 
     def _extract_and_update_clinical_data(self, text: str, context: dict) -> dict:
         dados = context["dados_clinicos"]
+        scenario = context.get("scenario")
         t = self._normalize(text)
 
         idade = self._extract_age(t)
@@ -196,12 +213,6 @@ class ClinicalEngine:
         if self._contains_any(t, ["sem dor no ouvido", "sem otalgia"]):
             dados["dor_presente"] = False
 
-        if self._contains_any(t, ["secrecao no ouvido", "otorreia", "ouvido vazando", "ouvido escorrendo", "pus no ouvido"]):
-            dados["secrecao_auricular"] = True
-
-        if self._contains_any(t, ["sem secrecao", "sem otorreia", "sem secrecao no ouvido"]):
-            dados["secrecao_auricular"] = False
-
         if self._contains_any(t, ["dor de garganta", "odinofagia", "garganta inflamada", "garganta inflamda"]):
             dados["dor_garganta"] = True
 
@@ -220,14 +231,78 @@ class ClinicalEngine:
         if self._contains_any(t, ["sem dor facial"]):
             dados["dor_facial"] = False
 
-        if self._contains_any(t, ["secrecao nasal purulenta", "coriza purulenta", "secrecao amarela", "secrecao esverdeada"]):
+        if self._contains_any(t, [
+            "secrecao nasal purulenta",
+            "coriza purulenta",
+            "secrecao amarela",
+            "secrecao esverdeada"
+        ]):
             dados["secrecao_nasal_purulenta"] = True
 
         if self._contains_any(t, ["sem secrecao nasal", "sem coriza", "sem secrecao purulenta"]):
             dados["secrecao_nasal_purulenta"] = False
 
+        self._extract_contextual_shorthand(t, scenario, dados)
+
         context["dados_clinicos"] = dados
         return context
+
+    def _extract_contextual_shorthand(self, text: str, scenario: str, dados: dict):
+        """
+        Interpreta respostas curtas e contextuais.
+        Exemplo:
+        - "secreção" em cenário de otite -> secrecao_auricular = True
+        - "secreção" em cenário de sinusite -> secrecao_nasal_purulenta = True
+        - "placas" em garganta -> placas_amigdalianas = True
+        """
+
+        # Secreção / pus em contexto de otite
+        if scenario == "otite_media_aguda":
+            if self._contains_any(text, [
+                "secrecao no ouvido",
+                "otorreia",
+                "ouvido vazando",
+                "ouvido escorrendo",
+                "pus no ouvido"
+            ]):
+                dados["secrecao_auricular"] = True
+
+            if self._contains_any(text, [
+                "sem secrecao no ouvido",
+                "sem otorreia"
+            ]):
+                dados["secrecao_auricular"] = False
+
+            if self._is_short_contextual_answer(text):
+                if self._contains_any(text, ["secrecao", "pus"]) and not self._has_negation(text):
+                    dados["secrecao_auricular"] = True
+
+                if self._contains_any(text, ["sem secrecao", "sem pus"]) or (
+                    self._has_negation(text) and self._contains_any(text, ["secrecao", "pus"])
+                ):
+                    dados["secrecao_auricular"] = False
+
+        # Respostas curtas para garganta
+        if scenario == "faringoamigdalite":
+            if self._is_short_contextual_answer(text):
+                if self._contains_any(text, ["placas", "exsudato", "pus"]) and not self._has_negation(text):
+                    dados["placas_amigdalianas"] = True
+
+                if self._contains_any(text, ["sem placas", "sem exsudato"]) or (
+                    self._has_negation(text) and self._contains_any(text, ["placas", "exsudato"])
+                ):
+                    dados["placas_amigdalianas"] = False
+
+        # Respostas curtas para sinusite
+        if scenario == "sinusite":
+            if self._is_short_contextual_answer(text):
+                if self._contains_any(text, ["secrecao", "coriza", "pus"]) and not self._has_negation(text):
+                    dados["secrecao_nasal_purulenta"] = True
+
+                if self._contains_any(text, ["sem secrecao", "sem coriza"]) or (
+                    self._has_negation(text) and self._contains_any(text, ["secrecao", "coriza"])
+                ):
+                    dados["secrecao_nasal_purulenta"] = False
 
     def _extract_age(self, text: str):
         patterns = [
@@ -247,8 +322,11 @@ class ClinicalEngine:
     def _extract_weight(self, text: str):
         patterns = [
             r'(\d{1,3})\s*kg',
+            r'(\d{1,3})kg',
             r'peso\s*[:=]?\s*(\d{1,3})',
-            r'pesando\s*(\d{1,3})\s*kg'
+            r'pesando\s*(\d{1,3})\s*kg',
+            r'com\s*(\d{1,3})\s*kg',
+            r'com(\d{1,3})\s*kg'
         ]
         for pattern in patterns:
             match = re.search(pattern, text)
@@ -326,7 +404,7 @@ class ClinicalEngine:
 
     def _extract_toxemia_status(self, text: str):
         if self._contains_any(text, [
-            "sem toxemia", "nega toxemia"
+            "sem toxemia", "nega toxemia", "sem sinais de toxemia"
         ]):
             return False
 
@@ -339,12 +417,19 @@ class ClinicalEngine:
 
     def _extract_prostration_status(self, text: str):
         if self._contains_any(text, [
-            "sem prostracao", "bom estado geral", "ativo", "sem prostração"
+            "sem prostracao",
+            "sem prostração",
+            "bom estado geral",
+            "ativo"
         ]):
             return False
 
         if self._contains_any(text, [
-            "prostrado", "prostracao", "prostração", "abatido"
+            "prostrado",
+            "prostracao",
+            "prostração",
+            "abatido",
+            "paciente prostrado"
         ]):
             return True
 
