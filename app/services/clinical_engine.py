@@ -255,40 +255,34 @@ class ClinicalEngine:
                 "ouvido vazando",
                 "ouvido escorrendo",
                 "pus no ouvido"
-            ]):
+            ]) and not self._has_negation(text):
                 dados["secrecao_auricular"] = True
                 if self._contains_any(text, ["pus no ouvido", "otorreia purulenta"]):
                     dados["secrecao_purulenta"] = True
 
             if self._contains_any(text, [
+                "secrecao",
+                "com secrecao",
+                "febre e secrecao",
+                "secrecao e febre",
+                "pus",
+                "com pus"
+            ]) and not self._has_negation(text):
+                dados["secrecao_auricular"] = True
+                if self._contains_any(text, ["pus", "com pus"]):
+                    dados["secrecao_purulenta"] = True
+
+            if self._contains_any(text, [
+                "sem secrecao",
                 "sem secrecao no ouvido",
-                "sem otorreia"
-            ]):
+                "sem otorreia",
+                "sem pus"
+            ]) or (
+                self._has_negation(text) and self._contains_any(text, ["secrecao", "pus"])
+            ):
                 dados["secrecao_auricular"] = False
-
-            if self._is_short_contextual_answer(text):
-                # melhora para respostas como:
-                # "secrecao", "febre e secrecao", "com secrecao", "secrecao e febre", "pus"
-                if self._contains_any(text, [
-                    "secrecao",
-                    "com secrecao",
-                    "febre e secrecao",
-                    "secrecao e febre",
-                    "pus"
-                ]) and not self._has_negation(text):
-                    dados["secrecao_auricular"] = True
-                    if self._contains_any(text, ["pus"]):
-                        dados["secrecao_purulenta"] = True
-
-                if self._contains_any(text, [
-                    "sem secrecao",
-                    "sem pus"
-                ]) or (
-                    self._has_negation(text) and self._contains_any(text, ["secrecao", "pus"])
-                ):
-                    dados["secrecao_auricular"] = False
-                    if self._contains_any(text, ["pus"]):
-                        dados["secrecao_purulenta"] = False
+                if self._contains_any(text, ["pus"]):
+                    dados["secrecao_purulenta"] = False
 
         if scenario == "faringoamigdalite":
             if self._is_short_contextual_answer(text):
