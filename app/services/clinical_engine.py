@@ -1,3 +1,4 @@
+import json
 import re
 import unicodedata
 from copy import deepcopy
@@ -5,6 +6,7 @@ from copy import deepcopy
 from app.services.reasoning_engine import ReasoningEngine
 from app.services.decision_engine import DecisionEngine
 from app.services.safety_engine import assess_case_safety
+from app.services.llm_service import LLMService
 
 
 class ClinicalEngine:
@@ -24,6 +26,7 @@ class ClinicalEngine:
     def __init__(self):
         self.reasoning_engine = ReasoningEngine()
         self.decision_engine = DecisionEngine()
+        self.llm_service = LLMService()
 
     def evaluate(self, question: str, contexto: dict = None, user_id: str = "default"):
         if contexto is None:
@@ -51,6 +54,8 @@ class ClinicalEngine:
             context=merged_context,
             reasoning=reasoning
         )
+
+        response = self._refine_response_with_llm(response)
 
         merged_context["history"].append({
             "role": "assistant",
@@ -512,6 +517,58 @@ class ClinicalEngine:
                 "safety": safety_payload
             }
         }
+
+    def _refine_response_with_llm(self, response: dict) -> dict:
+        if not isinstance(response, dict):
+            return response
+
+        resposta_original = response.get("resposta")
+        clinical_response = response.get("clinical_response", {})
+
+        if not resposta_original or not clinical_response:
+            return response
+
+        prompt = self._build_response_refinement_prompt(
+            resposta_original=resposta_original,
+            clinical_response=clinical_response
+        )
+
+        try:
+            refined_text = self.llm_service.generate(prompt).strip()
+
+            if refined_text:
+                response["resposta"] = refined_text
+                if isinstance(clinical_response, dict) and "resposta" in clinical_response:
+                    clinical_response["resposta"] = refined_text
+                response["clinical_response"] = clinical_response
+
+        except Exception:
+            return response
+
+        return response
+
+    def _build_response_refinement_prompt(self, resposta_original: str, clinical_response: dict) -> str:
+        payload = {
+            "resposta_original": resposta_original,
+            "tipo": clinical_response.get("tipo"),
+            "cenario": clinical_response.get("cenario"),
+            "perguntas": clinical_response.get("perguntas", []),
+            "dados_clinicos": clinical_response.get("dados_clinicos", {}),
+            "interpretation": clinical_response.get("interpretation", {}),
+            "safety": clinical_response.get("safety", {})
+        }
+
+        return (
+            "Você é o PREXIA, assistente clínico.\n"
+            "Sua tarefa é apenas reescrever a resposta principal em português claro, técnico e objetivo.\n"
+            "Regras obrigatórias:\n"
+            "1. Não invente diagnóstico, dose, medicamento, duração ou conduta.\n"
+            "2. Use somente as informações do JSON fornecido.\n"
+            "3. Não contradiga o conteúdo estruturado.\n"
+            "4. Se o tipo for coleta_dados, mantenha tom de solicitação de informações faltantes.\n"
+            "5. Responda somente com o texto final da resposta, sem JSON, sem título e sem explicações extras.\n\n"
+            f"JSON:\n{json.dumps(payload, ensure_ascii=False)}"
+        )
 
     def _build_interpretation_payload(self, explanation: str) -> dict:
         return {
