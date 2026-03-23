@@ -2,8 +2,15 @@ from app.services.llm_service import LLMService
 
 
 def main():
+    print("Iniciando teste LLM...")
+
     llm = LLMService()
-    resposta = llm.generate("Responda apenas: conexão com OpenAI funcionando")
+
+    print("Enviando requisição para OpenAI...")
+
+    resposta = llm.generate("Responda exatamente: OK")
+
+    print("Resposta recebida:")
     print(resposta)
 
 
