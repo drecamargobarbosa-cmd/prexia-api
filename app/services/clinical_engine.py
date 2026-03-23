@@ -36,8 +36,11 @@ class ClinicalEngine:
         normalized_question = self._normalize(question)
 
         detected_scenario = self._detect_scenario(normalized_question)
-        if detected_scenario and detected_scenario != merged_context.get("scenario"):
-            merged_context["scenario"] = detected_scenario
+        merged_context = self._apply_scenario_logic(
+            context=merged_context,
+            detected_scenario=detected_scenario,
+            normalized_question=normalized_question
+        )
 
         merged_context = self._extract_and_update_clinical_data(question, merged_context)
         merged_context["intent"] = self._detect_intent(normalized_question)
@@ -149,6 +152,54 @@ class ClinicalEngine:
 
         return None
 
+    def _apply_scenario_logic(self, context: dict, detected_scenario: str | None, normalized_question: str) -> dict:
+        current_scenario = context.get("scenario")
+
+        if not detected_scenario:
+            return context
+
+        if current_scenario is None:
+            context["scenario"] = detected_scenario
+            return context
+
+        if current_scenario == detected_scenario:
+            return context
+
+        if self._has_explicit_new_scenario_signal(normalized_question, detected_scenario):
+            context["scenario"] = detected_scenario
+            return context
+
+        return context
+
+    def _has_explicit_new_scenario_signal(self, normalized_text: str, detected_scenario: str) -> bool:
+        explicit_switch_terms = [
+            "alem disso",
+            "novo quadro",
+            "outro quadro",
+            "agora",
+            "na verdade",
+            "nao e ouvido",
+            "nao e otite",
+            "nao e garganta",
+            "nao e sinusite",
+            "mude o cenario",
+            "troque o cenario"
+        ]
+
+        if any(term in normalized_text for term in explicit_switch_terms):
+            return True
+
+        scenario_terms = {
+            "otite_media_aguda": ["dor de ouvido", "otalgia", "otite", "ouvido"],
+            "faringoamigdalite": ["dor de garganta", "odinofagia", "amigdalite", "faringite", "garganta"],
+            "sinusite": ["sinusite", "dor facial", "seios da face", "pressao na face"]
+        }
+
+        if detected_scenario in scenario_terms:
+            return any(term in normalized_text for term in scenario_terms[detected_scenario])
+
+        return False
+
     def _detect_intent(self, normalized_text: str):
         if self._contains_any(normalized_text, [
             "qual a dose", "qual dose", "dose", "dosagem", "posologia"
@@ -197,6 +248,12 @@ class ClinicalEngine:
         if febre is not None:
             dados["febre"] = febre
 
+        febre_alta = self._extract_high_fever_status(t)
+        if febre_alta is not None:
+            dados["febre_alta"] = febre_alta
+            if febre_alta is True:
+                dados["febre"] = True
+
         gravidade = self._extract_explicit_gravity_status(t)
         if gravidade is not None:
             dados["gravidade"] = gravidade
@@ -213,109 +270,110 @@ class ClinicalEngine:
         if prostracao is not None:
             dados["prostracao"] = prostracao
 
-        if self._contains_any(t, ["dor de ouvido", "dor no ouvido", "otalgia", "ouvido doendo"]):
-            dados["dor_presente"] = True
-
-        if self._contains_any(t, ["sem dor no ouvido", "sem otalgia"]):
-            dados["dor_presente"] = False
-
-        if self._contains_any(t, ["dor de garganta", "odinofagia", "garganta inflamada", "garganta inflamda"]):
-            dados["dor_garganta"] = True
-
-        if self._contains_any(t, ["sem dor de garganta"]):
-            dados["dor_garganta"] = False
-
-        if self._contains_any(t, ["placas", "placa na garganta", "exsudato", "pus na amigdala", "pus nas amigdalas"]):
-            dados["placas_amigdalianas"] = True
-
-        if self._contains_any(t, ["sem placas", "sem exsudato"]):
-            dados["placas_amigdalianas"] = False
-
-        if self._contains_any(t, ["dor facial", "dor na face", "pressao na face", "seios da face"]):
-            dados["dor_facial"] = True
-
-        if self._contains_any(t, ["sem dor facial"]):
-            dados["dor_facial"] = False
-
-        if self._contains_any(t, [
-            "secrecao nasal purulenta",
-            "coriza purulenta",
-            "secrecao amarela",
-            "secrecao esverdeada"
-        ]):
-            dados["secrecao_nasal_purulenta"] = True
-
-        if self._contains_any(t, ["sem secrecao nasal", "sem coriza", "sem secrecao purulenta"]):
-            dados["secrecao_nasal_purulenta"] = False
-
+        self._extract_general_symptoms(t, dados)
         self._extract_contextual_shorthand(t, scenario, dados)
 
         context["dados_clinicos"] = dados
         return context
 
+    def _extract_general_symptoms(self, text: str, dados: dict):
+        if self._contains_any(text, ["dor de ouvido", "dor no ouvido", "otalgia", "ouvido doendo"]):
+            dados["dor_presente"] = True
+
+        if self._contains_any(text, ["sem dor no ouvido", "sem otalgia"]):
+            dados["dor_presente"] = False
+
     def _extract_contextual_shorthand(self, text: str, scenario: str, dados: dict):
         if scenario == "otite_media_aguda":
-            if self._contains_any(text, [
-                "secrecao no ouvido",
-                "otorreia",
-                "ouvido vazando",
-                "ouvido escorrendo",
-                "pus no ouvido"
-            ]) and not self._has_negation(text):
-                dados["secrecao_auricular"] = True
-                if self._contains_any(text, ["pus no ouvido", "otorreia purulenta"]):
-                    dados["secrecao_purulenta"] = True
-
-            if self._contains_any(text, [
-                "secrecao",
-                "com secrecao",
-                "febre e secrecao",
-                "secrecao e febre",
-                "pus",
-                "com pus"
-            ]) and not self._has_negation(text):
-                dados["secrecao_auricular"] = True
-                if self._contains_any(text, ["pus", "com pus"]):
-                    dados["secrecao_purulenta"] = True
-
-            if self._contains_any(text, [
-                "sem secrecao",
-                "sem secrecao no ouvido",
-                "sem otorreia",
-                "sem pus"
-            ]) or (
-                self._has_negation(text) and self._contains_any(text, ["secrecao", "pus"])
-            ):
-                dados["secrecao_auricular"] = False
-                if self._contains_any(text, ["pus"]):
-                    dados["secrecao_purulenta"] = False
+            self._extract_otitis_data(text, dados)
+            return
 
         if scenario == "faringoamigdalite":
-            if self._is_short_contextual_answer(text):
-                if self._contains_any(text, ["placas", "exsudato", "pus"]) and not self._has_negation(text):
-                    dados["placas_amigdalianas"] = True
-
-                if self._contains_any(text, ["sem placas", "sem exsudato"]) or (
-                    self._has_negation(text) and self._contains_any(text, ["placas", "exsudato"])
-                ):
-                    dados["placas_amigdalianas"] = False
+            self._extract_pharyngitis_data(text, dados)
+            return
 
         if scenario == "sinusite":
-            if self._is_short_contextual_answer(text):
-                if self._contains_any(text, ["secrecao", "coriza", "pus"]) and not self._has_negation(text):
-                    dados["secrecao_nasal_purulenta"] = True
+            self._extract_sinusitis_data(text, dados)
+            return
 
-                if self._contains_any(text, ["sem secrecao", "sem coriza"]) or (
-                    self._has_negation(text) and self._contains_any(text, ["secrecao", "coriza"])
-                ):
-                    dados["secrecao_nasal_purulenta"] = False
+    def _extract_otitis_data(self, text: str, dados: dict):
+        if self._contains_any(text, [
+            "secrecao no ouvido",
+            "otorreia",
+            "ouvido vazando",
+            "ouvido escorrendo",
+            "pus no ouvido"
+        ]) and not self._has_negation(text):
+            dados["secrecao_auricular"] = True
+            if self._contains_any(text, ["pus no ouvido", "otorreia purulenta"]):
+                dados["secrecao_purulenta"] = True
+
+        if self._contains_any(text, [
+            "secrecao",
+            "com secrecao",
+            "febre e secrecao",
+            "secrecao e febre",
+            "pus",
+            "com pus"
+        ]) and not self._has_negation(text):
+            dados["secrecao_auricular"] = True
+            if self._contains_any(text, ["pus", "com pus"]):
+                dados["secrecao_purulenta"] = True
+
+        if self._contains_any(text, [
+            "sem secrecao",
+            "sem secrecao no ouvido",
+            "sem otorreia",
+            "sem pus"
+        ]) or (
+            self._has_negation(text) and self._contains_any(text, ["secrecao", "pus"])
+        ):
+            dados["secrecao_auricular"] = False
+            if self._contains_any(text, ["pus"]):
+                dados["secrecao_purulenta"] = False
+
+    def _extract_pharyngitis_data(self, text: str, dados: dict):
+        if self._contains_any(text, ["dor de garganta", "odinofagia", "garganta inflamada", "garganta inflamda"]):
+            dados["dor_garganta"] = True
+
+        if self._contains_any(text, ["sem dor de garganta"]):
+            dados["dor_garganta"] = False
+
+        if self._contains_any(text, ["placas", "placa na garganta", "exsudato", "pus na amigdala", "pus nas amigdalas"]):
+            if not self._has_negation(text):
+                dados["placas_amigdalianas"] = True
+
+        if self._contains_any(text, ["sem placas", "sem exsudato"]) or (
+            self._has_negation(text) and self._contains_any(text, ["placas", "exsudato"])
+        ):
+            dados["placas_amigdalianas"] = False
+
+    def _extract_sinusitis_data(self, text: str, dados: dict):
+        if self._contains_any(text, ["dor facial", "dor na face", "pressao na face", "seios da face"]):
+            dados["dor_facial"] = True
+
+        if self._contains_any(text, ["sem dor facial"]):
+            dados["dor_facial"] = False
+
+        if self._contains_any(text, [
+            "secrecao nasal purulenta",
+            "coriza purulenta",
+            "secrecao amarela",
+            "secrecao esverdeada"
+        ]) and not self._has_negation(text):
+            dados["secrecao_nasal_purulenta"] = True
+
+        if self._contains_any(text, ["sem secrecao nasal", "sem coriza", "sem secrecao purulenta"]) or (
+            self._has_negation(text) and self._contains_any(text, ["coriza", "secrecao nasal", "secrecao purulenta"])
+        ):
+            dados["secrecao_nasal_purulenta"] = False
 
     def _extract_age(self, text: str):
         patterns = [
-            r'(\d{1,3})\s*anos',
-            r'idade\s*[:=]?\s*(\d{1,3})',
-            r'paciente\s*de\s*(\d{1,3})\s*anos',
-            r'paciente\s*com\s*(\d{1,3})\s*anos'
+            r"(\d{1,3})\s*anos",
+            r"idade\s*[:=]?\s*(\d{1,3})",
+            r"paciente\s*de\s*(\d{1,3})\s*anos",
+            r"paciente\s*com\s*(\d{1,3})\s*anos"
         ]
         for pattern in patterns:
             match = re.search(pattern, text)
@@ -327,12 +385,12 @@ class ClinicalEngine:
 
     def _extract_weight(self, text: str):
         patterns = [
-            r'(\d{1,3})\s*kg',
-            r'(\d{1,3})kg',
-            r'peso\s*[:=]?\s*(\d{1,3})',
-            r'pesando\s*(\d{1,3})\s*kg',
-            r'com\s*(\d{1,3})\s*kg',
-            r'com(\d{1,3})\s*kg'
+            r"(\d{1,3})\s*kg",
+            r"(\d{1,3})kg",
+            r"peso\s*[:=]?\s*(\d{1,3})",
+            r"pesando\s*(\d{1,3})\s*kg",
+            r"com\s*(\d{1,3})\s*kg",
+            r"com(\d{1,3})\s*kg"
         ]
         for pattern in patterns:
             match = re.search(pattern, text)
@@ -344,9 +402,9 @@ class ClinicalEngine:
 
     def _extract_duration_days(self, text: str):
         patterns = [
-            r'ha\s*(\d{1,2})\s*dias',
-            r'(\d{1,2})\s*dias',
-            r'(\d{1,2})\s*dia'
+            r"ha\s*(\d{1,2})\s*dias",
+            r"(\d{1,2})\s*dias",
+            r"(\d{1,2})\s*dia"
         ]
         for pattern in patterns:
             match = re.search(pattern, text)
@@ -377,6 +435,24 @@ class ClinicalEngine:
 
         if self._contains_any(text, [
             "febre", "febril", "temperatura elevada"
+        ]):
+            return True
+
+        return None
+
+    def _extract_high_fever_status(self, text: str):
+        if self._contains_any(text, [
+            "sem febre alta",
+            "nao ha febre alta",
+            "não ha febre alta",
+            "nega febre alta"
+        ]):
+            return False
+
+        if self._contains_any(text, [
+            "febre alta",
+            "temperatura alta",
+            "hipertermia importante"
         ]):
             return True
 
