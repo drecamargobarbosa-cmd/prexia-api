@@ -1,17 +1,26 @@
 class ReasoningEngine:
-    """
-    Responsável por raciocínio clínico de prontidão.
 
-    Não escolhe antibiótico.
-    Não monta prescrição.
-    Não aplica protocolo diretamente.
+    def analyze(self, contexto: dict) -> dict:
+        result = self.evaluate_readiness(contexto)
 
-    Decide:
-    - se o cenário já tem dados suficientes para avançar
-    - quais informações ainda faltam
-    - quais perguntas são prioritárias
-    - se existem sinais de maior gravidade
-    """
+        confidence_map = {
+            "good": "alta",
+            "moderate": "moderada",
+            "low": "baixa"
+        }
+
+        priority_to_risk = {
+            "high": "alto",
+            "medium": "moderado",
+            "low": "baixo"
+        }
+
+        return {
+            "status": result.get("status", "insufficient_data"),
+            "missing_data": result.get("missing", []),
+            "confidence": confidence_map.get(result.get("confidence", ""), None),
+            "risk_level": priority_to_risk.get(result.get("priority", "medium"), "moderado")
+        }
 
     def evaluate_readiness(self, contexto: dict) -> dict:
         dados = contexto.get("dados_clinicos", {})
@@ -57,7 +66,6 @@ class ReasoningEngine:
         prostracao = dados.get("prostracao")
         duracao_dias = dados.get("duracao_dias")
 
-        # 1. dados-base realmente necessários
         core_missing = []
         if idade is None:
             core_missing.append("Qual é a idade do paciente?")
@@ -68,19 +76,13 @@ class ReasoningEngine:
         if duracao_dias is None:
             core_missing.append("Há quantos dias os sintomas começaram?")
 
-        # 2. sinais clínicos que sustentam decisão
-        supportive_known = [v for v in [febre, secrecao_auricular, dor_intensa] if v is not None]
         supportive_positive = any(v is True for v in [febre, secrecao_auricular, dor_intensa])
-
-        # 3. sinais de maior gravidade
         severe_positive = any(v is True for v in [toxemia, prostracao, dor_intensa])
 
-        # 4. peso só é obrigatório em pediatria
         peso_missing = []
         if idade is not None and idade < 12 and peso is None:
             peso_missing.append("Qual é o peso do paciente em kg?")
 
-        # 5. se faltam dados-base, ainda não dá para avançar
         if core_missing:
             return {
                 "status": "need_more_data",
@@ -88,7 +90,6 @@ class ReasoningEngine:
                 "priority": "high"
             }
 
-        # 6. se já temos base clínica forte, pode avançar mesmo sem tudo
         if dor_presente is True and supportive_positive:
             if idade is not None and idade < 12 and peso is None:
                 return {
@@ -96,14 +97,12 @@ class ReasoningEngine:
                     "missing": peso_missing,
                     "priority": "high"
                 }
-
             return {
                 "status": "ready_for_treatment",
                 "priority": "high" if severe_positive else "medium",
                 "confidence": "moderate" if severe_positive else "good"
             }
 
-        # 7. se ainda não há suporte clínico suficiente, perguntar o que mais importa
         missing = []
         if febre is None:
             missing.append("Há febre?")
@@ -111,13 +110,10 @@ class ReasoningEngine:
             missing.append("Há secreção no ouvido ou otorreia?")
         if dor_intensa is None:
             missing.append("A dor é intensa?")
-
-        # sinais de gravidade vêm depois da base, mas ainda importam
         if toxemia is None:
             missing.append("Há sinais de toxemia?")
         if prostracao is None:
             missing.append("O paciente apresenta prostração?")
-
         if idade is not None and idade < 12 and peso is None:
             missing.append("Qual é o peso do paciente em kg?")
 
@@ -164,7 +160,6 @@ class ReasoningEngine:
                     "missing": ["Qual é o peso do paciente em kg?"],
                     "priority": "high"
                 }
-
             return {
                 "status": "ready_for_treatment",
                 "priority": "high" if severe_positive else "medium",
@@ -180,7 +175,6 @@ class ReasoningEngine:
             missing.append("Há sinais de toxemia?")
         if prostracao is None:
             missing.append("O paciente apresenta prostração?")
-
         if idade is not None and idade < 12 and peso is None:
             missing.append("Qual é o peso do paciente em kg?")
 
@@ -235,7 +229,6 @@ class ReasoningEngine:
                     "missing": ["Qual é o peso do paciente em kg?"],
                     "priority": "high"
                 }
-
             return {
                 "status": "ready_for_treatment",
                 "priority": "high" if severe_positive else "medium",
@@ -251,7 +244,6 @@ class ReasoningEngine:
             missing.append("Há sinais de toxemia?")
         if prostracao is None:
             missing.append("O paciente apresenta prostração?")
-
         if idade is not None and idade < 12 and peso is None:
             missing.append("Qual é o peso do paciente em kg?")
 
