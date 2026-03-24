@@ -1,0 +1,284 @@
+{
+  "id": "sifilis",
+  "nome": "Sífilis",
+  "cid10": ["A51", "A51.0", "A51.1", "A51.2", "A51.3", "A51.4", "A52", "A52.9", "A53", "A53.9", "O98.1"],
+  "especialidade": ["clinica_medica", "medicina_familia", "ginecologia", "infectologia", "dermatologia"],
+  "sinonimos": ["sífilis adquirida", "sífilis primária", "sífilis secundária", "sífilis latente", "sífilis terciária", "sífilis gestacional", "lues"],
+  "descricao": "Infecção sexualmente transmissível sistêmica e curável causada pelo Treponema pallidum. Evolui em estágios com períodos de latência. Transmissão predominantemente sexual. Pode ser transmitida verticalmente para o feto causando sífilis congênita. Doença de notificação compulsória.",
+
+  "perfil_paciente": {
+    "sexo": "ambos",
+    "faixa_etaria": ["adulto", "gestante"],
+    "observacoes": "Doença de notificação compulsória. Tratar sempre a parceria sexual. Em gestantes: único tratamento adequado é benzilpenicilina benzatina. Qualquer outro tratamento é considerado inadequado pelo MS."
+  },
+
+  "classificacao_estagios": {
+    "recente": {
+      "primaria": "Cancro duro (úlcera indolor, endurecida, base limpa) + adenopatia regional. Aparece 10 a 90 dias após exposição.",
+      "secundaria": "Roséola sifilítica (exantema maculopapular, inclui palmas e plantas), alopecia, condiloma plano, placas mucosas. 6 semanas a 6 meses após primária.",
+      "latente_recente": "Assintomática. VDRL reagente. Menos de 1 ano de evolução."
+    },
+    "tardia": {
+      "latente_tardia": "Assintomática. VDRL reagente. Mais de 1 ano de evolução ou duração indeterminada.",
+      "terciaria": "Gomas sifilíticas, sífilis cardiovascular (aortite), neurossífilis. Anos após infecção inicial."
+    }
+  },
+
+  "diagnostico": {
+    "testes_nao_treponemicos": {
+      "exemplos": "VDRL, RPR",
+      "uso": "Triagem e monitoramento terapêutico. Titulação permite acompanhar resposta ao tratamento.",
+      "interpretacao": "Reagente: sugestivo. Confirmar com treponêmico. Queda de 2 diluições (ex: 1:16 para 1:4) em 6 meses indica resposta adequada."
+    },
+    "testes_treponemicos": {
+      "exemplos": "FTA-Abs, TPHA, teste rápido (TR), ELISA",
+      "uso": "Confirmação diagnóstica. Geralmente permanecem reagentes por toda a vida mesmo após tratamento.",
+      "teste_rapido": "Disponível na UBS. Resultado em 15 a 30 minutos. Recomendado no pré-natal."
+    },
+    "algoritmo_diagnostico": {
+      "passo_1": "Teste treponêmico (TR ou FTA-Abs): se reagente, confirmar com VDRL para estadiamento e seguimento",
+      "passo_2": "VDRL reagente + treponêmico reagente = sífilis ativa",
+      "passo_3": "Titular VDRL para definir resposta ao tratamento",
+      "gestante": "Tratar imediatamente após qualquer teste reagente (treponêmico OU não treponêmico) sem necessidade de confirmação"
+    }
+  },
+
+  "perguntas_obrigatorias": [
+    "Há úlcera genital, exantema em palmas e plantas, ou lesões mucosas?",
+    "Quais os resultados do VDRL ou teste rápido e qual a titulação?",
+    "Há quanto tempo se estima a infecção? Classifica como recente ou tardia?",
+    "A paciente está gestante?",
+    "Há alergia à penicilina?",
+    "A parceria sexual foi notificada e tratada?",
+    "Há sintomas neurológicos: cefaleia intensa, alteração visual, paralisia de nervos cranianos?"
+  ],
+
+  "tratamento": {
+    "adulto_nao_gestante": {
+      "sifilis_recente": {
+        "descricao": "Primária, secundária e latente recente (menos de 1 ano)",
+        "primeira_linha": {
+          "medicamento": "Benzilpenicilina benzatina",
+          "classe_terapeutica": "Antibiótico beta-lactâmico",
+          "apresentacao": "Frasco 1,2 milhão UI",
+          "dose": "2,4 milhões UI IM dose única (1,2 milhão UI em cada glúteo)",
+          "posologia": "Intramuscular, dose única",
+          "duracao": "Dose única",
+          "sus_rename_2024": true,
+          "sus_remume_sp": true,
+          "disponibilidade_sp": "UBS",
+          "justificativa": "Única opção com eficácia comprovada. Sem resistência documentada do T. pallidum à penicilina no Brasil.",
+          "fonte": "PCDT IST MS 2022; PCDT-TV 2022"
+        },
+        "alternativa_alergia_penicilina": {
+          "medicamento": "Doxiciclina",
+          "classe_terapeutica": "Tetraciclina",
+          "apresentacao": "Comprimido 100 mg",
+          "dose": "100 mg a cada 12 horas por 15 dias",
+          "contraindicacao": "CONTRAINDICADA na gestação e lactação",
+          "sus_rename_2024": true,
+          "sus_remume_sp": true,
+          "disponibilidade_sp": "UBS",
+          "observacao": "Alternativa apenas para adultos não gestantes com alergia documentada à penicilina. Eficácia inferior à penicilina.",
+          "fonte": "PCDT IST MS 2022"
+        }
+      },
+      "sifilis_tardia": {
+        "descricao": "Latente tardia (mais de 1 ano ou duração indeterminada) e terciária não neurológica",
+        "primeira_linha": {
+          "medicamento": "Benzilpenicilina benzatina",
+          "dose": "2,4 milhões UI IM 1 vez por semana por 3 semanas (dose total: 7,2 milhões UI)",
+          "posologia": "1,2 milhão UI em cada glúteo, 1 vez por semana por 3 semanas",
+          "sus_rename_2024": true,
+          "sus_remume_sp": true,
+          "disponibilidade_sp": "UBS",
+          "fonte": "PCDT IST MS 2022"
+        },
+        "alternativa_alergia": {
+          "medicamento": "Doxiciclina",
+          "dose": "100 mg a cada 12 horas por 30 dias",
+          "contraindicacao": "CONTRAINDICADA na gestação",
+          "sus_rename_2024": true,
+          "sus_remume_sp": true,
+          "disponibilidade_sp": "UBS"
+        }
+      },
+      "neurossifilis": {
+        "descricao": "Qualquer estágio com sintomas neurológicos ou oftálmicos",
+        "conduta": "Encaminhar para internação hospitalar. Tratamento: benzilpenicilina cristalina 3 a 4 milhões UI EV a cada 4 horas por 10 a 14 dias.",
+        "observacao": "Investigar neurossífilis se: cefaleia intensa, alterações visuais, paralisia de nervos cranianos, alteração cognitiva, ataxia."
+      }
+    },
+    "gestante": {
+      "principio_fundamental": "Benzilpenicilina benzatina é o ÚNICO tratamento adequado na gestação. Qualquer outro antibiótico é considerado tratamento inadequado pelo Ministério da Saúde, resultando em notificação do RN como sífilis congênita.",
+      "sifilis_recente_gestante": {
+        "descricao": "Primária, secundária e latente recente",
+        "tratamento": {
+          "medicamento": "Benzilpenicilina benzatina",
+          "dose": "2,4 milhões UI IM dose única (1,2 milhão UI em cada glúteo)",
+          "sus_rename_2024": true,
+          "sus_remume_sp": true,
+          "disponibilidade_sp": "UBS",
+          "observacao": "No estado de SP: esquema de 2 semanas (2,4 mi UI por semana por 2 semanas) para sífilis recente em gestantes conforme protocolo estadual."
+        }
+      },
+      "sifilis_tardia_gestante": {
+        "descricao": "Latente tardia ou duração indeterminada",
+        "tratamento": {
+          "medicamento": "Benzilpenicilina benzatina",
+          "dose": "2,4 milhões UI IM 1 vez por semana por 3 semanas (dose total: 7,2 milhões UI)",
+          "posologia": "1,2 milhão UI em cada glúteo, 1 vez por semana. Intervalo entre doses: 7 a 9 dias.",
+          "sus_rename_2024": true,
+          "sus_remume_sp": true,
+          "disponibilidade_sp": "UBS",
+          "fonte": "PCDT-TV MS 2022; Nota Técnica 14/2023 MS"
+        }
+      },
+      "regras_criticas_gestante": [
+        "Intervalo entre doses: idealmente 7 dias, não ultrapassar 9 dias.",
+        "Se o intervalo ultrapassar 9 dias: reiniciar o esquema completo.",
+        "Tratamento deve ser concluído pelo menos 30 dias antes do parto.",
+        "Tratar a parceria sexual obrigatoriamente.",
+        "Assinalar no receituário: GESTANTE/PRIORIDADE para garantir acesso à medicação.",
+        "Notificar o caso obrigatoriamente no SINAN.",
+        "Registrar o tratamento na caderneta da gestante.",
+        "Não usar doxiciclina, azitromicina ou ceftriaxona como tratamento definitivo na gestação."
+      ],
+      "alergia_penicilina_gestante": {
+        "conduta": "Realizar dessensibilização à penicilina em ambiente hospitalar. Não existe alternativa segura e eficaz para a gestante. Encaminhar para serviço especializado.",
+        "fonte": "PCDT-TV MS 2022"
+      },
+      "inicio_tratamento": "Tratar imediatamente após qualquer teste reagente (treponêmico ou não treponêmico) sem aguardar confirmação laboratorial.",
+      "fonte": "PCDT-TV MS 2022; Nota Técnica 14/2023 DATHI/SVSA/MS"
+    },
+    "parceria_sexual": {
+      "obrigatorio": true,
+      "conduta": "Notificar e tratar a parceria sexual independentemente de sintomas ou sorologia. Usar o mesmo esquema correspondente ao estágio do caso índice.",
+      "justificativa": "Tratamento da parceria é critério para definir adequação do tratamento e prevenir reinfecção."
+    }
+  },
+
+  "reacao_jarisch_herxheimer": {
+    "descricao": "Reação febril aguda que pode ocorrer nas primeiras 24h após primeira dose de penicilina. Mais comum na sífilis secundária.",
+    "sintomas": "Febre, calafrios, mialgia, cefaleia, hipotensão transitória",
+    "conduta": "Tratar sintomaticamente com paracetamol e hidratação. Não suspender penicilina. Alertar o paciente antes de aplicar.",
+    "gestante": "Pode precipitar contrações e parto prematuro. Monitorar a gestante nas 24h após primeira dose."
+  },
+
+  "interacoes_medicamentosas": [
+    {
+      "medicamento_a": "Benzilpenicilina benzatina",
+      "medicamento_b": "Metotrexato",
+      "gravidade": "moderada",
+      "mecanismo": "Penicilinas reduzem excreção renal do metotrexato aumentando toxicidade",
+      "conduta": "Monitorar toxicidade do metotrexato se uso concomitante"
+    },
+    {
+      "medicamento_a": "Doxiciclina",
+      "medicamento_b": "Antiácidos, cálcio, ferro",
+      "gravidade": "moderada",
+      "mecanismo": "Quelação reduz absorção da doxiciclina",
+      "conduta": "Administrar doxiciclina com intervalo de 2 horas em relação a esses produtos"
+    },
+    {
+      "medicamento_a": "Doxiciclina",
+      "medicamento_b": "Anticoagulantes orais",
+      "gravidade": "moderada",
+      "mecanismo": "Pode potencializar efeito anticoagulante",
+      "conduta": "Monitorar INR durante tratamento"
+    }
+  ],
+
+  "efeitos_adversos": [
+    {
+      "efeito": "Dor no local da injeção",
+      "medicamento": "Benzilpenicilina benzatina",
+      "frequencia": "muito comum",
+      "gravidade": "leve",
+      "conduta": "Aplicar em região glútea externa. Alternar o lado. Orientar sobre desconforto esperado."
+    },
+    {
+      "efeito": "Reação alérgica: urticária, angioedema, anafilaxia",
+      "medicamento": "Benzilpenicilina benzatina",
+      "frequencia": "raro (1 a 5 por 10.000 doses)",
+      "gravidade": "grave",
+      "conduta": "Manter o paciente em observação por 30 minutos após aplicação. Ter epinefrina 1mg/mL disponível na UBS. Em caso de anafilaxia: epinefrina 0,3 mg IM imediatamente."
+    },
+    {
+      "efeito": "Fotossensibilidade, náusea, esofagite",
+      "medicamento": "Doxiciclina",
+      "frequencia": "comum",
+      "gravidade": "leve a moderada",
+      "conduta": "Tomar com bastante água em posição ereta. Evitar exposição solar prolongada. Usar protetor solar."
+    }
+  ],
+
+  "alertas_clinicos": [
+    "DOENÇA DE NOTIFICAÇÃO COMPULSÓRIA: notificar todo caso no SINAN imediatamente.",
+    "Na gestante: APENAS benzilpenicilina benzatina é tratamento adequado. Doxiciclina, azitromicina e ceftriaxona são INADEQUADOS na gestação.",
+    "Intervalo entre doses na gestante: máximo 9 dias. Se ultrapassar, reiniciar esquema.",
+    "Tratar sempre a parceria sexual, independentemente de sorologia.",
+    "Manter observação por 30 minutos após aplicação de penicilina pela possibilidade de anafilaxia.",
+    "Reação de Jarisch-Herxheimer pode ocorrer nas primeiras 24h. Alertar o paciente. Em gestantes pode precipitar parto prematuro.",
+    "VDRL permanentemente reagente em baixas titulações pode ser cicatriz sorológica, não indicando retratamento.",
+    "Suspeita de neurossífilis: encaminhar para avaliação especializada e punção lombar."
+  ],
+
+  "criterios_encaminhamento": [
+    "Suspeita de neurossífilis ou sífilis oftálmica",
+    "Gestante com alergia à penicilina: dessensibilização em hospital",
+    "Sífilis terciária com comprometimento cardiovascular",
+    "Falha terapêutica: VDRL sem queda de 2 diluições em 6 meses após tratamento adequado"
+  ],
+
+  "criterios_internacao": [
+    "Neurossífilis confirmada ou suspeita forte",
+    "Sífilis cardiovascular grave (aortite com insuficiência aórtica)",
+    "Dessensibilização à penicilina em gestante alérgica",
+    "Anafilaxia à penicilina"
+  ],
+
+  "monitoramento": {
+    "adulto": {
+      "vdrl_seguimento": "Titular VDRL em 3, 6 e 12 meses após tratamento",
+      "criterio_cura": "Queda de pelo menos 2 diluições (ex: de 1:16 para 1:4) em 6 meses",
+      "criterio_retratamento": "Ausência de queda ou aumento de titulação em 6 meses"
+    },
+    "gestante": {
+      "vdrl_seguimento": "Mensal durante a gestação após tratamento",
+      "meta": "Queda de pelo menos 2 diluições até o parto",
+      "rn": "Todo RN de mãe com sífilis: coletar VDRL em sangue periférico ao nascer"
+    },
+    "retorno": "30 dias após tratamento para avaliar resposta inicial. Depois conforme titulação do VDRL."
+  },
+
+  "notificacao": {
+    "obrigatoria": true,
+    "sistema": "SINAN",
+    "casos_notificaveis": [
+      "Sífilis adquirida",
+      "Sífilis em gestante",
+      "Sífilis congênita"
+    ],
+    "prazo": "Imediato ou em até 7 dias"
+  },
+
+  "orientacoes_paciente": [
+    "Tomar todo o tratamento prescrito e comparecer nas doses agendadas.",
+    "Informar a(s) parceria(s) sexual(ais) para que também se tratem.",
+    "Usar preservativo em todas as relações sexuais.",
+    "Não manter relações sexuais desprotegidas até que você e sua parceria estejam tratados.",
+    "Pode sentir dor no local da injeção e febre nas primeiras horas após a dose: é esperado.",
+    "Retornar para exame de sangue (VDRL) conforme agendado para confirmar a cura.",
+    "Sífilis não confere imunidade: é possível pegar novamente se houver nova exposição."
+  ],
+
+  "fonte_principal": "PCDT IST MS 2022; PCDT-TV HIV, Sífilis e Hepatites Virais MS 2022",
+  "fontes_secundarias": [
+    "Nota Técnica nº 14/2023 DATHI/SVSA/MS - Intervalo entre doses de benzilpenicilina em gestantes",
+    "RENAME 2024 - Portaria GM/MS nº 6.324/2024",
+    "REMUME SP - Janeiro 2025",
+    "Fiocruz - Portal de Boas Práticas: Sífilis na gestação 2023"
+  ],
+  "ultima_atualizacao": "2026-03"
+}
