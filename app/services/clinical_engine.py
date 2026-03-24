@@ -66,7 +66,7 @@ class ClinicalEngine:
             case.treatment_plan.justificativa = protocol_output.get("justificativa")
 
         # =========================
-        # 7. SEGURANÇA (CORRIGIDO)
+        # 7. SEGURANÇA
         # =========================
         safety_output = assess_case_safety(
             scenario=legacy_context.get("scenario"),
@@ -91,6 +91,17 @@ class ClinicalEngine:
         # =========================
         response_text = self._build_response(case)
 
+        # Adiciona a resposta ao histórico antes de salvar
+        case.history.append({
+            "role": "assistant",
+            "content": response_text
+        })
+
+        # =========================
+        # 10. CONTEXTO ATUALIZADO PARA PERSISTÊNCIA
+        # =========================
+        updated_context = case.to_legacy_context()
+
         return {
             "resposta": response_text,
             "clinical_response": {
@@ -101,11 +112,12 @@ class ClinicalEngine:
                 "reavaliacao_necessaria": case.safety.reavaliacao_necessaria,
                 "alertas_clinicos": case.safety.alertas_clinicos,
                 "dados_relevantes_ausentes": case.safety.dados_relevantes_ausentes
-            }
+            },
+            "updated_context": updated_context
         }
 
     # =========================
-    # 🔥 EXTRAÇÃO COM LLM
+    # EXTRAÇÃO COM LLM
     # =========================
     def _llm_extraction(self, case: ClinicalCase, message: str, context: Dict[str, Any]):
 
@@ -114,21 +126,17 @@ class ClinicalEngine:
         if not extracted:
             return
 
-        # PACIENTE
         case.patient.idade = extracted.get("idade") or case.patient.idade
         case.patient.peso = extracted.get("peso") or case.patient.peso
         case.patient.sexo = extracted.get("sexo") or case.patient.sexo
 
-        # SCENARIO
         case.clinical_context.scenario = extracted.get("scenario") or case.clinical_context.scenario
 
-        # SINTOMAS
         symptoms = extracted.get("symptoms", {})
         for key, value in symptoms.items():
             if hasattr(case.clinical_context.symptoms, key) and value is not None:
                 setattr(case.clinical_context.symptoms, key, value)
 
-        # RISCO
         risks = extracted.get("risk_factors", {})
         for key, value in risks.items():
             if hasattr(case.clinical_context.risk_factors, key) and value is not None:
@@ -141,11 +149,11 @@ class ClinicalEngine:
     def _detect_scenario(self, message: str) -> str:
         msg = message.lower()
 
-        if "ouvido" in msg:
+        if "ouvido" in msg or "otalgia" in msg or "otite" in msg:
             return "otite_media_aguda"
-        if "garganta" in msg:
-            return "faringite"
-        if "sinus" in msg:
+        if "garganta" in msg or "amigdalite" in msg or "faringite" in msg:
+            return "faringoamigdalite"
+        if "sinus" in msg or "sinusite" in msg:
             return "sinusite"
 
         return "geral"
