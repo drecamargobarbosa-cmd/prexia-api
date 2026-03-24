@@ -6,9 +6,9 @@ class ConversationEngine:
     """
     Responsável por orquestrar a interação com o usuário.
 
-    - Recupera contexto
+    - Recupera contexto salvo
     - Chama o motor clínico
-    - Salva o contexto atualizado
+    - Salva o contexto atualizado retornado pelo motor clínico
     """
 
     def __init__(self):
@@ -20,15 +20,15 @@ class ConversationEngine:
         # 1. Recuperar contexto salvo
         contexto = self.memory_service.get(user_id)
 
-        # 2. Processar no motor clínico (CORRIGIDO)
+        # 2. Processar no motor clínico
         result = self.clinical_engine.process(
             message=message,
             context=contexto
         )
 
-        # 3. Salvar contexto atualizado
-        # Como ainda não estamos retornando contexto estruturado novo,
-        # mantemos o antigo por segurança
-        self.memory_service.save(user_id, contexto)
+        # 3. Salvar contexto atualizado retornado pelo motor clínico
+        updated_context = result.pop("updated_context", None)
+        if updated_context:
+            self.memory_service.save(user_id, updated_context)
 
         return result
