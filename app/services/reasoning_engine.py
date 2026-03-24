@@ -66,6 +66,7 @@ class ReasoningEngine:
         prostracao = dados.get("prostracao")
         duracao_dias = dados.get("duracao_dias")
 
+        # Dados obrigatórios
         core_missing = []
         if idade is None:
             core_missing.append("Qual é a idade do paciente?")
@@ -76,13 +77,6 @@ class ReasoningEngine:
         if duracao_dias is None:
             core_missing.append("Há quantos dias os sintomas começaram?")
 
-        supportive_positive = any(v is True for v in [febre, secrecao_auricular, dor_intensa])
-        severe_positive = any(v is True for v in [toxemia, prostracao, dor_intensa])
-
-        peso_missing = []
-        if idade is not None and idade < 12 and peso is None:
-            peso_missing.append("Qual é o peso do paciente em kg?")
-
         if core_missing:
             return {
                 "status": "need_more_data",
@@ -90,19 +84,26 @@ class ReasoningEngine:
                 "priority": "high"
             }
 
+        severe_positive = any(v is True for v in [toxemia, prostracao, dor_intensa])
+        supportive_positive = any(v is True for v in [febre, secrecao_auricular, dor_intensa])
+
+        # Peso obrigatório em pediatria
+        if idade is not None and idade < 12 and peso is None:
+            return {
+                "status": "need_more_data",
+                "missing": ["Qual é o peso do paciente em kg?"],
+                "priority": "high"
+            }
+
+        # Se dor presente e há suporte clínico positivo, avança
         if dor_presente is True and supportive_positive:
-            if idade is not None and idade < 12 and peso is None:
-                return {
-                    "status": "need_more_data",
-                    "missing": peso_missing,
-                    "priority": "high"
-                }
             return {
                 "status": "ready_for_treatment",
                 "priority": "high" if severe_positive else "medium",
                 "confidence": "moderate" if severe_positive else "good"
             }
 
+        # Perguntas secundárias ainda não respondidas
         missing = []
         if febre is None:
             missing.append("Há febre?")
@@ -114,8 +115,15 @@ class ReasoningEngine:
             missing.append("Há sinais de toxemia?")
         if prostracao is None:
             missing.append("O paciente apresenta prostração?")
-        if idade is not None and idade < 12 and peso is None:
-            missing.append("Qual é o peso do paciente em kg?")
+
+        # Se todas as perguntas secundárias foram respondidas
+        # e nenhum sinal positivo, ainda assim avança com confiança baixa
+        if not missing:
+            return {
+                "status": "ready_for_treatment",
+                "priority": "low",
+                "confidence": "low"
+            }
 
         return {
             "status": "need_more_data",
@@ -175,8 +183,17 @@ class ReasoningEngine:
             missing.append("Há sinais de toxemia?")
         if prostracao is None:
             missing.append("O paciente apresenta prostração?")
+
         if idade is not None and idade < 12 and peso is None:
             missing.append("Qual é o peso do paciente em kg?")
+
+        # Se todas as perguntas foram respondidas, avança mesmo sem critério bacteriano
+        if not missing:
+            return {
+                "status": "ready_for_treatment",
+                "priority": "low",
+                "confidence": "low"
+            }
 
         return {
             "status": "need_more_data",
@@ -214,13 +231,11 @@ class ReasoningEngine:
 
         severe_positive = any(v is True for v in [toxemia, prostracao])
 
-        criteria_positive = False
-        if dor_facial is True and secrecao_nasal_purulenta is True:
-            criteria_positive = True
-        if dor_facial is True and duracao_dias is not None and duracao_dias >= 10:
-            criteria_positive = True
-        if febre is True and duracao_dias is not None and duracao_dias >= 3:
-            criteria_positive = True
+        criteria_positive = (
+            (dor_facial is True and secrecao_nasal_purulenta is True) or
+            (dor_facial is True and duracao_dias is not None and duracao_dias >= 10) or
+            (febre is True and duracao_dias is not None and duracao_dias >= 3)
+        )
 
         if criteria_positive:
             if idade is not None and idade < 12 and peso is None:
@@ -244,8 +259,17 @@ class ReasoningEngine:
             missing.append("Há sinais de toxemia?")
         if prostracao is None:
             missing.append("O paciente apresenta prostração?")
+
         if idade is not None and idade < 12 and peso is None:
             missing.append("Qual é o peso do paciente em kg?")
+
+        # Se todas as perguntas foram respondidas, avança mesmo sem critério forte
+        if not missing:
+            return {
+                "status": "ready_for_treatment",
+                "priority": "low",
+                "confidence": "low"
+            }
 
         return {
             "status": "need_more_data",
