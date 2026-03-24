@@ -3,7 +3,7 @@ from app.models.clinical_models import ClinicalCase
 from app.services.reasoning_engine import ReasoningEngine
 from app.services.protocol_engine import ProtocolEngine
 from app.services.safety_engine import SafetyEngine
-
+from app.services.llm_extractor import LLMExtractor
 
 class ClinicalEngine:
 
