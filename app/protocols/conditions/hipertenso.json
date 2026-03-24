@@ -280,4 +280,68 @@
     "Em idosos: iniciar com doses menores e aumentar gradualmente. Risco elevado de hipotensão ortostática e quedas.",
     "Pacientes com doença renal crônica: monitorar potássio e creatinina 1 a 2 semanas após iniciar ou ajustar IECA ou BRA.",
     "AINEs (ibuprofeno, diclofenaco, nimesulida) reduzem eficácia dos anti-hipertensivos e devem ser evitados.",
-    "HAS resistente: definida como PA não controlada com 3 medicamentos em doses máxim
+    "HAS resistente: definida como PA não controlada com 3 medicamentos em doses máximas incluindo diurético. Encaminhar para especialista."
+  ],
+
+  "criterios_encaminhamento": [
+    "HAS resistente: PA não controlada com 3 medicamentos em doses máximas",
+    "Suspeita de HAS secundária (hiperaldosteronismo, feocromocitoma, estenose de artéria renal)",
+    "Lesão de órgão-alvo estabelecida: insuficiência renal, retinopatia hipertensiva, hipertrofia ventricular esquerda grave",
+    "HAS em crianças e adolescentes para avaliação especializada",
+    "Gestante com HAS de difícil controle ou suspeita de pré-eclâmpsia"
+  ],
+
+  "criterios_internacao": [
+    "Emergência hipertensiva: PA muito elevada com lesão aguda de órgão-alvo (AVC, IAM, edema agudo de pulmão, encefalopatia hipertensiva)",
+    "PA ≥ 180/120 mmHg com sintomas neurológicos, dor torácica ou dispneia intensa",
+    "Gestante com PA ≥ 160/110 mmHg ou sinais de pré-eclâmpsia grave"
+  ],
+
+  "monitoramento": {
+    "exames_baseline": [
+      "Glicemia de jejum",
+      "Hemograma completo",
+      "Creatinina e ureia",
+      "Potássio sérico",
+      "Sódio sérico",
+      "Ácido úrico",
+      "Colesterol total, LDL, HDL e triglicerídeos",
+      "EAS (sumário de urina)",
+      "ECG de repouso",
+      "Fundo de olho"
+    ],
+    "exames_seguimento": [
+      "Creatinina e potássio: 1 a 2 semanas após iniciar ou ajustar IECA ou BRA, depois anualmente",
+      "Glicemia e perfil lipídico: anualmente",
+      "EAS: anualmente",
+      "ECG: conforme indicação clínica"
+    ],
+    "metas_pressóricas": {
+      "adulto_geral": "PA < 130/80 mmHg",
+      "idoso_acima_65": "PA < 140/90 mmHg (individualizar)",
+      "diabetes_ou_doenca_renal": "PA < 130/80 mmHg",
+      "gestante": "PA < 140/90 mmHg"
+    },
+    "retorno": "30 dias após início ou ajuste de medicação. A cada 3 a 6 meses quando controlado."
+  },
+
+  "orientacoes_paciente": [
+    "Tomar o medicamento todos os dias no mesmo horário, mesmo quando sentir pressão normal.",
+    "Nunca suspender a medicação sem orientação médica.",
+    "Reduzir o sal: evitar alimentos industrializados, embutidos, conservas e enlatados.",
+    "Praticar atividade física regularmente: caminhada, natação ou bicicleta por pelo menos 30 minutos na maioria dos dias.",
+    "Parar de fumar. O tabagismo aumenta muito o risco cardiovascular.",
+    "Limitar o consumo de bebidas alcoólicas.",
+    "Aferir a pressão regularmente e trazer os registros para as consultas.",
+    "Comunicar imediatamente: dor de cabeça muito intensa, visão turva, dor no peito ou formigamento no corpo."
+  ],
+
+  "fonte_principal": "PCDT Hipertensão Arterial Sistêmica - Portaria SECTICS/MS nº 49, de 23 de julho de 2025",
+  "fontes_secundarias": [
+    "RENAME 2024 - Portaria GM/MS nº 6.324/2024",
+    "REMUME SP - Janeiro 2025",
+    "Linha de Cuidado do Adulto com Hipertensão Arterial - MS 2021",
+    "7ª Diretriz Brasileira de Hipertensão Arterial - SBC 2017"
+  ],
+  "ultima_atualizacao": "2026-03"
+}
