@@ -1,855 +1,175 @@
-import json
-import re
-import unicodedata
-from copy import deepcopy
-
+from typing import Dict, Any
+from app.models.clinical_models import ClinicalCase
 from app.services.reasoning_engine import ReasoningEngine
-from app.services.decision_engine import DecisionEngine
-from app.services.safety_engine import assess_case_safety
-from app.services.llm_service import LLMService
+from app.services.protocol_engine import ProtocolEngine
+from app.services.safety_engine import SafetyEngine
 
 
 class ClinicalEngine:
-    """
-    Orquestrador clínico.
-
-    Responsabilidades:
-    - manter contexto e histórico
-    - detectar ou trocar cenário clínico
-    - extrair dados clínicos da fala do usuário
-    - interpretar respostas curtas dentro do contexto clínico atual
-    - chamar o reasoning_engine para avaliar prontidão
-    - chamar o decision_engine quando houver base suficiente
-    - separar resposta principal, interpretação e segurança
-    """
 
     def __init__(self):
-        self.reasoning_engine = ReasoningEngine()
-        self.decision_engine = DecisionEngine()
-        self.llm_service = LLMService()
+        self.reasoning = ReasoningEngine()
+        self.protocol = ProtocolEngine()
+        self.safety = SafetyEngine()
 
-    def evaluate(self, question: str, contexto: dict = None, user_id: str = "default"):
-        if contexto is None:
-            contexto = {}
+    def process(self, message: str, context: Dict[str, Any]) -> Dict[str, Any]:
+        """
+        Novo fluxo híbrido:
+        - Converte contexto antigo → ClinicalCase
+        - Processa com engines atuais
+        - Retorna resposta estruturada
+        """
 
-        merged_context = self._ensure_context_structure(deepcopy(contexto))
-        normalized_question = self._normalize(question)
+        # =========================
+        # 1. MIGRA CONTEXTO
+        # =========================
+        case = ClinicalCase.from_legacy_context(context)
 
-        detected_scenario = self._detect_scenario(normalized_question)
-        merged_context = self._apply_scenario_logic(
-            context=merged_context,
-            detected_scenario=detected_scenario,
-            normalized_question=normalized_question
-        )
-
-        merged_context = self._extract_and_update_clinical_data(question, merged_context)
-        merged_context["intent"] = self._detect_intent(normalized_question)
-
-        merged_context["history"].append({
+        # Adiciona mensagem ao histórico
+        case.history.append({
             "role": "user",
-            "content": question
+            "content": message
         })
 
-        reasoning = self.reasoning_engine.evaluate_readiness(merged_context)
+        # =========================
+        # 2. DETECÇÃO DE CENÁRIO (mantém lógica atual)
+        # =========================
+        if not case.clinical_context.scenario:
+            case.clinical_context.scenario = self._detect_scenario(message)
 
-        response = self._build_response(
-            question=question,
-            context=merged_context,
-            reasoning=reasoning
-        )
+        # =========================
+        # 3. EXTRAÇÃO SIMPLES (temporária)
+        # =========================
+        self._basic_extraction(case, message)
 
-        response = self._refine_response_with_llm(response)
+        # =========================
+        # 4. CONVERTE PARA FORMATO ANTIGO
+        # =========================
+        legacy_context = case.to_legacy_context()
 
-        merged_context["history"].append({
-            "role": "assistant",
-            "content": response["resposta"]
-        })
+        # =========================
+        # 5. REASONING
+        # =========================
+        reasoning_output = self.reasoning.analyze(legacy_context)
 
-        response["history"] = merged_context["history"]
-        response["context"] = merged_context
-        return response
+        case.reasoning.status = reasoning_output.get("status")
+        case.reasoning.missing_data = reasoning_output.get("missing_data", [])
+        case.reasoning.confidence = reasoning_output.get("confidence")
+        case.reasoning.risk_level = reasoning_output.get("risk_level")
 
-    def _ensure_context_structure(self, context: dict) -> dict:
-        if "history" not in context or not isinstance(context["history"], list):
-            context["history"] = []
+        # =========================
+        # 6. DECISÃO / PROTOCOLO
+        # =========================
+        if case.reasoning.status == "ready_for_treatment":
+            protocol_output = self.protocol.apply_protocol(legacy_context)
 
-        if "dados_clinicos" not in context or not isinstance(context["dados_clinicos"], dict):
-            context["dados_clinicos"] = {}
+            case.treatment_plan.diagnostico_provavel = protocol_output.get("diagnostico")
+            case.treatment_plan.conduta = protocol_output.get("conduta")
+            case.treatment_plan.medicacao = protocol_output.get("medicacao")
+            case.treatment_plan.dose = protocol_output.get("dose")
+            case.treatment_plan.posologia = protocol_output.get("posologia")
+            case.treatment_plan.duracao = protocol_output.get("duracao")
+            case.treatment_plan.justificativa = protocol_output.get("justificativa")
 
-        defaults = {
-            "idade": None,
-            "peso": None,
-            "alergia": None,
-            "gravidade": None,
-            "febre": None,
-            "febre_alta": None,
-            "dor_presente": None,
-            "dor_intensa": None,
-            "toxemia": None,
-            "prostracao": None,
-            "secrecao_auricular": None,
-            "secrecao_purulenta": None,
-            "duracao_dias": None,
-            "dor_garganta": None,
-            "placas_amigdalianas": None,
-            "dor_facial": None,
-            "secrecao_nasal_purulenta": None
+        # =========================
+        # 7. SEGURANÇA
+        # =========================
+        safety_output = self.safety.analyze(legacy_context)
+
+        case.safety.nivel_seguranca = safety_output.get("nivel_seguranca")
+        case.safety.reavaliacao_necessaria = safety_output.get("reavaliacao_necessaria", False)
+        case.safety.alertas_clinicos = safety_output.get("alertas_clinicos", [])
+        case.safety.dados_relevantes_ausentes = case.reasoning.missing_data
+
+        # =========================
+        # 8. PREPARAÇÃO PARA DOCUMENTOS
+        # =========================
+        if case.treatment_plan.medicacao:
+            case.documents.recipe_ready = True
+            case.documents.document_type = "receita_simples"
+
+        # =========================
+        # 9. RESPOSTA FINAL (compatível com frontend atual)
+        # =========================
+        response_text = self._build_response(case)
+
+        return {
+            "resposta": response_text,
+            "clinical_response": {
+                "tipo": self._define_tipo(case),
+                "confidence": case.reasoning.confidence,
+                "risk_level": case.reasoning.risk_level,
+                "nivel_seguranca": case.safety.nivel_seguranca,
+                "reavaliacao_necessaria": case.safety.reavaliacao_necessaria,
+                "alertas_clinicos": case.safety.alertas_clinicos,
+                "dados_relevantes_ausentes": case.safety.dados_relevantes_ausentes
+            }
         }
 
-        for key, value in defaults.items():
-            if key not in context["dados_clinicos"]:
-                context["dados_clinicos"][key] = value
+    # =========================
+    # AUXILIARES
+    # =========================
 
-        if "scenario" not in context:
-            context["scenario"] = None
+    def _detect_scenario(self, message: str) -> str:
+        msg = message.lower()
 
-        if "intent" not in context:
-            context["intent"] = "geral"
-
-        return context
-
-    def _normalize(self, text: str) -> str:
-        if not text:
-            return ""
-
-        text = text.strip().lower()
-        text = unicodedata.normalize("NFD", text)
-        text = "".join(ch for ch in text if unicodedata.category(ch) != "Mn")
-        return text
-
-    def _contains_any(self, text: str, terms: list[str]) -> bool:
-        return any(term in text for term in terms)
-
-    def _has_negation(self, text: str) -> bool:
-        negations = [
-            "sem ",
-            "nao ",
-            "nega ",
-            "ausencia de",
-            "ausente",
-            "sem sinais de"
-        ]
-        return any(token in text for token in negations)
-
-    def _is_short_contextual_answer(self, text: str) -> bool:
-        return len(text.split()) <= 10
-
-    def _detect_scenario(self, normalized_text: str):
-        if self._contains_any(normalized_text, [
-            "dor de ouvido", "dor no ouvido", "otalgia", "otite", "ouvido doendo"
-        ]):
+        if "ouvido" in msg:
             return "otite_media_aguda"
-
-        if self._contains_any(normalized_text, [
-            "dor de garganta", "garganta", "odinofagia", "amigdalite", "faringite", "faringoamigdalite"
-        ]):
-            return "faringoamigdalite"
-
-        if self._contains_any(normalized_text, [
-            "sinusite", "dor facial", "seios da face", "pressao na face"
-        ]):
+        if "garganta" in msg:
+            return "faringite"
+        if "sinus" in msg:
             return "sinusite"
-
-        return None
-
-    def _apply_scenario_logic(self, context: dict, detected_scenario: str | None, normalized_question: str) -> dict:
-        current_scenario = context.get("scenario")
-
-        if not detected_scenario:
-            return context
-
-        if current_scenario is None:
-            context["scenario"] = detected_scenario
-            return context
-
-        if current_scenario == detected_scenario:
-            return context
-
-        if self._has_explicit_new_scenario_signal(normalized_question, detected_scenario):
-            context["scenario"] = detected_scenario
-            return context
-
-        return context
-
-    def _has_explicit_new_scenario_signal(self, normalized_text: str, detected_scenario: str) -> bool:
-        explicit_switch_terms = [
-            "alem disso",
-            "novo quadro",
-            "outro quadro",
-            "agora",
-            "na verdade",
-            "nao e ouvido",
-            "nao e otite",
-            "nao e garganta",
-            "nao e sinusite",
-            "mude o cenario",
-            "troque o cenario"
-        ]
-
-        if any(term in normalized_text for term in explicit_switch_terms):
-            return True
-
-        scenario_terms = {
-            "otite_media_aguda": ["dor de ouvido", "otalgia", "otite", "ouvido"],
-            "faringoamigdalite": ["dor de garganta", "odinofagia", "amigdalite", "faringite", "garganta"],
-            "sinusite": ["sinusite", "dor facial", "seios da face", "pressao na face"]
-        }
-
-        if detected_scenario in scenario_terms:
-            return any(term in normalized_text for term in scenario_terms[detected_scenario])
-
-        return False
-
-    def _detect_intent(self, normalized_text: str):
-        if self._contains_any(normalized_text, [
-            "qual a dose", "qual dose", "dose", "dosagem", "posologia"
-        ]):
-            return "dose"
-
-        if self._contains_any(normalized_text, [
-            "antibiotico", "qual antibiotico"
-        ]):
-            return "antibiotico"
-
-        if self._contains_any(normalized_text, [
-            "medicamento", "qual medicamento", "qual remedio", "remedio"
-        ]):
-            return "medicamento"
-
-        if self._contains_any(normalized_text, [
-            "tratamento", "qual conduta", "conduta"
-        ]):
-            return "tratamento"
 
         return "geral"
 
-    def _extract_and_update_clinical_data(self, text: str, context: dict) -> dict:
-        dados = context["dados_clinicos"]
-        scenario = context.get("scenario")
-        t = self._normalize(text)
+    def _basic_extraction(self, case: ClinicalCase, message: str):
+        msg = message.lower()
 
-        idade = self._extract_age(t)
-        if idade is not None:
-            dados["idade"] = idade
+        if "febre" in msg:
+            case.clinical_context.symptoms.febre = True
 
-        peso = self._extract_weight(t)
-        if peso is not None:
-            dados["peso"] = peso
+        if "secre" in msg:
+            case.clinical_context.symptoms.secrecao_auricular = True
 
-        duracao = self._extract_duration_days(t)
-        if duracao is not None:
-            dados["duracao_dias"] = duracao
+        if "dor" in msg:
+            case.clinical_context.symptoms.dor_presente = True
 
-        alergia = self._extract_allergy_status(t)
-        if alergia is not None:
-            dados["alergia"] = alergia
+        if "alerg" in msg and "penic" in msg:
+            case.clinical_context.risk_factors.alergia_penicilina = True
 
-        febre = self._extract_fever_status(t)
-        if febre is not None:
-            dados["febre"] = febre
+    def _build_response(self, case: ClinicalCase) -> str:
 
-        febre_alta = self._extract_high_fever_status(t)
-        if febre_alta is not None:
-            dados["febre_alta"] = febre_alta
-            if febre_alta is True:
-                dados["febre"] = True
+        parts = []
 
-        gravidade = self._extract_explicit_gravity_status(t)
-        if gravidade is not None:
-            dados["gravidade"] = gravidade
+        if case.treatment_plan.diagnostico_provavel:
+            parts.append(f"Diagnóstico provável: {case.treatment_plan.diagnostico_provavel}")
 
-        dor_intensa = self._extract_pain_intensity_status(t)
-        if dor_intensa is not None:
-            dados["dor_intensa"] = dor_intensa
+        if case.treatment_plan.conduta:
+            parts.append(f"Conduta recomendada: {case.treatment_plan.conduta}")
 
-        toxemia = self._extract_toxemia_status(t)
-        if toxemia is not None:
-            dados["toxemia"] = toxemia
+        if case.treatment_plan.medicacao:
+            parts.append(f"Medicação: {case.treatment_plan.medicacao}")
 
-        prostracao = self._extract_prostration_status(t)
-        if prostracao is not None:
-            dados["prostracao"] = prostracao
+        if case.treatment_plan.dose:
+            parts.append(f"Dose: {case.treatment_plan.dose}")
 
-        self._extract_general_symptoms(t, dados)
-        self._extract_contextual_shorthand(t, scenario, dados)
+        if case.treatment_plan.posologia:
+            parts.append(f"Posologia: {case.treatment_plan.posologia}")
 
-        context["dados_clinicos"] = dados
-        return context
+        if case.treatment_plan.duracao:
+            parts.append(f"Duração: {case.treatment_plan.duracao}")
 
-    def _extract_general_symptoms(self, text: str, dados: dict):
-        if self._contains_any(text, ["dor de ouvido", "dor no ouvido", "otalgia", "ouvido doendo"]):
-            dados["dor_presente"] = True
+        if case.treatment_plan.justificativa:
+            parts.append(f"Justificativa: {case.treatment_plan.justificativa}")
 
-        if self._contains_any(text, ["sem dor no ouvido", "sem otalgia"]):
-            dados["dor_presente"] = False
+        if case.reasoning.missing_data:
+            parts.append("\nDados necessários:")
+            for item in case.reasoning.missing_data:
+                parts.append(f"• {item}")
 
-    def _extract_contextual_shorthand(self, text: str, scenario: str, dados: dict):
-        if scenario == "otite_media_aguda":
-            self._extract_otitis_data(text, dados)
-            return
+        return "\n".join(parts)
 
-        if scenario == "faringoamigdalite":
-            self._extract_pharyngitis_data(text, dados)
-            return
-
-        if scenario == "sinusite":
-            self._extract_sinusitis_data(text, dados)
-            return
-
-    def _extract_otitis_data(self, text: str, dados: dict):
-        if self._contains_any(text, [
-            "secrecao no ouvido",
-            "otorreia",
-            "ouvido vazando",
-            "ouvido escorrendo",
-            "pus no ouvido"
-        ]) and not self._has_negation(text):
-            dados["secrecao_auricular"] = True
-            if self._contains_any(text, ["pus no ouvido", "otorreia purulenta"]):
-                dados["secrecao_purulenta"] = True
-
-        if self._contains_any(text, [
-            "secrecao",
-            "com secrecao",
-            "febre e secrecao",
-            "secrecao e febre",
-            "pus",
-            "com pus"
-        ]) and not self._has_negation(text):
-            dados["secrecao_auricular"] = True
-            if self._contains_any(text, ["pus", "com pus"]):
-                dados["secrecao_purulenta"] = True
-
-        if self._contains_any(text, [
-            "sem secrecao",
-            "sem secrecao no ouvido",
-            "sem otorreia",
-            "sem pus"
-        ]) or (
-            self._has_negation(text) and self._contains_any(text, ["secrecao", "pus"])
-        ):
-            dados["secrecao_auricular"] = False
-            if self._contains_any(text, ["pus"]):
-                dados["secrecao_purulenta"] = False
-
-    def _extract_pharyngitis_data(self, text: str, dados: dict):
-        if self._contains_any(text, ["dor de garganta", "odinofagia", "garganta inflamada", "garganta inflamda"]):
-            dados["dor_garganta"] = True
-
-        if self._contains_any(text, ["sem dor de garganta"]):
-            dados["dor_garganta"] = False
-
-        if self._contains_any(text, ["placas", "placa na garganta", "exsudato", "pus na amigdala", "pus nas amigdalas"]):
-            if not self._has_negation(text):
-                dados["placas_amigdalianas"] = True
-
-        if self._contains_any(text, ["sem placas", "sem exsudato"]) or (
-            self._has_negation(text) and self._contains_any(text, ["placas", "exsudato"])
-        ):
-            dados["placas_amigdalianas"] = False
-
-    def _extract_sinusitis_data(self, text: str, dados: dict):
-        if self._contains_any(text, ["dor facial", "dor na face", "pressao na face", "seios da face"]):
-            dados["dor_facial"] = True
-
-        if self._contains_any(text, ["sem dor facial"]):
-            dados["dor_facial"] = False
-
-        if self._contains_any(text, [
-            "secrecao nasal purulenta",
-            "coriza purulenta",
-            "secrecao amarela",
-            "secrecao esverdeada"
-        ]) and not self._has_negation(text):
-            dados["secrecao_nasal_purulenta"] = True
-
-        if self._contains_any(text, ["sem secrecao nasal", "sem coriza", "sem secrecao purulenta"]) or (
-            self._has_negation(text) and self._contains_any(text, ["coriza", "secrecao nasal", "secrecao purulenta"])
-        ):
-            dados["secrecao_nasal_purulenta"] = False
-
-    def _extract_age(self, text: str):
-        patterns = [
-            r"(\d{1,3})\s*anos",
-            r"idade\s*[:=]?\s*(\d{1,3})",
-            r"paciente\s*de\s*(\d{1,3})\s*anos",
-            r"paciente\s*com\s*(\d{1,3})\s*anos"
-        ]
-        for pattern in patterns:
-            match = re.search(pattern, text)
-            if match:
-                idade = int(match.group(1))
-                if 0 < idade < 130:
-                    return idade
-        return None
-
-    def _extract_weight(self, text: str):
-        patterns = [
-            r"(\d{1,3})\s*kg",
-            r"(\d{1,3})kg",
-            r"peso\s*[:=]?\s*(\d{1,3})",
-            r"pesando\s*(\d{1,3})\s*kg",
-            r"com\s*(\d{1,3})\s*kg",
-            r"com(\d{1,3})\s*kg"
-        ]
-        for pattern in patterns:
-            match = re.search(pattern, text)
-            if match:
-                peso = int(match.group(1))
-                if 0 < peso < 500:
-                    return peso
-        return None
-
-    def _extract_duration_days(self, text: str):
-        patterns = [
-            r"ha\s*(\d{1,2})\s*dias",
-            r"(\d{1,2})\s*dias",
-            r"(\d{1,2})\s*dia"
-        ]
-        for pattern in patterns:
-            match = re.search(pattern, text)
-            if match:
-                dias = int(match.group(1))
-                if 0 <= dias <= 60:
-                    return dias
-        return None
-
-    def _extract_allergy_status(self, text: str):
-        if self._contains_any(text, [
-            "sem alergia", "nao tem alergia", "nega alergia", "sem alergia a penicilina"
-        ]):
-            return False
-
-        if self._contains_any(text, [
-            "alergia", "alergico", "alergica", "alergia a penicilina"
-        ]):
-            return True
-
-        return None
-
-    def _extract_fever_status(self, text: str):
-        if self._contains_any(text, [
-            "sem febre", "afebril", "nega febre"
-        ]):
-            return False
-
-        if self._contains_any(text, [
-            "febre", "febril", "temperatura elevada"
-        ]):
-            return True
-
-        return None
-
-    def _extract_high_fever_status(self, text: str):
-        if self._contains_any(text, [
-            "sem febre alta",
-            "nao ha febre alta",
-            "não ha febre alta",
-            "nega febre alta"
-        ]):
-            return False
-
-        if self._contains_any(text, [
-            "febre alta",
-            "temperatura alta",
-            "hipertermia importante"
-        ]):
-            return True
-
-        return None
-
-    def _extract_explicit_gravity_status(self, text: str):
-        if self._contains_any(text, [
-            "sem gravidade", "sem sinais de gravidade", "quadro leve"
-        ]):
-            return False
-
-        if self._contains_any(text, [
-            "com gravidade", "sinais de gravidade", "quadro grave"
-        ]):
-            return True
-
-        return None
-
-    def _extract_pain_intensity_status(self, text: str):
-        if self._contains_any(text, [
-            "dor intensa", "dor forte", "muita dor"
-        ]):
-            return True
-
-        if self._contains_any(text, [
-            "dor leve", "dor moderada", "sem dor intensa"
-        ]):
-            return False
-
-        return None
-
-    def _extract_toxemia_status(self, text: str):
-        if self._contains_any(text, [
-            "sem toxemia", "nega toxemia", "sem sinais de toxemia"
-        ]):
-            return False
-
-        if self._contains_any(text, [
-            "toxemia", "sinais de toxemia"
-        ]):
-            return True
-
-        return None
-
-    def _extract_prostration_status(self, text: str):
-        if self._contains_any(text, [
-            "sem prostracao",
-            "sem prostração",
-            "bom estado geral",
-            "ativo"
-        ]):
-            return False
-
-        if self._contains_any(text, [
-            "prostrado",
-            "prostracao",
-            "prostração",
-            "abatido",
-            "paciente prostrado"
-        ]):
-            return True
-
-        return None
-
-    def _build_response(self, question: str, context: dict, reasoning: dict) -> dict:
-        scenario = context.get("scenario")
-        dados = context.get("dados_clinicos", {})
-        status = reasoning.get("status")
-
-        confidence = self._calculate_confidence(scenario, dados, reasoning)
-        risk_level = self._calculate_risk_level(scenario, dados)
-        explanation = self._build_explanation(scenario, dados, reasoning)
-        safety = assess_case_safety(
-            scenario=scenario,
-            dados_clinicos=dados,
-            confidence=confidence
-        )
-
-        interpretation_payload = self._build_interpretation_payload(explanation=explanation)
-        safety_payload = self._build_safety_payload(
-            scenario=scenario,
-            dados=dados,
-            confidence=confidence,
-            risk_level=risk_level,
-            safety=safety
-        )
-
-        if status == "insufficient_data":
-            resposta = "Preciso entender melhor o quadro clínico para orientar a conduta."
-            return {
-                "resposta": resposta,
-                "clinical_response": {
-                    "tipo": "coleta_dados",
-                    "cenario": scenario,
-                    "resposta": resposta,
-                    "perguntas": reasoning.get("missing", []),
-                    "dados_clinicos": dados,
-                    "interpretation": interpretation_payload,
-                    "safety": safety_payload
-                }
-            }
-
-        if status == "need_more_data":
-            resposta = "Ainda preciso de algumas informações para definir a conduta:"
-            return {
-                "resposta": resposta,
-                "clinical_response": {
-                    "tipo": "coleta_dados",
-                    "cenario": scenario,
-                    "resposta": resposta,
-                    "perguntas": reasoning.get("missing", []),
-                    "dados_clinicos": dados,
-                    "interpretation": interpretation_payload,
-                    "safety": safety_payload
-                }
-            }
-
-        if status == "ready_for_treatment":
-            response = self.decision_engine.decide(question=question, context=context)
-
-            clinical_response = response.get("clinical_response", {})
-            clinical_response["interpretation"] = interpretation_payload
-            clinical_response["safety"] = safety_payload
-
-            response["clinical_response"] = clinical_response
-            return response
-
-        resposta = "Ainda não consegui estruturar a conduta com segurança. Preciso de mais dados clínicos."
-        return {
-            "resposta": resposta,
-            "clinical_response": {
-                "tipo": "coleta_dados",
-                "cenario": scenario,
-                "resposta": resposta,
-                "perguntas": ["Descreva melhor o quadro clínico atual."],
-                "dados_clinicos": dados,
-                "interpretation": interpretation_payload,
-                "safety": safety_payload
-            }
-        }
-
-    def _refine_response_with_llm(self, response: dict) -> dict:
-        if not isinstance(response, dict):
-            return response
-
-        resposta_original = response.get("resposta")
-        clinical_response = response.get("clinical_response", {})
-
-        if not resposta_original or not clinical_response:
-            return response
-
-        prompt = self._build_response_refinement_prompt(
-            resposta_original=resposta_original,
-            clinical_response=clinical_response
-        )
-
-        try:
-            refined_text = self.llm_service.generate(prompt).strip()
-
-            if refined_text:
-                response["resposta"] = refined_text
-                if isinstance(clinical_response, dict) and "resposta" in clinical_response:
-                    clinical_response["resposta"] = refined_text
-                response["clinical_response"] = clinical_response
-
-        except Exception:
-            return response
-
-        return response
-
-    def _build_response_refinement_prompt(self, resposta_original: str, clinical_response: dict) -> str:
-        payload = {
-            "resposta_original": resposta_original,
-            "tipo": clinical_response.get("tipo"),
-            "cenario": clinical_response.get("cenario"),
-            "perguntas": clinical_response.get("perguntas", []),
-            "dados_clinicos": clinical_response.get("dados_clinicos", {}),
-            "interpretation": clinical_response.get("interpretation", {}),
-            "safety": clinical_response.get("safety", {})
-        }
-
-        return (
-            "Você é o PREXIA, assistente clínico.\n"
-            "Sua tarefa é apenas reescrever a resposta principal em português claro, técnico e objetivo.\n"
-            "Regras obrigatórias:\n"
-            "1. Não invente diagnóstico, dose, medicamento, duração ou conduta.\n"
-            "2. Use somente as informações do JSON fornecido.\n"
-            "3. Não contradiga o conteúdo estruturado.\n"
-            "4. Se o tipo for coleta_dados, mantenha tom de solicitação de informações faltantes.\n"
-            "5. Responda somente com o texto final da resposta, sem JSON, sem título e sem explicações extras.\n\n"
-            f"JSON:\n{json.dumps(payload, ensure_ascii=False)}"
-        )
-
-    def _build_interpretation_payload(self, explanation: str) -> dict:
-        return {
-            "explanation": explanation
-        }
-
-    def _build_safety_payload(
-        self,
-        scenario: str,
-        dados: dict,
-        confidence: str,
-        risk_level: str,
-        safety: dict
-    ) -> dict:
-        return {
-            "confidence": confidence,
-            "risk_level": risk_level,
-            "nivel_seguranca": safety["nivel_seguranca"],
-            "reavaliacao_necessaria": safety["reavaliacao_necessaria"],
-            "dados_relevantes_ausentes": safety["dados_relevantes_ausentes"],
-            "alertas_clinicos": safety["alertas_clinicos"],
-            "missing_relevant_data": self._relevant_missing_data(scenario, dados)
-        }
-
-    def _calculate_confidence(self, scenario: str, dados: dict, reasoning: dict) -> str:
-        status = reasoning.get("status")
-
-        if status in ["insufficient_data", "need_more_data"]:
-            known_fields = sum(1 for v in dados.values() if v is not None)
-            if known_fields <= 2:
-                return "baixa"
-            if known_fields <= 5:
-                return "moderada"
-            return "moderada"
-
-        strong_markers = 0
-        uncertain_markers = 0
-
-        if scenario == "otite_media_aguda":
-            if dados.get("dor_presente") is True:
-                strong_markers += 1
-            if dados.get("febre") is True:
-                strong_markers += 1
-            if dados.get("secrecao_auricular") is True:
-                strong_markers += 1
-            if dados.get("dor_intensa") is True:
-                strong_markers += 1
-            if dados.get("dor_intensa") is None:
-                uncertain_markers += 1
-            if dados.get("toxemia") is None:
-                uncertain_markers += 1
-            if dados.get("prostracao") is None:
-                uncertain_markers += 1
-
-        elif scenario == "faringoamigdalite":
-            if dados.get("dor_garganta") is True:
-                strong_markers += 1
-            if dados.get("febre") is True:
-                strong_markers += 1
-            if dados.get("placas_amigdalianas") is True:
-                strong_markers += 1
-            if dados.get("toxemia") is None:
-                uncertain_markers += 1
-            if dados.get("prostracao") is None:
-                uncertain_markers += 1
-
-        elif scenario == "sinusite":
-            if dados.get("dor_facial") is True:
-                strong_markers += 1
-            if dados.get("secrecao_nasal_purulenta") is True:
-                strong_markers += 1
-            if dados.get("duracao_dias") is not None and dados.get("duracao_dias") >= 10:
-                strong_markers += 1
-            if dados.get("febre") is True:
-                strong_markers += 1
-            if dados.get("toxemia") is None:
-                uncertain_markers += 1
-            if dados.get("prostracao") is None:
-                uncertain_markers += 1
-
-        if strong_markers >= 3 and uncertain_markers == 0:
-            return "alta"
-        if strong_markers >= 2:
-            return "moderada"
-        return "baixa"
-
-    def _calculate_risk_level(self, scenario: str, dados: dict) -> str:
-        if dados.get("toxemia") is True or dados.get("prostracao") is True:
-            return "alto"
-
-        if dados.get("dor_intensa") is True or dados.get("gravidade") is True:
-            return "moderado"
-
-        if scenario == "sinusite" and dados.get("febre") is True and dados.get("duracao_dias") is not None and dados.get("duracao_dias") >= 10:
-            return "moderado"
-
-        return "baixo"
-
-    def _build_explanation(self, scenario: str, dados: dict, reasoning: dict) -> str:
-        status = reasoning.get("status")
-
-        if scenario == "otite_media_aguda":
-            reasons = []
-            if dados.get("dor_presente") is True:
-                reasons.append("há otalgia")
-            if dados.get("febre") is True:
-                reasons.append("há febre")
-            if dados.get("secrecao_auricular") is True:
-                reasons.append("há secreção auricular")
-            if dados.get("dor_intensa") is True:
-                reasons.append("há dor intensa")
-            if dados.get("alergia") is True:
-                reasons.append("há alergia à penicilina")
-
-            if status == "ready_for_treatment":
-                return self._join_explanation(
-                    "A decisão clínica foi apoiada porque",
-                    reasons,
-                    "o conjunto aumenta a plausibilidade de otite média aguda com necessidade de conduta ativa."
-                )
-
-            return self._join_explanation(
-                "Ainda faltam elementos para uma decisão final porque",
-                reasons,
-                "o caso ainda precisa de melhor definição clínica."
-            )
-
-        if scenario == "faringoamigdalite":
-            reasons = []
-            if dados.get("dor_garganta") is True:
-                reasons.append("há dor de garganta")
-            if dados.get("febre") is True:
-                reasons.append("há febre")
-            if dados.get("placas_amigdalianas") is True:
-                reasons.append("há placas ou exsudato")
-            if dados.get("alergia") is True:
-                reasons.append("há alergia à penicilina")
-
-            if status == "ready_for_treatment":
-                return self._join_explanation(
-                    "A decisão clínica foi apoiada porque",
-                    reasons,
-                    "o conjunto aumenta a plausibilidade de infecção bacteriana de garganta."
-                )
-
-            return self._join_explanation(
-                "Ainda faltam elementos para uma decisão final porque",
-                reasons,
-                "o quadro ainda precisa de melhor definição etiológica."
-            )
-
-        if scenario == "sinusite":
-            reasons = []
-            if dados.get("dor_facial") is True:
-                reasons.append("há dor facial")
-            if dados.get("secrecao_nasal_purulenta") is True:
-                reasons.append("há secreção nasal purulenta")
-            if dados.get("duracao_dias") is not None:
-                reasons.append(f"há {dados.get('duracao_dias')} dias de evolução")
-            if dados.get("febre") is True:
-                reasons.append("há febre")
-
-            if status == "ready_for_treatment":
-                return self._join_explanation(
-                    "A decisão clínica foi apoiada porque",
-                    reasons,
-                    "esses elementos ajudam a diferenciar quadro bacteriano de quadro viral."
-                )
-
-            return self._join_explanation(
-                "Ainda faltam elementos para uma decisão final porque",
-                reasons,
-                "a evolução clínica ainda precisa ser melhor caracterizada."
-            )
-
-        return "A resposta foi construída com base nos dados clínicos disponíveis até o momento."
-
-    def _join_explanation(self, intro: str, reasons: list[str], ending: str) -> str:
-        if not reasons:
-            return f"{intro} ainda há poucos dados clínicos disponíveis, e {ending}"
-        return f"{intro} " + ", ".join(reasons) + f", e {ending}"
-
-    def _relevant_missing_data(self, scenario: str, dados: dict) -> list[str]:
-        missing = []
-
-        if scenario == "otite_media_aguda":
-            if dados.get("dor_intensa") is None:
-                missing.append("intensidade da dor")
-            if dados.get("toxemia") is None:
-                missing.append("toxemia")
-            if dados.get("prostracao") is None:
-                missing.append("prostração")
-
-        elif scenario == "faringoamigdalite":
-            if dados.get("toxemia") is None:
-                missing.append("toxemia")
-            if dados.get("prostracao") is None:
-                missing.append("prostração")
-
-        elif scenario == "sinusite":
-            if dados.get("febre") is None:
-                missing.append("febre")
-            if dados.get("toxemia") is None:
-                missing.append("toxemia")
-            if dados.get("prostracao") is None:
-                missing.append("prostração")
-
-        return missing
+    def _define_tipo(self, case: ClinicalCase) -> str:
+        if case.reasoning.status != "ready_for_treatment":
+            return "coleta_dados"
+        return "protocolo_definido"
