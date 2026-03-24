@@ -1,0 +1,263 @@
+{
+  "id": "hipotireoidismo",
+  "nome": "Hipotireoidismo",
+  "cid10": ["E03", "E03.9", "E02", "E00", "E00.9"],
+  "especialidade": ["clinica_medica", "medicina_familia", "endocrinologia"],
+  "sinonimos": [
+    "hipotireoidismo primário",
+    "hipotireoidismo subclínico",
+    "tireoidite de Hashimoto",
+    "hipotireoidismo congênito",
+    "mixedema"
+  ],
+  "descricao": "Deficiência de hormônios tireoidianos causada por falência da tireoide. Principal causa: tireoidite de Hashimoto (doença autoimune). Outras causas: tireoidectomia, radioiodoterapia, medicamentos (amiodarona, lítio), hipotireoidismo congênito. Afeta mais mulheres (proporção de 7 a 10 para 1). Frequentemente subdiagnosticado pela inespecificidade dos sintomas.",
+
+  "perfil_paciente": {
+    "sexo": "ambos",
+    "faixa_etaria": ["pediatrico", "adulto", "idoso", "gestante"],
+    "observacoes": "Muito mais frequente em mulheres. Prevalência aumenta com a idade. Na gestação: hipotireoidismo não tratado causa abortamento, pré-eclâmpsia, parto prematuro e déficit neurológico no feto. Rastreio obrigatório em recém-nascidos pelo teste do pezinho."
+  },
+
+  "sintomas_chave": [
+    "fadiga e cansaço excessivo",
+    "ganho de peso inexplicado",
+    "intolerância ao frio",
+    "constipação intestinal",
+    "pele seca e cabelos quebradiços",
+    "queda de cabelo",
+    "edema facial e periorbitário",
+    "voz rouca ou grossa",
+    "bradicardia",
+    "depressão ou lentidão mental",
+    "menstruações irregulares ou menorragia",
+    "aumento da tireoide (bócio)",
+    "reflexos lentos",
+    "frequentemente assintomático no início (hipotireoidismo subclínico)"
+  ],
+
+  "criterios_diagnosticos": {
+    "hipotireoidismo_primario_franco": {
+      "criterios": [
+        "TSH elevado: acima de 4,0 a 4,5 mUI/L (conforme laboratório)",
+        "T4 livre reduzido: abaixo do limite inferior do normal",
+        "Sintomas clínicos compatíveis"
+      ]
+    },
+    "hipotireoidismo_subclínico": {
+      "criterios": [
+        "TSH elevado: entre 4,5 e 10 mUI/L",
+        "T4 livre normal",
+        "Assintomático ou sintomas leves"
+      ],
+      "quando_tratar": [
+        "TSH acima de 10 mUI/L: tratar sempre",
+        "TSH entre 4,5 e 10 mUI/L com antiTPO positivo: tratar",
+        "TSH entre 4,5 e 10 mUI/L em gestante: tratar sempre",
+        "TSH entre 4,5 e 10 mUI/L com sintomas: considerar tratar",
+        "TSH entre 4,5 e 10 mUI/L assintomático sem antiTPO: vigilância"
+      ]
+    },
+    "gestante": {
+      "criterios": "TSH acima de 2,5 mUI/L no 1º trimestre já indica avaliação. Tratar se TSH acima de 4,0 mUI/L ou acima de 2,5 mUI/L com antiTPO positivo. Meta: TSH abaixo de 2,5 mUI/L.",
+      "triagem": "Realizar TSH no pré-natal de todas as gestantes, especialmente no 1º trimestre."
+    },
+    "hipotireoidismo_congenito": {
+      "rastreio": "Teste do pezinho obrigatório entre 48h e 5º dia de vida. TSH acima de 10 mUI/L: confirmar com T4 livre e iniciar levotiroxina imediatamente."
+    },
+    "exames_complementares": [
+      "TSH: exame de eleição para diagnóstico e monitoramento",
+      "T4 livre: solicitar quando TSH alterado",
+      "Anti-TPO: positivo indica Hashimoto e maior risco de progressão",
+      "Ultrassonografia de tireoide: se bócio ou nódulo palpável"
+    ]
+  },
+
+  "perguntas_obrigatorias": [
+    "Quais são os valores de TSH e T4 livre dos últimos exames?",
+    "Há sintomas: cansaço, ganho de peso, intolerância ao frio, constipação, queda de cabelo?",
+    "A paciente está gestante ou planeja engravidar?",
+    "Há uso de medicamentos que afetam a tireoide: amiodarona, lítio, interferon?",
+    "Há histórico de cirurgia de tireoide ou radioterapia cervical?",
+    "Há histórico familiar de doença tireoidiana autoimune?"
+  ],
+
+  "tratamento": {
+    "medicamento_unico": {
+      "medicamento": "Levotiroxina sódica",
+      "classe_terapeutica": "Hormônio tireoidiano sintético",
+      "apresentacao": "Comprimidos 25 mcg, 37,5 mcg, 50 mcg, 75 mcg, 88 mcg, 100 mcg, 112 mcg, 125 mcg, 150 mcg, 175 mcg, 200 mcg",
+      "sus_rename_2024": true,
+      "sus_remume_sp": true,
+      "disponibilidade_sp": "UBS",
+      "fonte": "RENAME 2024; PCDT Hipotireoidismo Congênito MS 2021; Protocolo SP 2024"
+    },
+    "dose_adulto": {
+      "jovem_saudavel": {
+        "dose_inicial": "1,0 a 1,6 mcg/kg/dia em dose única",
+        "exemplo": "Paciente de 70 kg: iniciar com 75 a 100 mcg/dia",
+        "observacao": "Pode iniciar com dose plena em adultos jovens sem cardiopatia"
+      },
+      "idoso_ou_cardiopata": {
+        "dose_inicial": "12,5 a 25 mcg/dia",
+        "ajuste": "Aumentar 12,5 a 25 mcg a cada 4 a 6 semanas conforme TSH e tolerância",
+        "observacao": "Iniciar com dose baixa para evitar precipitação de angina ou arritmia"
+      },
+      "subclínico_leve": {
+        "dose_inicial": "25 a 50 mcg/dia",
+        "ajuste": "Titular conforme TSH a cada 6 a 8 semanas"
+      }
+    },
+    "dose_gestante": {
+      "nova_gestante_hipotireoidea": "Iniciar com 1,6 mcg/kg/dia. Meta: TSH abaixo de 2,5 mUI/L.",
+      "ja_em_uso_levotiroxina": "Aumentar dose em 25 a 30% ao confirmar gestação. Controlar TSH a cada 4 semanas no 1º trimestre.",
+      "meta_tsH": "TSH abaixo de 2,5 mUI/L no 1º e 2º trimestres. TSH abaixo de 3,0 mUI/L no 3º trimestre.",
+      "sus_rename_2024": true,
+      "sus_remume_sp": true,
+      "disponibilidade_sp": "UBS"
+    },
+    "dose_pediatrica": {
+      "congenito_0_3_meses": "10 a 15 mcg/kg/dia. Iniciar o mais cedo possível após diagnóstico.",
+      "crianca_1_5_anos": "5 a 6 mcg/kg/dia",
+      "crianca_6_12_anos": "4 a 5 mcg/kg/dia",
+      "adolescente": "2 a 3 mcg/kg/dia",
+      "observacao": "Ajustar a cada 4 a 6 semanas conforme TSH e T4 livre. Tratamento do hipotireoidismo congênito deve ser iniciado nas primeiras semanas de vida para prevenir déficit neurológico."
+    },
+    "administracao": {
+      "horario": "Em jejum, 30 a 60 minutos antes do café da manhã, apenas com água",
+      "justificativa": "Alimentos e medicamentos reduzem absorção em até 40%",
+      "interferentes": [
+        "Cálcio, ferro, antiácidos com alumínio ou magnésio: tomar com intervalo mínimo de 4 horas",
+        "Café, fibras e soja: reduzem absorção",
+        "Colestiramina e omeprazol: reduzem absorção"
+      ]
+    },
+    "meta_tratamento": {
+      "adulto_geral": "TSH entre 0,5 e 4,0 mUI/L",
+      "idoso_acima_65": "TSH entre 1,0 e 6,0 mUI/L (meta menos restritiva)",
+      "gestante": "TSH abaixo de 2,5 mUI/L no 1º e 2º trimestres",
+      "congenito": "TSH entre 0,5 e 2,0 mUI/L nos primeiros 3 anos de vida"
+    }
+  },
+
+  "interacoes_medicamentosas": [
+    {
+      "medicamento_a": "Levotiroxina",
+      "medicamento_b": "Carbonato de cálcio ou sulfato ferroso",
+      "gravidade": "moderada",
+      "mecanismo": "Quelação no trato gastrointestinal reduz absorção da levotiroxina em até 40%",
+      "conduta": "Administrar levotiroxina com intervalo mínimo de 4 horas em relação ao cálcio ou ferro"
+    },
+    {
+      "medicamento_a": "Levotiroxina",
+      "medicamento_b": "Colestiramina, colestipol",
+      "gravidade": "moderada",
+      "mecanismo": "Redução da absorção e aumento da excreção entero-hepática da levotiroxina",
+      "conduta": "Administrar levotiroxina 4 a 6 horas antes da colestiramina"
+    },
+    {
+      "medicamento_a": "Levotiroxina",
+      "medicamento_b": "Anticoagulantes orais (varfarina)",
+      "gravidade": "moderada",
+      "mecanismo": "Levotiroxina potencializa efeito anticoagulante aumentando risco de sangramento",
+      "conduta": "Monitorar INR ao iniciar ou ajustar dose de levotiroxina"
+    },
+    {
+      "medicamento_a": "Levotiroxina",
+      "medicamento_b": "Amiodarona",
+      "gravidade": "moderada",
+      "mecanismo": "Amiodarona contém iodo e inibe conversão periférica de T4 em T3, podendo causar hipo ou hipertireoidismo",
+      "conduta": "Monitorar TSH e T4 livre a cada 3 a 6 meses em pacientes usando amiodarona"
+    },
+    {
+      "medicamento_a": "Levotiroxina",
+      "medicamento_b": "Omeprazol e outros IBPs",
+      "gravidade": "leve",
+      "mecanismo": "Inibidores de bomba de prótons reduzem absorção da levotiroxina",
+      "conduta": "Tomar levotiroxina em jejum antes do IBP. Considerar ajuste de dose se TSH não controlado"
+    },
+    {
+      "medicamento_a": "Levotiroxina",
+      "medicamento_b": "Insulina ou antidiabéticos orais",
+      "gravidade": "leve",
+      "mecanismo": "Levotiroxina pode aumentar necessidade de insulina ao aumentar metabolismo basal",
+      "conduta": "Monitorar glicemia ao iniciar ou ajustar levotiroxina em diabéticos"
+    }
+  ],
+
+  "efeitos_adversos": [
+    {
+      "efeito": "Taquicardia, palpitações, tremor, insônia",
+      "causa": "Dose excessiva (hipertireoidismo iatrogênico)",
+      "frequencia": "comum quando dose inadequada",
+      "gravidade": "leve a moderada",
+      "conduta": "Reduzir dose. Confirmar com TSH. Orientar tomar no horário correto"
+    },
+    {
+      "efeito": "Angina ou arritmia",
+      "causa": "Inicio muito rápido ou dose muito alta em cardiopatas ou idosos",
+      "frequencia": "incomum",
+      "gravidade": "grave",
+      "conduta": "Iniciar com dose baixa em idosos e cardiopatas. Aumentar gradualmente. Suspender se angina ou arritmia"
+    },
+    {
+      "efeito": "Perda óssea (osteoporose) e fibrilação atrial",
+      "causa": "Hipertireoidismo subclínico por supressão excessiva do TSH",
+      "frequencia": "incomum com dose adequada",
+      "gravidade": "moderada a grave",
+      "conduta": "Evitar supressão desnecessária do TSH. Meta de TSH individualizada. Monitorar densidade óssea em mulheres pós-menopausa"
+    }
+  ],
+
+  "alertas_clinicos": [
+    "Hipotireoidismo na gestação não tratado causa aborto, pré-eclâmpsia, parto prematuro e déficit neurológico irreversível no bebê. Tratar imediatamente.",
+    "Em idosos e cardiopatas: iniciar levotiroxina com dose baixa (12,5 a 25 mcg) e aumentar gradualmente para evitar angina ou arritmia.",
+    "Cálcio, ferro, soja e antiácidos reduzem absorção. Orientar tomar levotiroxina em jejum, isolada, 30 a 60 minutos antes do café.",
+    "Não substituir levotiroxina por extrato tireoidiano dessecado ou T3 isolado sem indicação especializada.",
+    "TSH suprimido cronicamente (abaixo de 0,1 mUI/L) sem indicação: risco de osteoporose e fibrilação atrial.",
+    "Hipotireoidismo subclínico com TSH entre 4,5 e 10 mUI/L e assintomático: pode-se optar por vigilância ativa em vez de tratar imediatamente.",
+    "Teste do pezinho alterado: iniciar levotiroxina imediatamente sem aguardar confirmação laboratorial se TSH muito elevado."
+  ],
+
+  "criterios_encaminhamento": [
+    "Hipotireoidismo de causa central (TSH baixo ou normal com T4 livre baixo)",
+    "Hipotireoidismo refratário: TSH persistentemente elevado com dose de levotiroxina acima de 2,5 mcg/kg/dia ou acima de 200 a 300 mcg/dia",
+    "Hipotireoidismo na gestação para acompanhamento conjunto com endocrinologista",
+    "Hipotireoidismo congênito: encaminhar para endocrinologia pediátrica urgente",
+    "Suspeita de hipotireoidismo secundário ou terciário",
+    "Nódulo tireoidiano palpável associado"
+  ],
+
+  "criterios_internacao": [
+    "Coma mixedematoso: hipotermia, rebaixamento de consciência, bradicardia grave, hipoventilação",
+    "Hipotireoidismo grave descompensado com insuficiência cardíaca ou derrame pericárdico"
+  ],
+
+  "monitoramento": {
+    "inicio_tratamento": "TSH e T4 livre 6 a 8 semanas após início ou ajuste de dose",
+    "controle_estavel": "TSH a cada 6 a 12 meses quando dose estabilizada",
+    "gestante": "TSH a cada 4 semanas no 1º trimestre e a cada 6 a 8 semanas no 2º e 3º trimestres",
+    "pediatrico_congenito": "TSH e T4 livre a cada 1 a 2 meses nos primeiros 6 meses de vida, depois a cada 3 a 4 meses até 3 anos",
+    "antiTPO": "Dosar uma vez para definir etiologia. Não necessita repetir.",
+    "retorno": "6 a 8 semanas após início ou ajuste. Depois anualmente se estável."
+  },
+
+  "orientacoes_paciente": [
+    "Tomar o comprimido em jejum, 30 a 60 minutos antes do café da manhã, somente com água.",
+    "Nunca tomar junto com cálcio, ferro, antiácido ou leite de soja: aguardar pelo menos 4 horas.",
+    "Tomar o medicamento todos os dias, mesmo sem sintomas. O tratamento é para a vida toda na maioria dos casos.",
+    "Nunca suspender sem orientação médica, especialmente na gravidez.",
+    "Informar ao médico se iniciar ou suspender qualquer outro medicamento.",
+    "Retornar para exame de TSH 6 a 8 semanas após início ou qualquer ajuste de dose.",
+    "Na gravidez: comunicar imediatamente ao médico. A dose geralmente precisa ser aumentada."
+  ],
+
+  "fonte_principal": "Protocolo Clínico Municipal SP 2024; PCDT Hipotireoidismo Congênito - Portaria Conjunta MS 2021",
+  "fontes_secundarias": [
+    "RENAME 2024 - Portaria GM/MS nº 6.324/2024",
+    "REMUME SP - Janeiro 2025",
+    "SBEM - Posicionamento Oficial sobre Função Tireoidiana 2023",
+    "FEBRASGO - Rastreio, diagnóstico e manejo do hipotireoidismo na gestação 2022",
+    "American Thyroid Association Guidelines 2014 (revisado 2023)"
+  ],
+  "ultima_atualizacao": "2026-03"
+}
