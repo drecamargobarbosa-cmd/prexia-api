@@ -2,8 +2,8 @@ from typing import Dict, Any
 from app.models.clinical_models import ClinicalCase
 from app.services.reasoning_engine import ReasoningEngine
 from app.services.protocol_engine import ProtocolEngine
-from app.services.safety_engine import assess_case_safety
 from app.services.llm_extractor import LLMExtractor
+from app.services.safety_engine import assess_case_safety
 
 
 class ClinicalEngine:
@@ -11,7 +11,6 @@ class ClinicalEngine:
     def __init__(self):
         self.reasoning = ReasoningEngine()
         self.protocol = ProtocolEngine()
-        self.safety = SafetyEngine()
         self.llm_extractor = LLMExtractor()
 
     def process(self, message: str, context: Dict[str, Any]) -> Dict[str, Any]:
@@ -21,14 +20,13 @@ class ClinicalEngine:
         # =========================
         case = ClinicalCase.from_legacy_context(context)
 
-        # adiciona histórico
         case.history.append({
             "role": "user",
             "content": message
         })
 
         # =========================
-        # 2. EXTRAÇÃO COM LLM (NOVO)
+        # 2. EXTRAÇÃO COM LLM
         # =========================
         self._llm_extraction(case, message, context)
 
@@ -39,7 +37,7 @@ class ClinicalEngine:
             case.clinical_context.scenario = self._detect_scenario(message)
 
         # =========================
-        # 4. CONVERTE PARA FORMATO ANTIGO
+        # 4. CONTEXTO LEGADO
         # =========================
         legacy_context = case.to_legacy_context()
 
@@ -54,7 +52,7 @@ class ClinicalEngine:
         case.reasoning.risk_level = reasoning_output.get("risk_level")
 
         # =========================
-        # 6. PROTOCOLO / DECISÃO
+        # 6. PROTOCOLO
         # =========================
         if case.reasoning.status == "ready_for_treatment":
             protocol_output = self.protocol.apply_protocol(legacy_context)
@@ -68,17 +66,21 @@ class ClinicalEngine:
             case.treatment_plan.justificativa = protocol_output.get("justificativa")
 
         # =========================
-        # 7. SEGURANÇA
+        # 7. SEGURANÇA (CORRIGIDO)
         # =========================
-        safety_output = self.safety.analyze(legacy_context)
+        safety_output = assess_case_safety(
+            scenario=legacy_context.get("scenario"),
+            dados_clinicos=legacy_context.get("dados_clinicos"),
+            confidence=case.reasoning.confidence
+        )
 
         case.safety.nivel_seguranca = safety_output.get("nivel_seguranca")
         case.safety.reavaliacao_necessaria = safety_output.get("reavaliacao_necessaria", False)
         case.safety.alertas_clinicos = safety_output.get("alertas_clinicos", [])
-        case.safety.dados_relevantes_ausentes = case.reasoning.missing_data
+        case.safety.dados_relevantes_ausentes = safety_output.get("dados_relevantes_ausentes", [])
 
         # =========================
-        # 8. PREPARAÇÃO PARA DOCUMENTOS
+        # 8. DOCUMENTOS (PREPARAÇÃO)
         # =========================
         if case.treatment_plan.medicacao:
             case.documents.recipe_ready = True
@@ -103,7 +105,7 @@ class ClinicalEngine:
         }
 
     # =========================
-    # 🔥 NOVO MÉTODO LLM (AQUI FICA)
+    # 🔥 EXTRAÇÃO COM LLM
     # =========================
     def _llm_extraction(self, case: ClinicalCase, message: str, context: Dict[str, Any]):
 
@@ -173,6 +175,11 @@ class ClinicalEngine:
         if case.treatment_plan.justificativa:
             parts.append(f"Justificativa: {case.treatment_plan.justificativa}")
 
+        if case.safety.alertas_clinicos:
+            parts.append("\nAlertas clínicos:")
+            for alerta in case.safety.alertas_clinicos:
+                parts.append(f"• {alerta}")
+
         if case.reasoning.missing_data:
             parts.append("\nDados necessários:")
             for item in case.reasoning.missing_data:
@@ -183,4 +190,4 @@ class ClinicalEngine:
     def _define_tipo(self, case: ClinicalCase) -> str:
         if case.reasoning.status != "ready_for_treatment":
             return "coleta_dados"
-        return "protocolo_definido"
+        return "protocolo_definido""
