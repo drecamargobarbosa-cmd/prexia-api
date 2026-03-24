@@ -1,0 +1,283 @@
+{
+  "id": "hipertensao_arterial_sistemica",
+  "nome": "Hipertensão arterial sistêmica",
+  "cid10": ["I10", "I11", "I12", "I13"],
+  "especialidade": ["clinica_medica", "medicina_familia", "cardiologia"],
+  "sinonimos": ["HAS", "pressão alta", "hipertensão", "hipertensão arterial"],
+  "descricao": "Condição crônica caracterizada por níveis elevados e sustentados de pressão arterial (PA ≥ 140/90 mmHg), associada a risco aumentado de eventos cardiovasculares, renais e neurológicos.",
+
+  "perfil_paciente": {
+    "sexo": "ambos",
+    "faixa_etaria": ["adulto", "idoso"],
+    "observacoes": "Mais prevalente em mulheres (26,4%) do que em homens (21,1%). Aumenta com a idade: 56,6% entre 65-74 anos e 62,1% acima de 75 anos. IECA e BRA são contraindicados na gestação."
+  },
+
+  "sintomas_chave": [
+    "pressão arterial elevada em duas ou mais medidas",
+    "cefaleia occipital",
+    "tontura",
+    "zumbido",
+    "visão turva",
+    "frequentemente assintomática"
+  ],
+
+  "criterios_diagnosticos": {
+    "obrigatorios": [
+      "PA sistólica ≥ 140 mmHg e/ou PA diastólica ≥ 90 mmHg em duas ou mais medidas em ocasiões distintas"
+    ],
+    "estadiamento": {
+      "estagio_1": "PAS 140-159 mmHg e/ou PAD 90-99 mmHg",
+      "estagio_2": "PAS 160-179 mmHg e/ou PAD 100-109 mmHg",
+      "estagio_3": "PAS ≥ 180 mmHg e/ou PAD ≥ 110 mmHg",
+      "crise_hipertensiva": "PAS ≥ 180 mmHg e/ou PAD ≥ 120 mmHg com ou sem lesão de órgão alvo"
+    },
+    "sugestivos": [
+      "histórico familiar de HAS",
+      "obesidade",
+      "sedentarismo",
+      "tabagismo",
+      "consumo elevado de sódio",
+      "uso de anticoncepcionais orais"
+    ],
+    "exclusao": [
+      "hipertensão do avental branco (confirmar com MAPA)",
+      "hipertensão secundária a causas identificáveis"
+    ]
+  },
+
+  "perguntas_obrigatorias": [
+    "Qual é a pressão arterial aferida hoje e em medições anteriores?",
+    "O paciente tem diabetes, doença renal ou doença cardiovascular prévia?",
+    "Está em uso de algum medicamento atualmente?",
+    "Há histórico de alergia a medicamentos?",
+    "A paciente está gestante ou planeja engravidar?",
+    "Há sintomas de lesão de órgão-alvo: dor torácica, dispneia, déficit neurológico, alteração visual?"
+  ],
+
+  "tratamento": {
+    "nao_medicamentoso": {
+      "descricao": "Obrigatório em todos os estágios. Pode ser suficiente no estágio 1 de baixo risco por 3 a 6 meses antes de iniciar medicação.",
+      "medidas": [
+        "Redução do consumo de sódio para menos de 5g por dia (uma colher de chá rasa)",
+        "Dieta DASH ou alimentação cardioprotetora",
+        "Atividade física aeróbica regular: 150 minutos por semana",
+        "Redução do peso corporal se sobrepeso ou obesidade",
+        "Cessação do tabagismo",
+        "Redução do consumo de álcool",
+        "Controle do estresse"
+      ]
+    },
+    "primeira_linha": {
+      "medicamento": "Losartana potássica",
+      "classe_terapeutica": "Antagonista do receptor da angiotensina II (BRA)",
+      "apresentacao": "Comprimido 50 mg",
+      "dose_adulto": "50 mg 1 vez ao dia. Dose máxima: 100 mg/dia",
+      "dose_pediatrica": "Acima de 6 anos: 0,7 mg/kg/dia. Máximo 50 mg/dia",
+      "dose_gestante": "CONTRAINDICADO. Risco de toxicidade fetal grave. Substituir por metildopa ou nifedipino",
+      "posologia": "Via oral, 1 vez ao dia, preferencialmente no mesmo horário",
+      "duracao": "Uso contínuo",
+      "sus_rename_2024": true,
+      "sus_remume_sp": true,
+      "disponibilidade_sp": "UBS",
+      "justificativa": "BRA de escolha no SUS. Indicado como primeira linha especialmente em pacientes com diabetes, proteinúria ou doença renal crônica. Reduz mortalidade cardiovascular e protege função renal.",
+      "fonte": "PCDT HAS - Portaria SECTICS/MS nº 49/2025; RENAME 2024; REMUME SP 2025"
+    },
+    "alternativa_ieca": {
+      "medicamento": "Enalapril maleato",
+      "classe_terapeutica": "Inibidor da enzima conversora de angiotensina (IECA)",
+      "apresentacao": "Comprimido 5 mg ou 10 mg",
+      "dose_adulto": "5 a 40 mg/dia em 1 a 2 tomadas. Início com 5 mg/dia",
+      "dose_pediatrica": "0,08 mg/kg/dia. Máximo 5 mg/dia. Ajustar conforme resposta",
+      "dose_gestante": "CONTRAINDICADO. Risco de toxicidade fetal grave",
+      "posologia": "Via oral, 1 a 2 vezes ao dia",
+      "duracao": "Uso contínuo",
+      "sus_rename_2024": true,
+      "sus_remume_sp": true,
+      "disponibilidade_sp": "UBS",
+      "indicacao": "Alternativa à losartana. Preferido em pacientes com insuficiência cardíaca ou pós-infarto",
+      "justificativa": "IECA de referência no SUS. Eficácia semelhante ao BRA. Pode causar tosse seca como efeito adverso relevante.",
+      "fonte": "PCDT HAS - Portaria SECTICS/MS nº 49/2025; RENAME 2024"
+    },
+    "bloqueador_canal_calcio": {
+      "medicamento": "Anlodipino besilato",
+      "classe_terapeutica": "Bloqueador dos canais de cálcio di-hidropiridínico",
+      "apresentacao": "Comprimido 5 mg ou 10 mg",
+      "dose_adulto": "5 a 10 mg 1 vez ao dia",
+      "dose_pediatrica": "0,1 a 0,3 mg/kg/dia. Máximo 5 mg/dia",
+      "dose_gestante": "Pode ser utilizado. Preferido para urgência hipertensiva na gestação",
+      "posologia": "Via oral, 1 vez ao dia",
+      "duracao": "Uso contínuo",
+      "sus_rename_2024": true,
+      "sus_remume_sp": true,
+      "disponibilidade_sp": "UBS",
+      "indicacao": "Associar ao BRA ou IECA no estágio 2 ou quando monoterapia for insuficiente. Preferido em idosos e pacientes com angina",
+      "justificativa": "Bloqueador de cálcio de longa ação. Incorporado ao SUS em 2023. Eficaz em monoterapia e em associação.",
+      "fonte": "PCDT HAS - Portaria SECTICS/MS nº 49/2025; RENAME 2024"
+    },
+    "diuretico": {
+      "medicamento": "Clortalidona",
+      "classe_terapeutica": "Diurético tiazídico",
+      "apresentacao": "Comprimido 12,5 mg ou 25 mg",
+      "dose_adulto": "12,5 a 25 mg 1 vez ao dia pela manhã",
+      "dose_pediatrica": "0,3 mg/kg/dia. Máximo 2 mg/kg/dia",
+      "dose_gestante": "Evitar. Pode reduzir volume plasmático. Usar somente se benefício superar risco",
+      "posologia": "Via oral, 1 vez ao dia pela manhã para evitar noctúria",
+      "duracao": "Uso contínuo",
+      "sus_rename_2024": true,
+      "sus_remume_sp": true,
+      "disponibilidade_sp": "UBS",
+      "indicacao": "Alternativa ao anlodipino na combinação com BRA ou IECA. Incorporada ao SUS em 2023. Superior à hidroclorotiazida em evidências cardiovasculares",
+      "justificativa": "Diurético tiazídico de longa ação. Preferida à hidroclorotiazida conforme PCDT 2025.",
+      "fonte": "PCDT HAS - Portaria SECTICS/MS nº 49/2025; RENAME 2024"
+    },
+    "terapia_combinada_estagio2": {
+      "descricao": "No estágio 2 iniciar com dois anti-hipertensivos simultaneamente em doses baixas",
+      "combinacoes_preferenciais": [
+        "BRA (losartana) + bloqueador de cálcio (anlodipino)",
+        "BRA (losartana) + diurético (clortalidona)",
+        "IECA (enalapril) + bloqueador de cálcio (anlodipino)",
+        "IECA (enalapril) + diurético (clortalidona)"
+      ],
+      "combinacao_fixa_sus": {
+        "medicamento": "Losartana potássica + hidroclorotiazida",
+        "apresentacao": "Comprimido 50 mg + 12,5 mg",
+        "sus_rename_2024": true,
+        "sus_remume_sp": false,
+        "disponibilidade_sp": "Componente especializado / farmácia popular",
+        "fonte": "Portaria SECTICS/MS nº 32/2023"
+      }
+    },
+    "gestante": {
+      "primeira_linha": {
+        "medicamento": "Metildopa",
+        "classe_terapeutica": "Agonista alfa-2 central",
+        "apresentacao": "Comprimido 250 mg ou 500 mg",
+        "dose": "250 mg 2 a 3 vezes ao dia. Máximo 3 g/dia",
+        "posologia": "Via oral, 2 a 3 vezes ao dia",
+        "sus_rename_2024": true,
+        "sus_remume_sp": true,
+        "disponibilidade_sp": "UBS",
+        "justificativa": "Anti-hipertensivo de escolha na gestação. Segurança estabelecida. IECA e BRA são absolutamente contraindicados.",
+        "fonte": "Linha de Cuidado HAS MS 2021; PCDT HAS 2025"
+      },
+      "alternativa": {
+        "medicamento": "Nifedipino",
+        "classe_terapeutica": "Bloqueador dos canais de cálcio",
+        "apresentacao": "Comprimido 10 mg (liberação imediata) ou 20/30 mg (liberação prolongada)",
+        "dose": "10 a 20 mg 3 vezes ao dia (imediata) ou 20 a 60 mg/dia (prolongada)",
+        "posologia": "Via oral",
+        "sus_rename_2024": true,
+        "sus_remume_sp": true,
+        "disponibilidade_sp": "UBS",
+        "indicacao": "Urgência hipertensiva na gestação ou associação à metildopa quando necessário",
+        "justificativa": "Segunda opção segura na gestação.",
+        "fonte": "Linha de Cuidado HAS MS 2021"
+      },
+      "alerta": "PAS ≥ 160 mmHg ou PAD ≥ 110 mmHg na gestante: encaminhar imediatamente para emergência obstétrica. Suspeita de pré-eclâmpsia: encaminhamento urgente."
+    },
+    "crise_hipertensiva_ubs": {
+      "urgencia": {
+        "descricao": "PA muito elevada sem lesão de órgão-alvo aguda",
+        "conduta": "Captopril 25 mg sublingual ou via oral. Reavaliação em 30 a 60 minutos. Ajuste do esquema ambulatorial.",
+        "sus_rename_2024": true,
+        "sus_remume_sp": true,
+        "disponibilidade_sp": "UBS"
+      },
+      "emergencia": {
+        "descricao": "PA muito elevada COM lesão de órgão-alvo aguda: dor torácica, déficit neurológico, dispneia intensa, alteração visual",
+        "conduta": "Encaminhar imediatamente para UPA ou serviço de emergência. Acionar SAMU se necessário."
+      }
+    }
+  },
+
+  "interacoes_medicamentosas": [
+    {
+      "medicamento_a": "Losartana ou Enalapril",
+      "medicamento_b": "Anti-inflamatório não esteroidal (AINEs: ibuprofeno, diclofenaco)",
+      "gravidade": "moderada",
+      "mecanismo": "AINEs reduzem o efeito anti-hipertensivo e aumentam risco de lesão renal aguda",
+      "conduta": "Evitar uso concomitante. Se necessário, monitorar PA e função renal"
+    },
+    {
+      "medicamento_a": "Losartana ou Enalapril",
+      "medicamento_b": "Suplemento de potássio ou diurético poupador de potássio",
+      "gravidade": "moderada",
+      "mecanismo": "Risco de hipercalemia",
+      "conduta": "Monitorar potássio sérico. Evitar associação com espironolactona sem indicação precisa"
+    },
+    {
+      "medicamento_a": "Enalapril",
+      "medicamento_b": "Lítio",
+      "gravidade": "grave",
+      "mecanismo": "IECA aumenta nível sérico de lítio com risco de toxicidade",
+      "conduta": "Monitorar liteemia. Considerar substituição do anti-hipertensivo"
+    },
+    {
+      "medicamento_a": "Anlodipino",
+      "medicamento_b": "Sinvastatina doses altas (acima de 20 mg)",
+      "gravidade": "moderada",
+      "mecanismo": "Anlodipino inibe CYP3A4 aumentando nível de sinvastatina e risco de miopatia",
+      "conduta": "Limitar sinvastatina a 20 mg/dia quando associada ao anlodipino. Considerar atorvastatina"
+    },
+    {
+      "medicamento_a": "Clortalidona",
+      "medicamento_b": "Lítio",
+      "gravidade": "grave",
+      "mecanismo": "Diuréticos tiazídicos reduzem excreção renal de lítio aumentando risco de toxicidade",
+      "conduta": "Monitorar liteemia regularmente. Ajustar dose de lítio se necessário"
+    }
+  ],
+
+  "efeitos_adversos": [
+    {
+      "efeito": "Tosse seca",
+      "medicamento": "Enalapril e outros IECAs",
+      "frequencia": "comum (10-15%)",
+      "gravidade": "leve",
+      "conduta": "Substituir por BRA (losartana) se tosse intolerável"
+    },
+    {
+      "efeito": "Hipercalemia",
+      "medicamento": "Losartana, enalapril",
+      "frequencia": "incomum",
+      "gravidade": "moderada a grave",
+      "conduta": "Monitorar potássio. Reduzir dose ou suspender. Evitar associação com poupadores de potássio"
+    },
+    {
+      "efeito": "Edema de tornozelo",
+      "medicamento": "Anlodipino",
+      "frequencia": "comum (10%)",
+      "gravidade": "leve a moderada",
+      "conduta": "Geralmente não requer suspensão. Elevar membros. Se intenso, associar IECA ou BRA que reduz o edema do BCC"
+    },
+    {
+      "efeito": "Hipotensão ortostática",
+      "medicamento": "Todos os anti-hipertensivos",
+      "frequencia": "incomum",
+      "gravidade": "moderada",
+      "conduta": "Orientar mudanças posturais lentas. Reduzir dose. Risco maior em idosos"
+    },
+    {
+      "efeito": "Hipocalemia",
+      "medicamento": "Clortalidona",
+      "frequencia": "comum",
+      "gravidade": "moderada",
+      "conduta": "Monitorar potássio. Orientar ingestão de alimentos ricos em potássio. Suplementar se necessário"
+    },
+    {
+      "efeito": "Angioedema",
+      "medicamento": "Enalapril e outros IECAs",
+      "frequencia": "raro (0,1-0,5%)",
+      "gravidade": "grave",
+      "conduta": "Suspender imediatamente. Emergência se comprometimento de via aérea. Contraindicar IECAs definitivamente. Substituir por BRA"
+    }
+  ],
+
+  "alertas_clinicos": [
+    "IECA e BRA são absolutamente contraindicados na gestação. Substituir por metildopa.",
+    "PA ≥ 180/120 mmHg com sintomas de lesão de órgão-alvo: encaminhar para emergência imediatamente.",
+    "Não associar IECA com BRA: risco aumentado de hipercalemia e lesão renal sem benefício adicional.",
+    "Em idosos: iniciar com doses menores e aumentar gradualmente. Risco elevado de hipotensão ortostática e quedas.",
+    "Pacientes com doença renal crônica: monitorar potássio e creatinina 1 a 2 semanas após iniciar ou ajustar IECA ou BRA.",
+    "AINEs (ibuprofeno, diclofenaco, nimesulida) reduzem eficácia dos anti-hipertensivos e devem ser evitados.",
+    "HAS resistente: definida como PA não controlada com 3 medicamentos em doses máxim
