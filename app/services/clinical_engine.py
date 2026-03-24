@@ -5,42 +5,38 @@ from app.services.protocol_engine import ProtocolEngine
 from app.services.safety_engine import SafetyEngine
 from app.services.llm_extractor import LLMExtractor
 
+
 class ClinicalEngine:
 
     def __init__(self):
         self.reasoning = ReasoningEngine()
         self.protocol = ProtocolEngine()
         self.safety = SafetyEngine()
+        self.llm_extractor = LLMExtractor()
 
     def process(self, message: str, context: Dict[str, Any]) -> Dict[str, Any]:
-        """
-        Novo fluxo híbrido:
-        - Converte contexto antigo → ClinicalCase
-        - Processa com engines atuais
-        - Retorna resposta estruturada
-        """
 
         # =========================
         # 1. MIGRA CONTEXTO
         # =========================
         case = ClinicalCase.from_legacy_context(context)
 
-        # Adiciona mensagem ao histórico
+        # adiciona histórico
         case.history.append({
             "role": "user",
             "content": message
         })
 
         # =========================
-        # 2. DETECÇÃO DE CENÁRIO (mantém lógica atual)
+        # 2. EXTRAÇÃO COM LLM (NOVO)
+        # =========================
+        self._llm_extraction(case, message, context)
+
+        # =========================
+        # 3. GARANTE SCENARIO (fallback)
         # =========================
         if not case.clinical_context.scenario:
             case.clinical_context.scenario = self._detect_scenario(message)
-
-        # =========================
-        # 3. EXTRAÇÃO SIMPLES (temporária)
-        # =========================
-        self._basic_extraction(case, message)
 
         # =========================
         # 4. CONVERTE PARA FORMATO ANTIGO
@@ -58,7 +54,7 @@ class ClinicalEngine:
         case.reasoning.risk_level = reasoning_output.get("risk_level")
 
         # =========================
-        # 6. DECISÃO / PROTOCOLO
+        # 6. PROTOCOLO / DECISÃO
         # =========================
         if case.reasoning.status == "ready_for_treatment":
             protocol_output = self.protocol.apply_protocol(legacy_context)
@@ -89,7 +85,7 @@ class ClinicalEngine:
             case.documents.document_type = "receita_simples"
 
         # =========================
-        # 9. RESPOSTA FINAL (compatível com frontend atual)
+        # 9. RESPOSTA FINAL
         # =========================
         response_text = self._build_response(case)
 
@@ -107,6 +103,36 @@ class ClinicalEngine:
         }
 
     # =========================
+    # 🔥 NOVO MÉTODO LLM (AQUI FICA)
+    # =========================
+    def _llm_extraction(self, case: ClinicalCase, message: str, context: Dict[str, Any]):
+
+        extracted = self.llm_extractor.extract(message, context)
+
+        if not extracted:
+            return
+
+        # PACIENTE
+        case.patient.idade = extracted.get("idade") or case.patient.idade
+        case.patient.peso = extracted.get("peso") or case.patient.peso
+        case.patient.sexo = extracted.get("sexo") or case.patient.sexo
+
+        # SCENARIO
+        case.clinical_context.scenario = extracted.get("scenario") or case.clinical_context.scenario
+
+        # SINTOMAS
+        symptoms = extracted.get("symptoms", {})
+        for key, value in symptoms.items():
+            if hasattr(case.clinical_context.symptoms, key) and value is not None:
+                setattr(case.clinical_context.symptoms, key, value)
+
+        # RISCO
+        risks = extracted.get("risk_factors", {})
+        for key, value in risks.items():
+            if hasattr(case.clinical_context.risk_factors, key) and value is not None:
+                setattr(case.clinical_context.risk_factors, key, value)
+
+    # =========================
     # AUXILIARES
     # =========================
 
@@ -121,21 +147,6 @@ class ClinicalEngine:
             return "sinusite"
 
         return "geral"
-
-    def _basic_extraction(self, case: ClinicalCase, message: str):
-        msg = message.lower()
-
-        if "febre" in msg:
-            case.clinical_context.symptoms.febre = True
-
-        if "secre" in msg:
-            case.clinical_context.symptoms.secrecao_auricular = True
-
-        if "dor" in msg:
-            case.clinical_context.symptoms.dor_presente = True
-
-        if "alerg" in msg and "penic" in msg:
-            case.clinical_context.risk_factors.alergia_penicilina = True
 
     def _build_response(self, case: ClinicalCase) -> str:
 
