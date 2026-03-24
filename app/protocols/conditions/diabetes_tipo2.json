@@ -1,0 +1,336 @@
+{
+  "id": "diabetes_mellitus_tipo2",
+  "nome": "Diabetes mellitus tipo 2",
+  "cid10": ["E11", "E11.0", "E11.1", "E11.2", "E11.3", "E11.4", "E11.5", "E11.6", "E11.7", "E11.8", "E11.9"],
+  "especialidade": ["clinica_medica", "medicina_familia", "endocrinologia"],
+  "sinonimos": ["DM2", "diabetes tipo 2", "diabetes", "diabete melito tipo 2"],
+  "descricao": "Distúrbio metabólico crônico caracterizado por hiperglicemia resultante de resistência à insulina e deficiência progressiva de secreção pancreática. Representa 90% dos casos de diabetes no Brasil, afetando 10,2% da população adulta.",
+
+  "perfil_paciente": {
+    "sexo": "ambos",
+    "faixa_etaria": ["adulto", "idoso"],
+    "observacoes": "Mais comum após os 40 anos. Fatores de risco: sobrepeso, obesidade, sedentarismo, histórico familiar, HAS, dislipidemia. Em idosos: preferir gliclazida sobre glibenclamida pelo menor risco de hipoglicemia. Metformina pode ser utilizada na gestação sob supervisão."
+  },
+
+  "sintomas_chave": [
+    "poliúria",
+    "polidipsia",
+    "polifagia",
+    "perda de peso inexplicada",
+    "fadiga e fraqueza",
+    "visão turva",
+    "infecções recorrentes (urinária, fúngica)",
+    "cicatrização lenta",
+    "frequentemente assintomático no início"
+  ],
+
+  "criterios_diagnosticos": {
+    "obrigatorios_qualquer_um": [
+      "Glicemia de jejum ≥ 126 mg/dL em duas ocasiões distintas",
+      "Glicemia 2h após 75g de glicose (TOTG) ≥ 200 mg/dL",
+      "HbA1c ≥ 6,5% em duas ocasiões distintas",
+      "Glicemia casual ≥ 200 mg/dL com sintomas clássicos (poliúria, polidipsia, perda de peso)"
+    ],
+    "pre_diabetes": {
+      "glicemia_jejum": "100 a 125 mg/dL",
+      "hba1c": "5,7% a 6,4%",
+      "totg_2h": "140 a 199 mg/dL"
+    },
+    "rastreamento": "Indicado em adultos ≥ 45 anos ou com fatores de risco: sobrepeso/obesidade, HAS, dislipidemia, histórico familiar, síndrome dos ovários policísticos, gestação prévia com diabetes gestacional"
+  },
+
+  "perguntas_obrigatorias": [
+    "Qual foi o último valor de glicemia de jejum e HbA1c?",
+    "O paciente tem sintomas clássicos: poliúria, polidipsia, perda de peso?",
+    "Há comorbidades: HAS, doença cardiovascular, doença renal, dislipidemia?",
+    "Está em uso de algum medicamento atualmente?",
+    "Há histórico de hipoglicemia?",
+    "A paciente está gestante ou planeja engravidar?",
+    "Há sinais de complicações: neuropatia, retinopatia, úlceras nos pés?"
+  ],
+
+  "tratamento": {
+    "nao_medicamentoso": {
+      "descricao": "Obrigatório em todos os casos. Pode normalizar glicemia em casos iniciais.",
+      "medidas": [
+        "Alimentação saudável: reduzir açúcares simples, gordura saturada e trans. Aumentar fibras, frutas, verduras e legumes",
+        "Atividade física aeróbica: mínimo 150 minutos por semana",
+        "Redução de peso se sobrepeso ou obesidade: meta de 5 a 10% do peso corporal",
+        "Cessação do tabagismo",
+        "Moderação no consumo de álcool",
+        "Educação em saúde e autocuidado"
+      ]
+    },
+    "primeira_linha": {
+      "medicamento": "Metformina cloridrato",
+      "classe_terapeutica": "Biguanida",
+      "apresentacao": "Comprimido 500 mg ou 850 mg",
+      "dose_adulto": "Início: 500 mg 1 a 2 vezes ao dia com as refeições. Aumentar gradualmente. Dose alvo: 1500 a 2000 mg/dia. Dose máxima: 2550 mg/dia em 2 a 3 tomadas",
+      "dose_pediatrica": "Acima de 10 anos: 500 mg 2 vezes ao dia. Máximo 2000 mg/dia",
+      "dose_gestante": "Pode ser utilizada com monitoramento. Não é teratogênica. Discutir risco-benefício com a paciente",
+      "posologia": "Via oral, junto às refeições para reduzir efeitos gastrointestinais",
+      "duracao": "Uso contínuo",
+      "sus_rename_2024": true,
+      "sus_remume_sp": true,
+      "disponibilidade_sp": "UBS",
+      "justificativa": "Primeira linha universal para DM2. Reduz glicemia, HbA1c, mortalidade cardiovascular e peso. Baixo custo e boa tolerabilidade. Evidência de 32% de redução de desfechos relacionados ao DM2.",
+      "contraindicacoes": [
+        "TFG abaixo de 30 mL/min/1,73m² (doença renal grave)",
+        "Insuficiência hepática grave",
+        "Alcoolismo grave",
+        "Internação hospitalar: suspender temporariamente",
+        "Contraste iodado: suspender 48h antes e após"
+      ],
+      "fonte": "PCDT DM2 - Portaria SECTICS/MS nº 7/2024; RENAME 2024; REMUME SP 2025"
+    },
+    "segunda_linha_sulfonilureia": {
+      "descricao": "Adicionar quando metformina em dose máxima não atingir meta de HbA1c",
+      "opcao_1": {
+        "medicamento": "Gliclazida",
+        "classe_terapeutica": "Sulfonilureia de 2ª geração",
+        "apresentacao": "Comprimido 30 mg (liberação modificada) ou 80 mg",
+        "dose_adulto": "30 a 120 mg/dia em 1 a 2 tomadas (liberação modificada: 1 vez ao dia)",
+        "dose_pediatrica": "Não recomendada abaixo de 18 anos",
+        "dose_gestante": "Evitar. Preferir metformina ou insulina",
+        "posologia": "Via oral, com o café da manhã",
+        "duracao": "Uso contínuo",
+        "sus_rename_2024": true,
+        "sus_remume_sp": true,
+        "disponibilidade_sp": "UBS",
+        "indicacao": "Preferida em idosos pelo menor risco de hipoglicemia em relação à glibenclamida",
+        "justificativa": "Sulfonilureia com melhor perfil de segurança. Preferida pelo PCDT 2024 em idosos.",
+        "fonte": "PCDT DM2 - Portaria SECTICS/MS nº 7/2024"
+      },
+      "opcao_2": {
+        "medicamento": "Glibenclamida",
+        "classe_terapeutica": "Sulfonilureia de 1ª geração",
+        "apresentacao": "Comprimido 5 mg",
+        "dose_adulto": "2,5 a 20 mg/dia em 1 a 2 tomadas",
+        "dose_pediatrica": "Não recomendada abaixo de 18 anos",
+        "dose_gestante": "Evitar. Pode causar hipoglicemia neonatal",
+        "posologia": "Via oral, 30 minutos antes das refeições",
+        "duracao": "Uso contínuo",
+        "sus_rename_2024": true,
+        "sus_remume_sp": true,
+        "disponibilidade_sp": "UBS",
+        "indicacao": "Alternativa quando gliclazida não disponível. Evitar em idosos pelo maior risco de hipoglicemia",
+        "fonte": "PCDT DM2 - Portaria SECTICS/MS nº 7/2024"
+      }
+    },
+    "terceira_linha_isglt2": {
+      "medicamento": "Dapagliflozina",
+      "classe_terapeutica": "Inibidor de SGLT-2 (gliflozina)",
+      "apresentacao": "Comprimido 10 mg",
+      "dose_adulto": "10 mg 1 vez ao dia",
+      "dose_pediatrica": "Não recomendada",
+      "dose_gestante": "CONTRAINDICADO",
+      "posologia": "Via oral, 1 vez ao dia, qualquer horário",
+      "duracao": "Uso contínuo",
+      "sus_rename_2024": true,
+      "sus_remume_sp": false,
+      "disponibilidade_sp": "Componente especializado estadual (farmácia do estado)",
+      "indicacao": "Pacientes com DM2 e doença cardiovascular estabelecida (AVC, IAM, DAC) ou alto risco cardiovascular (homens ≥ 55 anos ou mulheres ≥ 60 anos com HAS, dislipidemia ou tabagismo) ou insuficiência cardíaca com fração de ejeção abaixo de 40%",
+      "contraindicacoes": [
+        "TFG abaixo de 25 mL/min/1,73m²",
+        "Gestação",
+        "Infecções genitais recorrentes"
+      ],
+      "justificativa": "Incorporada ao SUS em 2024. Benefício cardiovascular e renal comprovado em ensaios clínicos robustos. Reduz hospitalização por insuficiência cardíaca.",
+      "fonte": "PCDT DM2 - Portaria SECTICS/MS nº 7/2024; RENAME 2024"
+    },
+    "insulinoterapia": {
+      "indicacoes": [
+        "HbA1c acima de 9% com sintomas de hiperglicemia acentuada",
+        "Hiperglicemia grave: glicemia de jejum acima de 300 mg/dL",
+        "Falha em atingir meta com 2 ou mais antidiabéticos orais em doses máximas",
+        "Gestação com DM2 sem controle com dieta e metformina",
+        "Internação hospitalar",
+        "Cirurgia de grande porte"
+      ],
+      "insulina_nph": {
+        "medicamento": "Insulina humana NPH",
+        "apresentacao": "Frasco 100 UI/mL ou refil",
+        "dose_inicial": "0,1 a 0,2 UI/kg/dia ao deitar",
+        "ajuste": "Aumentar 2 UI a cada 3 dias se glicemia de jejum acima da meta",
+        "sus_rename_2024": true,
+        "sus_remume_sp": true,
+        "disponibilidade_sp": "UBS",
+        "fonte": "PCDT DM2 - Portaria SECTICS/MS nº 7/2024"
+      },
+      "insulina_regular": {
+        "medicamento": "Insulina humana regular",
+        "apresentacao": "Frasco 100 UI/mL",
+        "indicacao": "Correção de hiperglicemia pós-prandial ou em situações agudas",
+        "sus_rename_2024": true,
+        "sus_remume_sp": true,
+        "disponibilidade_sp": "UBS",
+        "fonte": "PCDT DM2 - Portaria SECTICS/MS nº 7/2024"
+      },
+      "observacao": "Manter metformina ao iniciar insulina, salvo contraindicação. Monitorar glicemia capilar conforme esquema. Orientar técnica de aplicação e rotação de sítios."
+    }
+  },
+
+  "metas_terapeuticas": {
+    "hba1c_geral": "Abaixo de 7%",
+    "hba1c_idoso_fragil": "Abaixo de 8% (individualizar)",
+    "glicemia_jejum": "80 a 130 mg/dL",
+    "glicemia_pos_prandial": "Abaixo de 180 mg/dL",
+    "pressao_arterial": "Abaixo de 130/80 mmHg",
+    "ldl": "Abaixo de 100 mg/dL (abaixo de 70 mg/dL se doença cardiovascular)"
+  },
+
+  "interacoes_medicamentosas": [
+    {
+      "medicamento_a": "Metformina",
+      "medicamento_b": "Contraste iodado",
+      "gravidade": "moderada",
+      "mecanismo": "Risco de acidose lática por acúmulo de metformina em caso de nefropatia induzida por contraste",
+      "conduta": "Suspender metformina 48h antes e reiniciar 48h após o exame com contraste, confirmando função renal normal"
+    },
+    {
+      "medicamento_a": "Glibenclamida ou Gliclazida",
+      "medicamento_b": "Fluconazol, ciprofloxacino",
+      "gravidade": "moderada",
+      "mecanismo": "Inibição do metabolismo das sulfonilureias aumentando risco de hipoglicemia",
+      "conduta": "Monitorar glicemia. Reduzir dose da sulfonilureia se necessário"
+    },
+    {
+      "medicamento_a": "Glibenclamida ou Gliclazida",
+      "medicamento_b": "Álcool",
+      "gravidade": "moderada",
+      "mecanismo": "Potencialização do efeito hipoglicemiante",
+      "conduta": "Orientar moderação ou abstinência. Risco maior em jejum"
+    },
+    {
+      "medicamento_a": "Dapagliflozina",
+      "medicamento_b": "Diuréticos",
+      "gravidade": "leve a moderada",
+      "mecanismo": "Efeito diurético aditivo com risco de desidratação e hipotensão",
+      "conduta": "Monitorar PA, hidratação e função renal. Reduzir diurético se necessário"
+    },
+    {
+      "medicamento_a": "Insulina ou sulfonilureia",
+      "medicamento_b": "Beta-bloqueadores",
+      "gravidade": "moderada",
+      "mecanismo": "Beta-bloqueadores mascaram sintomas adrenérgicos da hipoglicemia (taquicardia, tremor)",
+      "conduta": "Orientar paciente a monitorar sudorese como sinal de hipoglicemia. Preferir beta-bloqueadores cardiosseletivos"
+    }
+  ],
+
+  "efeitos_adversos": [
+    {
+      "efeito": "Náusea, diarreia, desconforto abdominal",
+      "medicamento": "Metformina",
+      "frequencia": "comum (20-30%)",
+      "gravidade": "leve",
+      "conduta": "Iniciar com dose baixa e aumentar gradualmente. Tomar com refeições. Considerar formulação XR se intolerância persistir"
+    },
+    {
+      "efeito": "Hipoglicemia",
+      "medicamento": "Glibenclamida, gliclazida, insulina",
+      "frequencia": "comum com sulfonilureias, especialmente glibenclamida",
+      "gravidade": "moderada a grave",
+      "conduta": "Leve: ingerir 15g de carboidrato simples. Grave: glucagon ou glicose IV. Revisar doses e horários das refeições. Em idosos, preferir gliclazida"
+    },
+    {
+      "efeito": "Acidose lática",
+      "medicamento": "Metformina",
+      "frequencia": "muito raro",
+      "gravidade": "grave",
+      "conduta": "Evitar em insuficiência renal grave (TFG < 30). Suspender em internações, cirurgias e uso de contraste"
+    },
+    {
+      "efeito": "Infecção genital fúngica ou bacteriana",
+      "medicamento": "Dapagliflozina",
+      "frequencia": "comum (5-10%)",
+      "gravidade": "leve a moderada",
+      "conduta": "Tratar a infecção. Orientar higiene. Considerar suspensão se recorrente"
+    },
+    {
+      "efeito": "Cetoacidose euglicêmica",
+      "medicamento": "Dapagliflozina",
+      "frequencia": "raro",
+      "gravidade": "grave",
+      "conduta": "Suspender imediatamente. Encaminhar para emergência. Suspeitar em pacientes com náusea, vômito e mal-estar mesmo com glicemia normal"
+    },
+    {
+      "efeito": "Ganho de peso e lipodistrofia",
+      "medicamento": "Insulina",
+      "frequencia": "comum",
+      "gravidade": "leve a moderada",
+      "conduta": "Rodízio de sítios de aplicação. Orientação nutricional. Ajuste de dose"
+    }
+  ],
+
+  "alertas_clinicos": [
+    "Metformina é contraindicada com TFG abaixo de 30 mL/min/1,73m². Reduzir dose com TFG entre 30 e 45.",
+    "Suspender metformina e sulfonilureias em internações hospitalares e cirurgias de grande porte.",
+    "Dapagliflozina: suspender 3 a 4 dias antes de cirurgias pelo risco de cetoacidose euglicêmica.",
+    "Glibenclamida tem maior risco de hipoglicemia grave. Evitar em idosos acima de 65 anos.",
+    "Monitorar vitamina B12 anualmente em usuários de metformina: risco de deficiência com uso prolongado.",
+    "Em idosos frágeis: meta de HbA1c menos restritiva (abaixo de 8%) para evitar hipoglicemia.",
+    "DM2 na gestação: manter metformina ou iniciar insulina. Sulfonilureias e dapagliflozina contraindicadas.",
+    "Rastrear e tratar complicações: neuropatia, nefropatia, retinopatia e pé diabético em todas as consultas."
+  ],
+
+  "criterios_encaminhamento": [
+    "HbA1c persistentemente acima de 9% apesar de tratamento otimizado",
+    "Hipoglicemias graves ou recorrentes",
+    "Complicações microvasculares avançadas: neuropatia, nefropatia (TFG abaixo de 30), retinopatia proliferativa",
+    "Doença cardiovascular associada para avaliação cardiológica",
+    "DM2 na gestação sem controle com tratamento inicial",
+    "Necessidade de insulinoterapia complexa"
+  ],
+
+  "criterios_internacao": [
+    "Cetoacidose diabética: vômitos, dor abdominal, respiração de Kussmaul, glicemia acima de 250 mg/dL com cetonúria",
+    "Estado hiperosmolar hiperglicêmico: glicemia acima de 600 mg/dL, hiperosmolaridade, rebaixamento de consciência",
+    "Hipoglicemia grave com rebaixamento de consciência refratária à reposição oral",
+    "Infecção grave associada (pé diabético com celulite extensa, sepse)"
+  ],
+
+  "monitoramento": {
+    "exames_baseline": [
+      "Glicemia de jejum",
+      "HbA1c",
+      "Creatinina e TFG estimada",
+      "Potássio sérico",
+      "Colesterol total, LDL, HDL e triglicerídeos",
+      "EAS com pesquisa de microalbuminúria",
+      "TSH (rastrear hipotireoidismo associado)",
+      "ECG",
+      "Fundo de olho",
+      "Exame dos pés: pulsos, sensibilidade, inspeção"
+    ],
+    "exames_seguimento": [
+      "HbA1c: a cada 3 meses até meta atingida, depois a cada 6 meses",
+      "Glicemia de jejum: a cada consulta",
+      "Creatinina e microalbuminúria: anualmente",
+      "Perfil lipídico: anualmente",
+      "Fundo de olho: anualmente",
+      "Exame dos pés: em toda consulta",
+      "Vitamina B12: anualmente em usuários de metformina"
+    ],
+    "retorno": "A cada 3 meses até controle glicêmico adequado. Depois a cada 6 meses."
+  },
+
+  "orientacoes_paciente": [
+    "Tomar o medicamento todos os dias conforme orientado, mesmo quando sentir glicemia normal.",
+    "Nunca suspender o tratamento sem orientação médica.",
+    "Alimentação: reduzir açúcar, doces, refrigerantes e carboidratos refinados. Priorizar frutas, verduras e grãos integrais.",
+    "Praticar pelo menos 150 minutos de atividade física por semana.",
+    "Monitorar os pés diariamente: procurar feridas, rachaduras, calosidades. Nunca andar descalço.",
+    "Em caso de hipoglicemia (tremor, suor frio, tontura): ingerir imediatamente 1 copo de suco de laranja ou 1 colher de mel.",
+    "Avisar a equipe de saúde antes de cirurgias, exames com contraste ou internações.",
+    "Fazer consultas de acompanhamento regularmente mesmo sem sintomas."
+  ],
+
+  "fonte_principal": "PCDT Diabetes Mellitus Tipo 2 - Portaria SECTICS/MS nº 7, de 28 de fevereiro de 2024",
+  "fontes_secundarias": [
+    "RENAME 2024 - Portaria GM/MS nº 6.324/2024",
+    "REMUME SP - Janeiro 2025",
+    "Diretriz da Sociedade Brasileira de Diabetes 2025",
+    "Linha de Cuidado do Adulto com Diabetes - MS 2021"
+  ],
+  "ultima_atualizacao": "2026-03"
+}
