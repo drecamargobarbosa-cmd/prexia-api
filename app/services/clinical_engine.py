@@ -1,5 +1,5 @@
 from typing import Dict, Any
-from app.models.clinical_models import ClinicalCase
+from app.models.clinical_models import ClinicalCase, HistoryItem
 from app.services.reasoning_engine import ReasoningEngine
 from app.services.protocol_engine import ProtocolEngine
 from app.services.llm_extractor import LLMExtractor
@@ -20,10 +20,7 @@ class ClinicalEngine:
         # =========================
         case = ClinicalCase.from_legacy_context(context)
 
-        case.history.append({
-            "role": "user",
-            "content": message
-        })
+        case.history.append(HistoryItem(role="user", content=message))
 
         # =========================
         # 2. EXTRAÇÃO COM LLM
@@ -92,10 +89,7 @@ class ClinicalEngine:
         response_text = self._build_response(case)
 
         # Adiciona a resposta ao histórico antes de salvar
-        case.history.append({
-            "role": "assistant",
-            "content": response_text
-        })
+        case.history.append(HistoryItem(role="assistant", content=response_text))
 
         # =========================
         # 10. CONTEXTO ATUALIZADO PARA PERSISTÊNCIA
