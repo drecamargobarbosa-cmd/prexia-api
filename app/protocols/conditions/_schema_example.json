@@ -1,0 +1,138 @@
+{
+  "id": "nome_condicao",
+  "nome": "Nome legível da condição",
+  "cid10": ["X00", "X01"],
+  "especialidade": ["clinica_medica", "medicina_familia", "odontologia"],
+  "sinonimos": ["nome popular", "outro nome"],
+  "descricao": "Descrição breve da condição clínica.",
+
+  "perfil_paciente": {
+    "sexo": ["masculino", "feminino", "ambos"],
+    "faixa_etaria": ["pediatrico", "adulto", "idoso", "gestante", "todos"],
+    "observacoes": "Notas sobre populações especiais."
+  },
+
+  "sintomas_chave": [
+    "sintoma 1",
+    "sintoma 2"
+  ],
+
+  "criterios_diagnosticos": {
+    "obrigatorios": ["critério obrigatório 1"],
+    "sugestivos": ["critério sugestivo 1"],
+    "exclusao": ["critério de exclusão 1"]
+  },
+
+  "perguntas_obrigatorias": [
+    "Pergunta essencial para definir conduta 1?",
+    "Pergunta essencial para definir conduta 2?"
+  ],
+
+  "tratamento": {
+    "primeira_linha": {
+      "medicamento": "Nome genérico DCB",
+      "classe_terapeutica": "classe do medicamento",
+      "apresentacao": "forma farmacêutica e concentração",
+      "dose_adulto": "dose para adultos",
+      "dose_pediatrica": "dose por kg ou faixa etária",
+      "dose_gestante": "dose segura na gestação ou contraindicado",
+      "posologia": "frequência e via de administração",
+      "duracao": "duração do tratamento",
+      "sus_rename_2024": true,
+      "sus_remume_sp": true,
+      "disponibilidade_sp": "UBS / referência / SAE / farmácia popular",
+      "justificativa": "Embasamento clínico e fonte.",
+      "fonte": "Ministério da Saúde / PCDT / RENAME 2024"
+    },
+    "segunda_linha": {
+      "medicamento": "Alternativa terapêutica",
+      "classe_terapeutica": "classe",
+      "apresentacao": "forma farmacêutica",
+      "dose_adulto": "dose",
+      "dose_pediatrica": "dose pediátrica",
+      "dose_gestante": "segurança gestacional",
+      "posologia": "frequência",
+      "duracao": "duração",
+      "sus_rename_2024": true,
+      "sus_remume_sp": false,
+      "disponibilidade_sp": "farmácia popular / privado",
+      "indicacao": "Quando usar esta alternativa.",
+      "justificativa": "Embasamento.",
+      "fonte": "fonte oficial"
+    },
+    "alternativas_alergia": [
+      {
+        "medicamento": "Alternativa para alérgico",
+        "classe_terapeutica": "classe",
+        "apresentacao": "forma",
+        "dose_adulto": "dose",
+        "dose_pediatrica": "dose",
+        "dose_gestante": "segurança",
+        "posologia": "frequência",
+        "duracao": "duração",
+        "sus_rename_2024": true,
+        "sus_remume_sp": true,
+        "disponibilidade_sp": "UBS",
+        "justificativa": "motivo",
+        "fonte": "fonte"
+      }
+    ],
+    "populacoes_especiais": {
+      "gestante": "conduta específica para gestante",
+      "pediatrico": "conduta específica para crianças",
+      "idoso": "ajuste de dose ou cuidados no idoso",
+      "insuficiencia_renal": "ajuste necessário",
+      "insuficiencia_hepatica": "ajuste necessário"
+    }
+  },
+
+  "interacoes_medicamentosas": [
+    {
+      "medicamento_a": "medicamento prescrito",
+      "medicamento_b": "medicamento em uso",
+      "gravidade": "leve / moderada / grave",
+      "mecanismo": "descrição do mecanismo",
+      "conduta": "o que fazer"
+    }
+  ],
+
+  "efeitos_adversos": [
+    {
+      "efeito": "nome do efeito",
+      "frequencia": "comum / incomum / raro",
+      "gravidade": "leve / moderada / grave",
+      "conduta": "orientação ao paciente"
+    }
+  ],
+
+  "alertas_clinicos": [
+    "Alerta importante 1.",
+    "Alerta importante 2."
+  ],
+
+  "criterios_encaminhamento": [
+    "Situação que exige encaminhamento ao especialista."
+  ],
+
+  "criterios_internacao": [
+    "Situação que exige internação hospitalar."
+  ],
+
+  "monitoramento": {
+    "exames_baseline": ["exame antes de iniciar tratamento"],
+    "exames_seguimento": ["exame de acompanhamento"],
+    "retorno": "prazo de retorno sugerido"
+  },
+
+  "orientacoes_paciente": [
+    "Orientação importante para o paciente 1.",
+    "Orientação importante para o paciente 2."
+  ],
+
+  "fonte_principal": "Ministério da Saúde / PCDT / ano",
+  "fontes_secundarias": [
+    "OMS / guideline / ano",
+    "SBP / protocolo / ano"
+  ],
+  "ultima_atualizacao": "2025-03"
+}
