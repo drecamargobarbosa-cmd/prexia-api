@@ -16,18 +16,19 @@ class ConversationEngine:
         self.memory_service = MemoryService()
 
     def process(self, message: str, user_id: str):
+
         # 1. Recuperar contexto salvo
         contexto = self.memory_service.get(user_id)
 
-        # 2. Processar no motor clínico
-        result = self.clinical_engine.evaluate(
-            question=message,
-            contexto=contexto,
-            user_id=user_id
+        # 2. Processar no motor clínico (CORRIGIDO)
+        result = self.clinical_engine.process(
+            message=message,
+            context=contexto
         )
 
         # 3. Salvar contexto atualizado
-        updated_context = result.get("context", {})
-        self.memory_service.save(user_id, updated_context)
+        # Como ainda não estamos retornando contexto estruturado novo,
+        # mantemos o antigo por segurança
+        self.memory_service.save(user_id, contexto)
 
         return result
