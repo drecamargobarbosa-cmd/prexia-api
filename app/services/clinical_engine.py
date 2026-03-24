@@ -190,4 +190,4 @@ class ClinicalEngine:
     def _define_tipo(self, case: ClinicalCase) -> str:
         if case.reasoning.status != "ready_for_treatment":
             return "coleta_dados"
-        return "protocolo_definido""
+        return "protocolo_definido"
