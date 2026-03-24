@@ -1,0 +1,345 @@
+{
+  "id": "infeccao_trato_urinario",
+  "nome": "Infecção do trato urinário",
+  "cid10": ["N30", "N30.0", "N30.9", "N39.0", "N10", "O23", "O23.0", "O23.1", "O23.2", "O23.4"],
+  "especialidade": ["clinica_medica", "medicina_familia", "ginecologia", "urologia"],
+  "sinonimos": ["ITU", "cistite", "infecção urinária", "infecção de urina", "pielonefrite", "bacteriúria assintomática"],
+  "descricao": "Infecção bacteriana do trato urinário inferior (cistite) ou superior (pielonefrite). Diagnóstico clínico baseado em sintomas compatíveis com inflamação do trato urinário. Principal agente etiológico: Escherichia coli (70 a 95% dos casos).",
+
+  "perfil_paciente": {
+    "sexo": "ambos",
+    "faixa_etaria": ["adulto", "idoso", "gestante", "pediatrico"],
+    "observacoes": "Muito mais frequente em mulheres. Em homens, ITU deve sempre levantar suspeita de causa estrutural ou prostática. Em gestantes: tratar bacteriúria assintomática obrigatoriamente. Em idosos: sintomas podem ser atípicos (confusão mental, queda, prostração)."
+  },
+
+  "sintomas_chave": [
+    "disúria (dor ou ardor ao urinar)",
+    "polaciúria (aumento da frequência urinária)",
+    "urgência miccional",
+    "dor suprapúbica",
+    "hematúria",
+    "urina turva ou com odor fétido",
+    "febre (sugere pielonefrite)",
+    "dor lombar ou em flanco (sugere pielonefrite)",
+    "calafrios (sugere pielonefrite)",
+    "náusea e vômito (sugere pielonefrite)"
+  ],
+
+  "criterios_diagnosticos": {
+    "cistite_nao_complicada": {
+      "descricao": "ITU de trato urinário inferior em mulher adulta não gestante, sem fatores complicadores",
+      "criterios": [
+        "Dois ou mais sintomas de cistite: disúria, polaciúria, urgência, dor suprapúbica",
+        "Ausência de febre, dor lombar ou sinais sistêmicos",
+        "Urinocultura não obrigatória em cistite simples não complicada"
+      ]
+    },
+    "pielonefrite": {
+      "criterios": [
+        "Sintomas de cistite associados a febre (temperatura axilar ≥ 37,7°C)",
+        "Dor lombar ou em flanco",
+        "Dor à punho-percussão do ângulo costovertebral",
+        "Calafrios, náusea, vômito",
+        "Urinocultura obrigatória"
+      ]
+    },
+    "bacteriuria_assintomatica_gestante": {
+      "criterios": [
+        "Cultura de urina positiva (≥ 100.000 UFC/mL) na ausência de sintomas",
+        "Triagem obrigatória no 1º e 3º trimestres conforme MS",
+        "Tratamento obrigatório independentemente da ausência de sintomas"
+      ]
+    },
+    "itu_homem": {
+      "criterios": [
+        "Mesmos sintomas urinários",
+        "Urinocultura sempre recomendada",
+        "Investigar causa estrutural ou prostática"
+      ]
+    },
+    "exames": {
+      "eas": "Piúria (leucocitúria) apoia o diagnóstico mas não é conclusiva isoladamente",
+      "urinocultura": "Obrigatória em: pielonefrite, ITU em gestante, ITU em homem, ITU recorrente, falha terapêutica, ITU complicada"
+    }
+  },
+
+  "perguntas_obrigatorias": [
+    "Quais sintomas estão presentes: disúria, polaciúria, urgência, dor suprapúbica?",
+    "Há febre, dor lombar ou calafrios (sugere pielonefrite)?",
+    "A paciente está gestante?",
+    "O paciente tem doença renal crônica, diabetes, imunossupressão ou uso de cateter?",
+    "Há histórico de ITU recorrente ou tratamento recente com antibiótico?",
+    "Há alergia a sulfas, penicilinas ou fluoroquinolonas?",
+    "O paciente é do sexo masculino? (Sempre investigar causa secundária)"
+  ],
+
+  "tratamento": {
+    "cistite_nao_complicada_mulher_adulta": {
+      "primeira_linha": {
+        "medicamento": "Nitrofurantoína",
+        "classe_terapeutica": "Antibiótico nitrofurano",
+        "apresentacao": "Cápsula 100 mg",
+        "dose_adulto": "100 mg a cada 6 horas",
+        "dose_pediatrica": "5 a 7 mg/kg/dia divididos em 4 doses. Máximo 400 mg/dia",
+        "dose_gestante": "100 mg a cada 6 horas por 7 dias. CONTRAINDICADA no 3º trimestre (risco de anemia hemolítica neonatal) e em gestantes próximas ao parto",
+        "posologia": "Via oral, junto às refeições para reduzir náusea",
+        "duracao": "5 a 7 dias",
+        "sus_rename_2024": true,
+        "sus_remume_sp": true,
+        "disponibilidade_sp": "UBS",
+        "justificativa": "Primeira linha para cistite afebril. Baixas taxas de resistência (3,5 a 5,7% para E. coli). Poupa antibióticos de espectro maior. Diretriz WikiGuidelines JAMA 2024 e Protocolo BH 2023.",
+        "contraindicacoes": [
+          "TFG abaixo de 30 mL/min/1,73m²: ineficaz e risco de toxicidade",
+          "3º trimestre de gestação",
+          "Deficiência de G6PD"
+        ],
+        "fonte": "WikiGuidelines JAMA Netw Open 2024; Protocolo BH 2023; RENAME 2024"
+      },
+      "segunda_linha": {
+        "medicamento": "Fosfomicina trometamol",
+        "classe_terapeutica": "Antibiótico fosfônico",
+        "apresentacao": "Sachê 3g",
+        "dose_adulto": "3g dose única",
+        "dose_pediatrica": "Não recomendada abaixo de 12 anos",
+        "dose_gestante": "Pode ser utilizada. Verificar disponibilidade local",
+        "posologia": "Dissolver 1 sachê em 50 a 75 mL de água. Tomar preferencialmente à noite, com estômago vazio, após urinar",
+        "duracao": "Dose única",
+        "sus_rename_2024": false,
+        "sus_remume_sp": false,
+        "disponibilidade_sp": "Farmácia privada. Não disponível no SUS",
+        "indicacao": "Alternativa conveniente pela dose única. Boa opção para pacientes com baixa adesão",
+        "justificativa": "Baixa resistência. Boa eficácia em cistite não complicada. Reservar para casos com fator de risco para resistência.",
+        "fonte": "WikiGuidelines JAMA Netw Open 2024; Diretriz TadeClinicagem 2024"
+      },
+      "terceira_linha": {
+        "medicamento": "Sulfametoxazol + trimetoprima",
+        "classe_terapeutica": "Sulfonamida + diaminopirimidina",
+        "apresentacao": "Comprimido 800 mg + 160 mg",
+        "dose_adulto": "800/160 mg a cada 12 horas",
+        "dose_pediatrica": "40/8 mg/kg/dia divididos em 2 doses",
+        "dose_gestante": "CONTRAINDICADA no 3º trimestre. Usar com cautela no 1º trimestre",
+        "posologia": "Via oral, a cada 12 horas",
+        "duracao": "3 dias",
+        "sus_rename_2024": true,
+        "sus_remume_sp": true,
+        "disponibilidade_sp": "UBS",
+        "indicacao": "Apenas quando perfil local de resistência permitir. No Brasil, resistência elevada (30 a 33% para E. coli). Não é boa escolha empírica no contexto brasileiro.",
+        "justificativa": "Eficaz quando sensível, mas resistência alta no Brasil limita uso empírico.",
+        "fonte": "Diretriz TadeClinicagem 2024; WikiGuidelines JAMA Netw Open 2024"
+      },
+      "evitar": "Fluoroquinolonas (ciprofloxacino, norfloxacino) devem ser reservadas como último recurso em cistite simples pelo risco de seleção de resistência e efeitos adversos graves."
+    },
+    "cistite_mulher_com_fatores_risco": {
+      "descricao": "Fatores de risco: diabetes, imunossupressão, anomalia urológica, ITU recorrente, uso recente de antibiótico nos últimos 3 meses",
+      "conduta": "Solicitar urinocultura antes de iniciar antibiótico. Tratar empiricamente com nitrofurantoína ou fosfomicina e ajustar conforme resultado da cultura.",
+      "duracao": "7 dias"
+    },
+    "bacteriuria_assintomatica_gestante": {
+      "primeira_linha": {
+        "medicamento": "Cefalexina",
+        "classe_terapeutica": "Cefalosporina de 1ª geração",
+        "apresentacao": "Comprimido 500 mg",
+        "dose_gestante": "500 mg a cada 6 horas por 7 dias",
+        "posologia": "Via oral, a cada 6 horas",
+        "duracao": "7 dias",
+        "sus_rename_2024": true,
+        "sus_remume_sp": true,
+        "disponibilidade_sp": "UBS",
+        "justificativa": "Antibiótico seguro na gestação. Boa cobertura para uropatógenos comuns. Protocolo MS e SES-DF 2023.",
+        "fonte": "Protocolo SES-DF ITU na Gestação 2023; Protocolo BH 2023; RENAME 2024"
+      },
+      "alternativa": {
+        "medicamento": "Nitrofurantoína",
+        "dose_gestante": "100 mg a cada 6 horas por 7 dias. CONTRAINDICADA no 3º trimestre.",
+        "sus_rename_2024": true,
+        "sus_remume_sp": true,
+        "disponibilidade_sp": "UBS"
+      },
+      "observacao": "Solicitar urinocultura de controle 7 dias após término do antibiótico. Triar no 1º e 3º trimestres conforme recomendação do MS."
+    },
+    "itu_masculino": {
+      "descricao": "ITU em homem é sempre considerada complicada. Investigar causa estrutural ou prostática.",
+      "primeira_linha": {
+        "medicamento": "Nitrofurantoína",
+        "dose_adulto": "100 mg a cada 6 horas",
+        "duracao": "7 dias",
+        "sus_rename_2024": true,
+        "sus_remume_sp": true,
+        "disponibilidade_sp": "UBS"
+      },
+      "duracao_padrao": "7 a 14 dias conforme resposta clínica",
+      "observacao": "Urinocultura sempre recomendada. Se suspeita de prostatite: ciprofloxacino 500 mg 12/12h por 14 a 28 dias após urinocultura."
+    },
+    "pielonefrite_ambulatorial": {
+      "criterios": "Paciente estável, sem vômitos incoercíveis, sem sepse, capaz de ingerir medicação oral",
+      "primeira_linha": {
+        "medicamento": "Ciprofloxacino",
+        "classe_terapeutica": "Fluoroquinolona",
+        "apresentacao": "Comprimido 500 mg",
+        "dose_adulto": "500 mg a cada 12 horas",
+        "dose_gestante": "CONTRAINDICADO. Encaminhar para internação para antibiótico IV.",
+        "posologia": "Via oral, a cada 12 horas",
+        "duracao": "5 a 7 dias",
+        "sus_rename_2024": true,
+        "sus_remume_sp": true,
+        "disponibilidade_sp": "UBS",
+        "justificativa": "Fluoroquinolona de escolha para pielonefrite ambulatorial conforme WikiGuidelines 2024. Na pielonefrite, o uso é justificado pelo benefício clínico.",
+        "fonte": "WikiGuidelines JAMA Netw Open 2024; Protocolo Campinas 2024"
+      },
+      "alternativa_betalactamico": {
+        "medicamento": "Cefalexina",
+        "dose_adulto": "500 mg a cada 6 horas",
+        "duracao": "7 dias",
+        "indicacao": "Alternativa quando fluoroquinolona contraindicada ou indisponível",
+        "sus_rename_2024": true,
+        "sus_remume_sp": true,
+        "disponibilidade_sp": "UBS"
+      },
+      "observacao": "Solicitar urinocultura antes de iniciar antibiótico. Ajustar conforme resultado. Retorno em 48 a 72h para reavaliação."
+    },
+    "pielonefrite_internacao": {
+      "indicacoes": [
+        "Gestante com pielonefrite",
+        "Vômitos incoercíveis impedindo medicação oral",
+        "Sepse ou instabilidade hemodinâmica",
+        "Falha ao tratamento oral em 48 a 72h",
+        "Imunossuprimido",
+        "Obstrução urinária associada"
+      ],
+      "conduta": "Encaminhar para UPA ou hospital. Antibiótico IV: ceftriaxona 1g IV por dia. Após melhora clínica e 48h afebril, transição para oral conforme cultura."
+    },
+    "itu_idoso": {
+      "observacao": "Em idosos, sintomas inespecíficos como confusão mental aguda, queda e prostração podem ser a única manifestação. Sempre investigar ITU nesse contexto. Evitar fluoroquinolonas como primeira linha pelo risco de efeitos adversos graves (tendinite, alterações neurológicas). Preferir nitrofurantoína se TFG adequado."
+    }
+  },
+
+  "interacoes_medicamentosas": [
+    {
+      "medicamento_a": "Nitrofurantoína",
+      "medicamento_b": "Antiácidos com magnésio",
+      "gravidade": "leve",
+      "mecanismo": "Redução da absorção da nitrofurantoína",
+      "conduta": "Administrar com intervalo de 2 horas"
+    },
+    {
+      "medicamento_a": "Ciprofloxacino",
+      "medicamento_b": "Anticoagulantes (varfarina)",
+      "gravidade": "moderada",
+      "mecanismo": "Ciprofloxacino inibe metabolismo da varfarina aumentando risco de sangramento",
+      "conduta": "Monitorar INR durante e após o tratamento"
+    },
+    {
+      "medicamento_a": "Ciprofloxacino",
+      "medicamento_b": "Antiácidos, ferro, cálcio, zinco",
+      "gravidade": "moderada",
+      "mecanismo": "Redução significativa da absorção do ciprofloxacino por quelação",
+      "conduta": "Administrar ciprofloxacino 2 horas antes ou 6 horas após esses produtos"
+    },
+    {
+      "medicamento_a": "Sulfametoxazol + trimetoprima",
+      "medicamento_b": "Warfarina",
+      "gravidade": "moderada",
+      "mecanismo": "Potencialização do efeito anticoagulante",
+      "conduta": "Monitorar INR. Considerar alternativa antibiótica"
+    },
+    {
+      "medicamento_a": "Sulfametoxazol + trimetoprima",
+      "medicamento_b": "Metotrexato",
+      "gravidade": "grave",
+      "mecanismo": "Ambos inibem o folato aumentando toxicidade do metotrexato",
+      "conduta": "Evitar associação. Escolher antibiótico alternativo"
+    }
+  ],
+
+  "efeitos_adversos": [
+    {
+      "efeito": "Náusea e desconforto gastrointestinal",
+      "medicamento": "Nitrofurantoína",
+      "frequencia": "comum",
+      "gravidade": "leve",
+      "conduta": "Tomar com alimentos. Geralmente autolimitado"
+    },
+    {
+      "efeito": "Pneumonite e fibrose pulmonar",
+      "medicamento": "Nitrofurantoína",
+      "frequencia": "raro, associado ao uso prolongado",
+      "gravidade": "grave",
+      "conduta": "Suspender imediatamente. Encaminhar para avaliação especializada. Evitar uso profilático prolongado sem indicação precisa"
+    },
+    {
+      "efeito": "Tendinopatia e ruptura de tendão",
+      "medicamento": "Ciprofloxacino e outras fluoroquinolonas",
+      "frequencia": "incomum, maior risco em idosos e usuários de corticoides",
+      "gravidade": "moderada a grave",
+      "conduta": "Suspender ao primeiro sinal de dor tendinosa. Evitar atividade física intensa durante o tratamento"
+    },
+    {
+      "efeito": "Alterações neurológicas (insônia, agitação, confusão)",
+      "medicamento": "Ciprofloxacino",
+      "frequencia": "incomum",
+      "gravidade": "moderada",
+      "conduta": "Reduzir dose ou substituir o antibiótico"
+    },
+    {
+      "efeito": "Reação de fotossensibilidade",
+      "medicamento": "Sulfametoxazol + trimetoprima",
+      "frequencia": "incomum",
+      "gravidade": "leve a moderada",
+      "conduta": "Orientar uso de protetor solar e evitar exposição solar prolongada"
+    }
+  ],
+
+  "alertas_clinicos": [
+    "Fluoroquinolonas (ciprofloxacino, norfloxacino) devem ser reservadas para pielonefrite ou casos sem alternativa na cistite simples.",
+    "Nitrofurantoína é contraindicada no 3º trimestre de gestação e com TFG abaixo de 30 mL/min.",
+    "Em gestantes: tratar SEMPRE a bacteriúria assintomática. Risco de pielonefrite, parto prematuro e baixo peso ao nascer.",
+    "ITU em homem é sempre complicada. Investigar próstata e anomalia estrutural.",
+    "Em idosos: sintomas atípicos como confusão mental aguda podem ser a única manifestação de ITU.",
+    "Sulfametoxazol-trimetoprima não é boa escolha empírica no Brasil pela alta resistência (30 a 33% para E. coli).",
+    "Pielonefrite em gestante: internação obrigatória para antibiótico intravenoso.",
+    "ITU recorrente em mulheres: investigar fatores comportamentais, anatômicos e hormonais. Considerar profilaxia após discussão com a paciente."
+  ],
+
+  "criterios_encaminhamento": [
+    "ITU recorrente (3 ou mais episódios por ano) para investigação urológica",
+    "ITU em criança para investigação de anomalia anatômica",
+    "ITU em homem jovem sem fator de risco identificado",
+    "Pielonefrite com obstrução urinária associada",
+    "Falha terapêutica após tratamento adequado com urinocultura positiva"
+  ],
+
+  "criterios_internacao": [
+    "Pielonefrite em gestante",
+    "Pielonefrite com vômitos incoercíveis ou incapacidade de ingerir medicação oral",
+    "Sepse urinária: febre alta, taquicardia, hipotensão, alteração do estado mental",
+    "Obstrução urinária com infecção",
+    "Falha ao tratamento oral em 48 a 72 horas",
+    "Imunossuprimido com pielonefrite"
+  ],
+
+  "monitoramento": {
+    "cistite_simples": "Reavaliação se ausência de melhora em 48 a 72h. Urinocultura não obrigatória na cistite simples não complicada.",
+    "pielonefrite": "Reavaliação em 48 a 72h. Urinocultura de controle 5 a 7 dias após término do antibiótico.",
+    "gestante": "Urinocultura de controle 7 dias após término do antibiótico. Repetir mensalmente até o parto.",
+    "retorno": "48 a 72h se pielonefrite ou ausência de melhora. 7 dias após término para gestantes."
+  },
+
+  "orientacoes_paciente": [
+    "Tomar todo o antibiótico conforme prescrito, mesmo que os sintomas melhorem antes.",
+    "Aumentar a ingestão de água: pelo menos 2 litros por dia.",
+    "Urinar logo após a relação sexual.",
+    "Evitar segurar a urina por longos períodos.",
+    "Higiene genital adequada: limpar sempre da frente para trás.",
+    "Evitar uso de duchas vaginais e produtos irritantes na região genital.",
+    "Retornar se febre, dor lombar intensa, piora dos sintomas ou ausência de melhora em 48 horas."
+  ],
+
+  "fonte_principal": "WikiGuidelines ITU - JAMA Netw Open 2024 Nov;7(11):e2444495; Protocolo BH 2023; Protocolo SES-DF ITU na Gestação 2023",
+  "fontes_secundarias": [
+    "RENAME 2024 - Portaria GM/MS nº 6.324/2024",
+    "REMUME SP - Janeiro 2025",
+    "Protocolo de Antimicrobianos na Atenção Primária - Campinas 2024",
+    "Diretriz TadeClinicagem ITU 2024"
+  ],
+  "ultima_atualizacao": "2026-03"
+}
