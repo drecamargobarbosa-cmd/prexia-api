@@ -1,0 +1,335 @@
+{
+  "id": "pneumonia_adquirida_comunidade",
+  "nome": "Pneumonia adquirida na comunidade",
+  "cid10": ["J18", "J18.0", "J18.1", "J18.9", "J13", "J14", "J15", "J15.0", "J15.9"],
+  "especialidade": ["clinica_medica", "medicina_familia", "pneumologia", "pediatria"],
+  "sinonimos": ["PAC", "pneumonia comunitária", "pneumonia bacteriana", "pneumonia viral", "broncopneumonia"],
+  "descricao": "Infecção aguda do parênquima pulmonar adquirida fora do ambiente hospitalar. Responsável por mais de 600 mil internações anuais no Brasil e uma das principais causas de morte por doença infecciosa no mundo. Principais agentes: Streptococcus pneumoniae, Haemophilus influenzae, Mycoplasma pneumoniae, Chlamydia pneumoniae e vírus respiratórios.",
+
+  "perfil_paciente": {
+    "sexo": "ambos",
+    "faixa_etaria": ["pediatrico", "adulto", "idoso", "gestante"],
+    "observacoes": "Maior mortalidade em idosos, imunossuprimidos e portadores de comorbidades. Em crianças menores de 5 anos: principal causa infecciosa de óbito. Em gestantes: tratar com beta-lactâmicos e/ou macrolídeos."
+  },
+
+  "sintomas_chave": [
+    "tosse produtiva ou seca",
+    "febre",
+    "dispneia",
+    "taquipneia",
+    "dor torácica pleurítica",
+    "crepitações e redução do murmúrio vesicular à ausculta",
+    "prostração e mal-estar geral",
+    "calafrios",
+    "expectoração purulenta ou hemoptoica"
+  ],
+
+  "criterios_diagnosticos": {
+    "clinico": [
+      "Febre ou hipotermia",
+      "Tosse com ou sem expectoração",
+      "Taquipneia: acima de 20 rpm em adultos, acima de 50 rpm em crianças menores de 2 anos, acima de 40 rpm em crianças de 2 a 5 anos",
+      "Achados auscultatórios: crepitações, broncofonese, egofonia, redução do murmúrio vesicular"
+    ],
+    "radiologico": "Infiltrado pulmonar novo na radiografia de tórax. Confirma o diagnóstico. Solicitar em todo paciente com suspeita clínica quando disponível.",
+    "laboratorial": "Hemograma, PCR e função renal ajudam na estratificação de gravidade. Não obrigatórios na PAC leve ambulatorial.",
+    "curb65": {
+      "descricao": "Escore de gravidade para estratificação e decisão do local de tratamento. Escore CRB-65 pode ser usado sem dosagem de ureia na APS.",
+      "criterios": {
+        "C": "Confusão mental aguda",
+        "U": "Ureia acima de 50 mg/dL (7 mmol/L)",
+        "R": "Frequência respiratória igual ou acima de 30 rpm",
+        "B": "PA sistólica abaixo de 90 mmHg ou PA diastólica igual ou abaixo de 60 mmHg",
+        "65": "Idade igual ou acima de 65 anos"
+      },
+      "pontuacao": {
+        "0_1": "Tratamento ambulatorial. Risco baixo.",
+        "2": "Considerar internação breve ou observação. Risco intermediário.",
+        "3_5": "Internação. Risco alto. Score 4 ou 5: considerar UTI."
+      }
+    }
+  },
+
+  "perguntas_obrigatorias": [
+    "Há febre, tosse, dispneia ou dor torácica?",
+    "Há confusão mental, frequência respiratória acima de 30 rpm ou PA baixa?",
+    "Qual a idade do paciente e há comorbidades: DPOC, diabetes, ICC, imunossupressão?",
+    "O paciente consegue tomar medicação oral e tem suporte domiciliar adequado?",
+    "Há saturação de oxigênio disponível? Qual o valor?",
+    "A paciente está gestante?",
+    "Há alergia à penicilina ou macrolídeos?"
+  ],
+
+  "tratamento": {
+    "estratificacao_gravidade": {
+      "leve_ambulatorial": {
+        "criterios": "CRB-65 zero ou 1, sem hipoxemia, capaz de ingerir medicação oral, suporte domiciliar adequado",
+        "adulto_sem_comorbidade": {
+          "primeira_linha": {
+            "medicamento": "Amoxicilina",
+            "classe_terapeutica": "Aminopenicilina",
+            "apresentacao": "Comprimido ou cápsula 500 mg",
+            "dose_adulto": "500 mg a cada 8 horas",
+            "dose_pediatrica": "40 a 50 mg/kg/dia divididos em 3 doses. Máximo 3g/dia",
+            "dose_gestante": "500 mg a cada 8 horas. Segura na gestação.",
+            "posologia": "Via oral, a cada 8 horas",
+            "duracao": "5 a 7 dias",
+            "sus_rename_2024": true,
+            "sus_remume_sp": true,
+            "disponibilidade_sp": "UBS",
+            "justificativa": "Primeira linha para PAC leve sem comorbidade. Cobre S. pneumoniae, principal agente bacteriano. Recomendação SBPT 2018 e BVS APS.",
+            "fonte": "SBPT 2018; BVS APS 2023; RENAME 2024"
+          },
+          "suspeita_atipico": {
+            "descricao": "Suspeitar de germe atípico (Mycoplasma, Chlamydia) em adultos jovens com início gradual, tosse seca, cefaleia, ausência de leucocitose",
+            "medicamento": "Azitromicina",
+            "classe_terapeutica": "Macrolídeo",
+            "apresentacao": "Comprimido 500 mg",
+            "dose_adulto": "500 mg 1 vez ao dia",
+            "dose_pediatrica": "10 mg/kg no primeiro dia, depois 5 mg/kg/dia. Máximo 500 mg/dia",
+            "dose_gestante": "500 mg 1 vez ao dia. Segura na gestação.",
+            "posologia": "Via oral, 1 vez ao dia em jejum ou 2 horas após refeição",
+            "duracao": "5 dias",
+            "sus_rename_2024": true,
+            "sus_remume_sp": false,
+            "disponibilidade_sp": "Farmácia popular ou privada. Não disponível rotineiramente na UBS.",
+            "justificativa": "Macrolídeo de escolha para cobertura de atípicos. Evidências apoiam associação de macrolídeos na PAC comunitária independente da suspeita de atípico.",
+            "fonte": "SBPT 2018; ACP 2024; ATS 2025"
+          }
+        },
+        "adulto_com_comorbidade": {
+          "descricao": "Comorbidades: DPOC, diabetes, ICC, doença renal, neoplasia, uso de corticoide, alcoolismo",
+          "primeira_linha": {
+            "medicamento": "Amoxicilina + clavulanato",
+            "classe_terapeutica": "Aminopenicilina com inibidor de beta-lactamase",
+            "apresentacao": "Comprimido 875 mg + 125 mg",
+            "dose_adulto": "875/125 mg a cada 12 horas",
+            "dose_pediatrica": "40 a 45 mg/kg/dia (componente amoxicilina) divididos em 2 doses",
+            "dose_gestante": "875/125 mg a cada 12 horas. Segura na gestação.",
+            "posologia": "Via oral, a cada 12 horas com refeição",
+            "duracao": "5 a 7 dias",
+            "sus_rename_2024": false,
+            "sus_remume_sp": false,
+            "disponibilidade_sp": "Farmácia popular ou privada",
+            "justificativa": "Amplia cobertura para H. influenzae produtor de beta-lactamase e outros agentes em pacientes com comorbidades.",
+            "fonte": "SBPT 2018; ATS 2025"
+          },
+          "alternativa_sus": {
+            "medicamento": "Amoxicilina",
+            "dose_adulto": "1g a cada 8 horas",
+            "duracao": "7 dias",
+            "sus_rename_2024": true,
+            "sus_remume_sp": true,
+            "disponibilidade_sp": "UBS",
+            "observacao": "Quando amoxicilina + clavulanato não disponível no SUS, usar amoxicilina em dose maior associada a azitromicina se suspeita de atípico."
+          }
+        },
+        "alergia_penicilina": {
+          "medicamento": "Azitromicina",
+          "dose_adulto": "500 mg 1 vez ao dia por 5 dias",
+          "sus_rename_2024": true,
+          "sus_remume_sp": false,
+          "disponibilidade_sp": "Farmácia popular ou privada",
+          "justificativa": "Alternativa em alérgicos à penicilina para PAC leve sem fatores de risco para resistência.",
+          "fonte": "SBPT 2018"
+        }
+      },
+      "moderada_internacao": {
+        "criterios": "CRB-65 igual a 2, hipoxemia (SpO2 abaixo de 94%), comorbidades descompensadas, falha ao tratamento ambulatorial em 48 a 72h",
+        "conduta": "Encaminhar para internação hospitalar. Antibiótico preferencial: ampicilina-sulbactam ou amoxicilina-clavulanato IV associado a azitromicina IV ou oral. Oxigenioterapia se SpO2 abaixo de 94%.",
+        "observacao": "Solicitar hemograma, PCR, creatinina, hemoculturas e radiografia de tórax."
+      },
+      "grave_uti": {
+        "criterios": "CRB-65 igual a 3 ou 4, choque séptico, necessidade de ventilação mecânica, SpO2 abaixo de 90% em O2 suplementar",
+        "conduta": "Encaminhar imediatamente para UPA ou hospital. Acionar SAMU se necessário. Ceftriaxona IV associada a azitromicina IV é o esquema de referência para PAC grave segundo ACP 2024 e ATS 2025."
+      }
+    },
+    "pediatrico": {
+      "lactente_menor_2_anos": {
+        "descricao": "Etiologia predominantemente viral em menores de 2 anos. Antibiótico somente se suspeita bacteriana forte.",
+        "criterios_antibiotico": "Febre alta, leucocitose, PCR elevado, infiltrado bacteriano na radiografia, piora progressiva",
+        "primeira_linha": {
+          "medicamento": "Amoxicilina",
+          "dose": "50 mg/kg/dia divididos em 3 doses por 7 dias",
+          "sus_rename_2024": true,
+          "sus_remume_sp": true,
+          "disponibilidade_sp": "UBS"
+        }
+      },
+      "crianca_2_a_5_anos": {
+        "primeira_linha": {
+          "medicamento": "Amoxicilina",
+          "dose": "50 mg/kg/dia divididos em 3 doses por 7 dias",
+          "sus_rename_2024": true,
+          "sus_remume_sp": true,
+          "disponibilidade_sp": "UBS"
+        }
+      },
+      "escolar_adolescente": {
+        "descricao": "Nessa faixa etária aumenta prevalência de Mycoplasma pneumoniae",
+        "primeira_linha": {
+          "medicamento": "Amoxicilina",
+          "dose": "50 mg/kg/dia divididos em 3 doses. Máximo 3g/dia por 7 dias",
+          "sus_rename_2024": true,
+          "sus_remume_sp": true,
+          "disponibilidade_sp": "UBS"
+        },
+        "suspeita_atipico": {
+          "medicamento": "Azitromicina",
+          "dose": "10 mg/kg no primeiro dia, depois 5 mg/kg/dia por 5 dias",
+          "sus_rename_2024": true,
+          "sus_remume_sp": false,
+          "disponibilidade_sp": "Farmácia popular ou privada"
+        }
+      },
+      "sinais_gravidade_pediatrico": [
+        "Taquipneia grave: acima de 70 rpm em lactentes, acima de 50 rpm em maiores de 1 ano",
+        "Tiragem subcostal intensa",
+        "Gemência",
+        "Cianose",
+        "Recusa alimentar",
+        "Alteração do nível de consciência",
+        "SpO2 abaixo de 92%"
+      ]
+    },
+    "gestante": {
+      "descricao": "PAC na gestação tem maior risco de complicações. Tratamento hospitalar deve ser considerado com menor limiar.",
+      "primeira_linha": {
+        "medicamento": "Amoxicilina",
+        "dose": "500 mg a cada 8 horas por 7 dias",
+        "sus_rename_2024": true,
+        "sus_remume_sp": true,
+        "disponibilidade_sp": "UBS"
+      },
+      "suspeita_atipico": {
+        "medicamento": "Azitromicina",
+        "dose": "500 mg 1 vez ao dia por 5 dias",
+        "observacao": "Segura na gestação. Preferir à claritromicina.",
+        "sus_rename_2024": true,
+        "sus_remume_sp": false,
+        "disponibilidade_sp": "Farmácia popular ou privada"
+      },
+      "alerta": "Fluoroquinolonas contraindicadas na gestação. Tetracicilinas contraindicadas. Internação com menor limiar em gestantes com PAC."
+    }
+  },
+
+  "interacoes_medicamentosas": [
+    {
+      "medicamento_a": "Azitromicina",
+      "medicamento_b": "Varfarina",
+      "gravidade": "moderada",
+      "mecanismo": "Azitromicina pode aumentar o efeito anticoagulante da varfarina",
+      "conduta": "Monitorar INR durante e após o tratamento"
+    },
+    {
+      "medicamento_a": "Azitromicina",
+      "medicamento_b": "Antiarrítmicos (amiodarona, sotalol)",
+      "gravidade": "grave",
+      "mecanismo": "Risco de prolongamento do intervalo QT e arritmias graves",
+      "conduta": "Evitar associação. Considerar antibiótico alternativo em pacientes com cardiopatia ou uso de antiarrítmicos"
+    },
+    {
+      "medicamento_a": "Amoxicilina + clavulanato",
+      "medicamento_b": "Anticoagulantes orais",
+      "gravidade": "leve a moderada",
+      "mecanismo": "Pode potencializar efeito anticoagulante por alteração da flora intestinal",
+      "conduta": "Monitorar INR se em uso de varfarina"
+    }
+  ],
+
+  "efeitos_adversos": [
+    {
+      "efeito": "Diarreia e desconforto gastrointestinal",
+      "medicamento": "Amoxicilina, amoxicilina + clavulanato",
+      "frequencia": "comum",
+      "gravidade": "leve",
+      "conduta": "Tomar com alimentos. O clavulanato aumenta a incidência de diarreia"
+    },
+    {
+      "efeito": "Reação alérgica: rash cutâneo, urticária",
+      "medicamento": "Amoxicilina",
+      "frequencia": "incomum (1 a 5%)",
+      "gravidade": "leve a moderada",
+      "conduta": "Suspender. Avaliar se é alergia verdadeira ou rash viral. Substituir por macrolídeo ou cefalosporina se confirmada"
+    },
+    {
+      "efeito": "Náusea e dor abdominal",
+      "medicamento": "Azitromicina",
+      "frequencia": "comum",
+      "gravidade": "leve",
+      "conduta": "Tomar em jejum ou 2 horas após refeição. Geralmente autolimitado"
+    },
+    {
+      "efeito": "Prolongamento do intervalo QT",
+      "medicamento": "Azitromicina",
+      "frequencia": "raro",
+      "gravidade": "grave",
+      "conduta": "Evitar em pacientes com QT longo conhecido, hipocalemia, hipomagnesemia ou uso de antiarrítmicos"
+    }
+  ],
+
+  "alertas_clinicos": [
+    "SpO2 abaixo de 94% em adultos ou abaixo de 92% em crianças: indicação de suplementação de O2 e avaliação para internação.",
+    "Reavaliação obrigatória em 48 a 72h após início do antibiótico. Ausência de melhora ou piora: revisar diagnóstico e indicar internação.",
+    "Fluoroquinolonas (levofloxacino, moxifloxacino) reservadas para PAC moderada a grave ou falha ao tratamento inicial. Não usar como primeira linha na APS.",
+    "Azitromicina pode prolongar QT. Evitar em cardiopatas e usuários de antiarrítmicos.",
+    "Em crianças menores de 2 anos: etiologia predominantemente viral. Antibiótico somente com forte suspeita bacteriana.",
+    "Investigar tuberculose em pacientes com tosse prolongada acima de 3 semanas, perda de peso, sudorese noturna e exposição de risco.",
+    "Vacinação antipneumocócica: recomendar em idosos acima de 60 anos, imunossuprimidos e portadores de comorbidades crônicas."
+  ],
+
+  "criterios_encaminhamento": [
+    "CRB-65 igual ou acima de 2",
+    "SpO2 abaixo de 94% em ar ambiente",
+    "Falha ao tratamento ambulatorial em 48 a 72 horas",
+    "Comorbidades descompensadas: ICC, DPOC grave, diabetes descontrolado",
+    "Incapacidade de ingerir medicação oral ou ausência de suporte domiciliar",
+    "Gestante com PAC moderada ou grave"
+  ],
+
+  "criterios_internacao": [
+    "CRB-65 igual ou acima de 2",
+    "SpO2 abaixo de 92% em ar ambiente",
+    "FR acima de 30 rpm em adultos",
+    "PA sistólica abaixo de 90 mmHg",
+    "Confusão mental aguda",
+    "Sinais de sepse",
+    "Criança com sinais de gravidade: tiragem, gemência, cianose, recusa alimentar",
+    "Gestante com qualquer critério de gravidade"
+  ],
+
+  "monitoramento": {
+    "ambulatorial": "Reavaliação em 48 a 72h. Se melhora clínica confirmar diagnóstico correto e completar antibiótico.",
+    "criterios_melhora": "Queda da febre, redução da dispneia e da tosse, melhora do estado geral",
+    "duracao_antibiotico": "5 a 7 dias para PAC leve a moderada. Diretriz ATS 2025 recomenda curso mais curto (5 dias) se boa resposta clínica.",
+    "retorno": "48 a 72h após início do tratamento. Alta orientação de retorno imediato se piora."
+  },
+
+  "orientacoes_paciente": [
+    "Tomar todo o antibiótico conforme prescrito, mesmo que os sintomas melhorem antes.",
+    "Repouso relativo e hidratação abundante.",
+    "Retornar imediatamente se piora da falta de ar, febre persistente após 48h, ou incapacidade de ingerir líquidos.",
+    "Não fumar durante o tratamento e idealmente parar definitivamente.",
+    "Vacinar-se contra pneumococo e influenza se ainda não o fez (especialmente idosos e portadores de comorbidades).",
+    "Voltar para reavaliação em 48 a 72 horas mesmo que esteja melhorando."
+  ],
+
+  "prevencao": {
+    "vacinacao": [
+      "Vacina pneumocócica (PCV13 e/ou PPSV23): idosos acima de 60 anos, imunossuprimidos, portadores de DPOC, diabetes, ICC e asma",
+      "Vacina influenza: anual para todos os grupos de risco e profissionais de saúde",
+      "Vacina COVID-19: atualização do esquema vacinal conforme calendário vigente"
+    ]
+  },
+
+  "fonte_principal": "Recomendações para o manejo da PAC - SBPT 2018. J Bras Pneumol 2018;44(5):405-424",
+  "fontes_secundarias": [
+    "ATS/IDSA Diretriz PAC 2025",
+    "ACP Internal Medicine Meeting 2024",
+    "RENAME 2024 - Portaria GM/MS nº 6.324/2024",
+    "REMUME SP - Janeiro 2025",
+    "BVS Atenção Primária em Saúde 2023",
+    "SBP - Pneumonias Adquiridas na Comunidade Complicadas 2024"
+  ],
+  "ultima_atualizacao": "2026-03"
+}
