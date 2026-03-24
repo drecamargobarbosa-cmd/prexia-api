@@ -32,8 +32,7 @@ class LLMExtractor:
                         "role": "user",
                         "content": prompt
                     }
-                ],
-                temperature=0
+                ]
             )
 
             content = response.choices[0].message.content
