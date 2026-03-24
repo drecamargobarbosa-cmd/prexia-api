@@ -1,0 +1,327 @@
+{
+  "id": "asma",
+  "nome": "Asma brônquica",
+  "cid10": ["J45", "J45.0", "J45.1", "J45.8", "J45.9", "J46"],
+  "especialidade": ["clinica_medica", "medicina_familia", "pneumologia", "pediatria", "alergologia"],
+  "sinonimos": ["asma", "asma brônquica", "asma alérgica", "hiper-reatividade brônquica", "broncoespasmo recorrente"],
+  "descricao": "Doença inflamatória crônica das vias aéreas caracterizada por obstrução variável e reversível ao fluxo aéreo. Sintomas típicos: tosse, chiado, dispneia e aperto no peito, que variam em intensidade e frequência. Afeta cerca de 20 milhões de brasileiros. Apenas 12,3% dos asmáticos brasileiros têm a doença bem controlada.",
+
+  "perfil_paciente": {
+    "sexo": "ambos",
+    "faixa_etaria": ["pediatrico", "adulto", "idoso", "gestante"],
+    "observacoes": "Em crianças: etiologia predominantemente alérgica. Em adultos: pode ser alérgica, ocupacional ou relacionada a AINEs. Em gestantes: asma não controlada aumenta risco de pré-eclâmpsia, parto prematuro e baixo peso ao nascer. Manter tratamento durante gestação, pois o risco do descontrole supera o risco dos medicamentos."
+  },
+
+  "sintomas_chave": [
+    "chiado no peito (sibilância)",
+    "tosse seca ou produtiva, especialmente noturna",
+    "dispneia aos esforços ou em repouso nas crises",
+    "sensação de aperto torácico",
+    "sintomas que pioram à noite ou nas primeiras horas da manhã",
+    "sintomas desencadeados por alérgenos, exercício, ar frio, infecções virais, AINEs",
+    "variabilidade e reversibilidade dos sintomas"
+  ],
+
+  "criterios_diagnosticos": {
+    "clinico": [
+      "Dois ou mais sintomas típicos: tosse, sibilância, dispneia, aperto torácico",
+      "Variabilidade dos sintomas: piora noturna, por esforço, exposição a alérgenos",
+      "Melhora espontânea ou com broncodilatador"
+    ],
+    "funcional": {
+      "espirometria": "Obstrução reversível: aumento do VEF1 ≥ 12% e ≥ 200 mL após salbutamol 400 mcg",
+      "peak_flow": "Variabilidade diurna acima de 10% em adultos ou acima de 13% em crianças",
+      "observacao": "Espirometria normal não exclui asma. Solicitar durante sintomas ou após broncoprovocação."
+    },
+    "classificacao_controle": {
+      "controlada": "Sem sintomas diurnos ou menos de 2 vezes por semana, sem limitação de atividades, sem sintomas noturnos, sem uso de resgate ou menos de 2 vezes por semana, função pulmonar normal",
+      "parcialmente_controlada": "Um a dois dos critérios de controlada não atingidos",
+      "nao_controlada": "Três ou mais critérios de controlada não atingidos ou exacerbação na semana"
+    },
+    "classificacao_gravidade": {
+      "leve_intermitente": "Sintomas menos de 2 vezes por semana, sintomas noturnos menos de 2 vezes por mês, VEF1 acima de 80%",
+      "leve_persistente": "Sintomas mais de 2 vezes por semana mas não diários, VEF1 acima de 80%",
+      "moderada_persistente": "Sintomas diários, sintomas noturnos mais de 1 vez por semana, VEF1 entre 60 e 80%",
+      "grave_persistente": "Sintomas contínuos, limitação de atividades, sintomas noturnos frequentes, VEF1 abaixo de 60%"
+    }
+  },
+
+  "perguntas_obrigatorias": [
+    "Com que frequência ocorrem sintomas: diariamente, semanalmente ou raramente?",
+    "Há sintomas noturnos que acordam o paciente?",
+    "Há limitação para atividades físicas?",
+    "Quantas vezes por semana usa broncodilatador de resgate?",
+    "Quais fatores desencadeiam as crises: alérgenos, exercício, ar frio, AINEs?",
+    "Há histórico de atopia: rinite, eczema, alergia alimentar?",
+    "O paciente está em uso de IECA (pode causar tosse) ou beta-bloqueador (pode piorar asma)?",
+    "A paciente está gestante?"
+  ],
+
+  "tratamento": {
+    "principios_gerais": {
+      "saba_resgate": "Salbutamol (SABA) é o broncodilatador de resgate de referência para todas as etapas. Uso frequente indica necessidade de intensificar tratamento controlador.",
+      "ci_base": "Corticoide inalatório (CI) é a base do tratamento controlador. Nunca usar LABA sem CI associado.",
+      "abordagem_por_etapas": "Tratar pela etapa correspondente ao nível de controle. Reduzir etapa após 3 meses de controle adequado. Aumentar etapa se não controlado após 1 a 3 meses."
+    },
+    "etapa_1_leve_intermitente": {
+      "descricao": "Sintomas menos de 2 vezes por semana, sem sintomas noturnos, VEF1 acima de 80%",
+      "preferencial": {
+        "medicamento": "Budesonida + formoterol",
+        "classe_terapeutica": "Corticoide inalatório (CI) + beta-2 agonista de longa ação (LABA)",
+        "apresentacao": "Pó inalatório 200 mcg/6 mcg por dose",
+        "dose": "1 inalação conforme necessidade (resgate)",
+        "posologia": "Somente quando necessário para alívio dos sintomas. Manutenção e resgate (MART)",
+        "duracao": "Uso contínuo conforme necessidade",
+        "sus_rename_2024": true,
+        "sus_remume_sp": false,
+        "disponibilidade_sp": "Componente especializado estadual",
+        "justificativa": "PCDT Asma 2023: budesonida + formoterol em regime de manutenção e resgate (MART) reduz crises em até 60% comparado ao salbutamol isolado. Preferencial para asma leve.",
+        "fonte": "PCDT Asma - Portaria Conjunta SAES/SECTICS nº 32/2023"
+      },
+      "alternativa_sus_basico": {
+        "medicamento": "Salbutamol",
+        "classe_terapeutica": "Beta-2 agonista de curta ação (SABA)",
+        "apresentacao": "Aerossol 100 mcg por dose",
+        "dose_adulto": "100 a 200 mcg (1 a 2 jatos) quando necessário",
+        "dose_pediatrica": "100 mcg (1 jato) quando necessário. Usar com espaçador.",
+        "posologia": "Inalatória quando necessário para resgate",
+        "sus_rename_2024": true,
+        "sus_remume_sp": true,
+        "disponibilidade_sp": "UBS e Farmácia Popular",
+        "observacao": "Alternativa quando budesonida + formoterol não disponível. Uso isolado de SABA sem CI não é mais a estratégia preferencial.",
+        "fonte": "PCDT Asma 2023; RENAME 2024; REMUME SP 2025"
+      }
+    },
+    "etapa_2_leve_persistente": {
+      "descricao": "Sintomas mais de 2 vezes por semana, VEF1 acima de 80%",
+      "preferencial": {
+        "medicamento": "Beclometasona ou budesonida em dose baixa",
+        "classe_terapeutica": "Corticoide inalatório (CI)",
+        "apresentacao": "Beclometasona aerossol 50 mcg ou 250 mcg; budesonida pó 200 mcg",
+        "dose_adulto": {
+          "beclometasona": "100 a 200 mcg por dia (dose baixa)",
+          "budesonida": "200 a 400 mcg por dia (dose baixa)"
+        },
+        "dose_pediatrica": {
+          "beclometasona": "100 mcg por dia",
+          "budesonida": "200 mcg por dia"
+        },
+        "posologia": "Inalatória, 1 a 2 vezes ao dia",
+        "duracao": "Uso contínuo diário",
+        "sus_rename_2024": true,
+        "sus_remume_sp": true,
+        "disponibilidade_sp": "UBS e Farmácia Popular",
+        "resgate": "Salbutamol 100 a 200 mcg quando necessário",
+        "justificativa": "CI em dose baixa é a base do tratamento controlador da asma persistente. Reduz inflamação, sintomas e risco de exacerbações.",
+        "fonte": "PCDT Asma - Portaria Conjunta SAES/SECTICS nº 32/2023"
+      },
+      "alternativa_mart": {
+        "medicamento": "Budesonida + formoterol dose baixa",
+        "dose": "200/6 mcg: 1 inalação 1 a 2 vezes ao dia + resgate quando necessário",
+        "sus_rename_2024": true,
+        "sus_remume_sp": false,
+        "disponibilidade_sp": "Componente especializado estadual"
+      }
+    },
+    "etapa_3_moderada": {
+      "descricao": "Sintomas diários, VEF1 entre 60 e 80%, sintomas noturnos mais de 1 vez por semana",
+      "preferencial": {
+        "medicamento": "CI dose baixa + LABA",
+        "opcoes": [
+          "Budesonida 400 mcg/dia + formoterol 12 mcg/dia",
+          "Beclometasona 200 mcg/dia + salmeterol 50 mcg 2 vezes ao dia"
+        ],
+        "sus_rename_2024": true,
+        "sus_remume_sp": false,
+        "disponibilidade_sp": "Componente especializado estadual",
+        "resgate": "Salbutamol 100 a 200 mcg quando necessário",
+        "justificativa": "Associação CI + LABA tem efeito sinérgico com melhor controle usando menor dose de CI.",
+        "fonte": "PCDT Asma - Portaria Conjunta SAES/SECTICS nº 32/2023"
+      }
+    },
+    "etapa_4_moderada_grave": {
+      "descricao": "Asma não controlada com etapa 3",
+      "tratamento": "CI dose média + LABA dose fixa diária + SABA de resgate. Encaminhar para pneumologista ou alergologista.",
+      "sus_rename_2024": true,
+      "sus_remume_sp": false,
+      "disponibilidade_sp": "Componente especializado estadual"
+    },
+    "etapa_5_grave": {
+      "descricao": "Asma grave não controlada com etapas 3 e 4",
+      "tratamento": "CI dose alta + LABA + avaliação para imunobiológico (omalizumabe ou mepolizumabe). Encaminhar obrigatoriamente para especialista.",
+      "imunobiologicos": {
+        "omalizumabe": "Asma alérgica grave não controlada. Disponível no componente especializado do SUS.",
+        "mepolizumabe": "Asma eosinofílica grave. Disponível no componente especializado do SUS."
+      }
+    },
+    "crise_asmatica_ubs": {
+      "leve_moderada": {
+        "descricao": "Fala em frases, SpO2 acima de 92%, FR normal ou levemente aumentada",
+        "conduta": [
+          "Salbutamol inalatório: 2 a 4 jatos a cada 20 minutos na primeira hora (espaçador ou nebulização)",
+          "Ipratrópio inalatório: 2 jatos a cada 20 minutos na primeira hora (associar ao salbutamol)",
+          "Prednisolona oral: 1 a 2 mg/kg/dia em crianças (máximo 40 mg) ou prednisona 40 a 60 mg em adultos por 3 a 7 dias",
+          "Reavaliação a cada 20 a 30 minutos"
+        ],
+        "salbutamol_sus": {
+          "sus_rename_2024": true,
+          "sus_remume_sp": true,
+          "disponibilidade_sp": "UBS"
+        },
+        "ipratropio_sus": {
+          "sus_rename_2024": true,
+          "sus_remume_sp": true,
+          "disponibilidade_sp": "UBS"
+        },
+        "prednisona_sus": {
+          "sus_rename_2024": true,
+          "sus_remume_sp": true,
+          "disponibilidade_sp": "UBS"
+        }
+      },
+      "grave": {
+        "descricao": "Fala em palavras isoladas, SpO2 abaixo de 92%, FR acima de 30 rpm, uso de musculatura acessória, cianose",
+        "conduta": "Iniciar salbutamol e ipratrópio inalatórios imediatamente. Oxigênio suplementar se disponível. Encaminhar urgência para UPA ou hospital. Acionar SAMU se necessário."
+      },
+      "muito_grave": {
+        "descricao": "Confusão mental, cianose, silêncio auscultatório (asma silenciosa), bradicardia",
+        "conduta": "Emergência. Acionar SAMU imediatamente. Suporte ventilatório se disponível."
+      }
+    },
+    "gestante": {
+      "principio": "Manter tratamento durante a gestação. O risco do descontrole da asma para o feto supera o risco dos medicamentos.",
+      "seguro_gestacao": [
+        "Salbutamol inalatório: seguro em todas as fases da gestação",
+        "Beclometasona e budesonida inalatórias: seguras",
+        "Prednisona oral curta duração nas crises: segura"
+      ],
+      "evitar": "Teofilina em doses altas. Montelucaste: dados limitados.",
+      "fonte": "PCDT Asma 2023; BVS APS"
+    }
+  },
+
+  "interacoes_medicamentosas": [
+    {
+      "medicamento_a": "Salbutamol ou formoterol",
+      "medicamento_b": "Beta-bloqueadores (propranolol, atenolol, metoprolol)",
+      "gravidade": "grave",
+      "mecanismo": "Beta-bloqueadores bloqueiam o efeito broncodilatador dos beta-2 agonistas e podem precipitar broncoespasmo grave",
+      "conduta": "Evitar beta-bloqueadores não seletivos em asmáticos. Se necessário usar betabloqueador, preferir cardiosseletivos (atenolol, bisoprolol) com monitoramento rigoroso"
+    },
+    {
+      "medicamento_a": "Salbutamol ou formoterol",
+      "medicamento_b": "AINEs (ibuprofeno, diclofenaco, AAS)",
+      "gravidade": "moderada a grave",
+      "mecanismo": "AINEs podem desencadear broncoespasmo em asmáticos sensíveis (asma induzida por AINEs: 10 a 20% dos adultos asmáticos)",
+      "conduta": "Evitar AINEs. Usar paracetamol como alternativa analgésica. Testar sensibilidade antes de prescrever se necessário"
+    },
+    {
+      "medicamento_a": "Beclometasona ou budesonida",
+      "medicamento_b": "Antifúngicos azólicos (itraconazol, cetoconazol)",
+      "gravidade": "moderada",
+      "mecanismo": "Inibição do CYP3A4 aumenta nível sistêmico dos corticoides inalatórios",
+      "conduta": "Monitorar sinais de hipercortisolismo se uso concomitante prolongado"
+    },
+    {
+      "medicamento_a": "Corticoide sistêmico (prednisona)",
+      "medicamento_b": "AINEs",
+      "gravidade": "moderada",
+      "mecanismo": "Risco aumentado de sangramento gastrointestinal",
+      "conduta": "Evitar associação. Se necessário, associar protetor gástrico"
+    }
+  ],
+
+  "efeitos_adversos": [
+    {
+      "efeito": "Candidíase oral e rouquidão",
+      "medicamento": "Beclometasona, budesonida (corticoides inalatórios)",
+      "frequencia": "comum",
+      "gravidade": "leve",
+      "conduta": "Bochechar e engolir água após cada inalação. Usar espaçador reduz a incidência. Tratar candidíase com nistatina ou fluconazol se necessário"
+    },
+    {
+      "efeito": "Tremor e taquicardia",
+      "medicamento": "Salbutamol, formoterol (beta-2 agonistas)",
+      "frequencia": "comum em doses altas",
+      "gravidade": "leve",
+      "conduta": "Geralmente autolimitado. Reduzir dose se intenso. Usar espaçador para reduzir absorção sistêmica"
+    },
+    {
+      "efeito": "Hipocalemia",
+      "medicamento": "Salbutamol em doses altas, especialmente nebulizado",
+      "frequencia": "incomum",
+      "gravidade": "moderada",
+      "conduta": "Monitorar potássio em crises graves tratadas com salbutamol nebulizado em altas doses"
+    },
+    {
+      "efeito": "Retardo do crescimento em crianças",
+      "medicamento": "Corticoides inalatórios em doses altas",
+      "frequencia": "incomum com doses baixas",
+      "gravidade": "moderada",
+      "conduta": "Usar menor dose eficaz de CI. Monitorar crescimento anualmente. Doses baixas têm impacto mínimo clinicamente relevante"
+    },
+    {
+      "efeito": "Hiperglicemia e hipertensão",
+      "medicamento": "Prednisona e prednisolona sistêmicas",
+      "frequencia": "comum em cursos prolongados",
+      "gravidade": "moderada",
+      "conduta": "Usar corticoide sistêmico pelo menor tempo possível nas crises. Monitorar glicemia em diabéticos durante o curso"
+    }
+  ],
+
+  "alertas_clinicos": [
+    "LABA (formoterol, salmeterol) NUNCA devem ser usados sem corticoide inalatório associado: risco de morte.",
+    "Beta-bloqueadores não seletivos são contraindicados na asma. Se indispensável, usar cardiosseletivo com monitoramento.",
+    "AINEs podem desencadear broncoespasmo grave em 10 a 20% dos asmáticos adultos. Usar paracetamol como analgésico.",
+    "Uso de salbutamol mais de 2 vezes por semana indica asma não controlada: revisar e intensificar tratamento.",
+    "Orientar técnica inalatória correta em toda consulta: erros na técnica são causa frequente de falha terapêutica.",
+    "Crianças devem sempre usar espaçador com aerossol pressurizado.",
+    "Asma na gestação: manter tratamento. Descontrole é mais perigoso para o feto do que os medicamentos.",
+    "SpO2 abaixo de 92% em crise: risco de vida. Oxigênio e encaminhamento urgente."
+  ],
+
+  "criterios_encaminhamento": [
+    "Asma não controlada após 3 meses com tratamento adequado na etapa 3",
+    "Suspeita de asma grave ou refratária",
+    "Necessidade de imunobiológico (omalizumabe, mepolizumabe)",
+    "Dúvida diagnóstica: sintomas atípicos ou espirometria normal com alta suspeita",
+    "Asma ocupacional: encaminhar para pneumologia e avaliação do trabalho",
+    "Crianças com asma grave ou de difícil controle"
+  ],
+
+  "criterios_internacao": [
+    "Crise grave: SpO2 abaixo de 92%, FR acima de 30 rpm, uso de musculatura acessória, fala em palavras",
+    "Ausência de melhora após 1 hora de tratamento na UBS",
+    "Crise muito grave: silêncio auscultatório, cianose, confusão mental",
+    "Criança com recusa alimentar, tiragem intensa ou cianose",
+    "Gestante com crise moderada a grave"
+  ],
+
+  "monitoramento": {
+    "avaliacao_controle": "Em toda consulta: frequência de sintomas diurnos e noturnos, uso de resgate, limitação de atividades, exacerbações.",
+    "espirometria": "Anualmente ou a cada mudança de etapa terapêutica.",
+    "tecnica_inalatoria": "Verificar e corrigir em toda consulta.",
+    "fatores_desencadeantes": "Identificar e orientar controle ambiental: ácaros, pelos, fungos, tabagismo passivo.",
+    "retorno": "A cada 1 a 3 meses até controle adequado. Depois a cada 3 a 6 meses."
+  },
+
+  "orientacoes_paciente": [
+    "Usar o inalador diariamente conforme prescrito, mesmo sem sintomas.",
+    "Bochechar com água após usar corticoide inalatório para prevenir candidíase oral.",
+    "Identificar e evitar os fatores que desencadeiam suas crises: poeira, pelos, mofo, cigarro, AINEs.",
+    "Não fumar e evitar ambientes com fumaça.",
+    "Ter sempre o broncodilatador de resgate (salbutamol) disponível.",
+    "Aprender a técnica correta do inalador: demonstrar e praticar na consulta.",
+    "Crianças: usar espaçador com a bombinha.",
+    "Procurar atendimento urgente se: muita falta de ar mesmo após usar o broncodilatador, lábios ou unhas roxos, dificuldade para falar."
+  ],
+
+  "fonte_principal": "PCDT Asma - Portaria Conjunta SAES/SECTICS nº 32, de 22 de dezembro de 2023",
+  "fontes_secundarias": [
+    "RENAME 2024 - Portaria GM/MS nº 6.324/2024",
+    "REMUME SP - Janeiro 2025",
+    "GINA 2024 - Global Initiative for Asthma",
+    "SBPT - Comissão Científica de Asma 2023"
+  ],
+  "ultima_atualizacao": "2026-03"
+}
