@@ -1,0 +1,330 @@
+{
+  "id": "depressao",
+  "nome": "Transtorno depressivo maior",
+  "cid10": ["F32", "F32.0", "F32.1", "F32.2", "F32.3", "F32.8", "F32.9", "F33", "F33.0", "F33.1", "F33.2"],
+  "especialidade": ["clinica_medica", "medicina_familia", "psiquiatria", "psicologia"],
+  "sinonimos": ["depressão", "depressão maior", "episódio depressivo", "TDM", "depressão unipolar"],
+  "descricao": "Transtorno mental caracterizado por humor deprimido persistente e/ou perda de prazer nas atividades, com prejuízo funcional significativo. Prevalência de 15,5% ao longo da vida no Brasil. Primeira causa de incapacidade no mundo. 90 a 95% dos pacientes apresentam remissão com tratamento adequado. Tratamento na APS é indicado e eficaz na maioria dos casos leves e moderados.",
+
+  "perfil_paciente": {
+    "sexo": "ambos",
+    "faixa_etaria": ["adolescente", "adulto", "idoso", "gestante"],
+    "observacoes": "Mais prevalente em mulheres (proporção de 2 para 1). Pico de incidência no final da 3ª década de vida. Em idosos: sintomas atípicos, sobreposição com demência. Em gestantes: fluoxetina é segura; evitar paroxetina. Excluir sempre transtorno bipolar antes de iniciar antidepressivo isolado."
+  },
+
+  "sintomas_chave": [
+    "humor deprimido na maior parte do dia, quase todos os dias",
+    "anedonia: perda de interesse ou prazer em atividades anteriormente prazerosas",
+    "alteração do peso ou apetite (perda ou ganho)",
+    "insônia ou hipersonia",
+    "agitação ou retardo psicomotor",
+    "fadiga ou perda de energia",
+    "sentimentos de inutilidade ou culpa excessiva",
+    "dificuldade de concentração ou de tomar decisões",
+    "pensamentos recorrentes de morte ou ideação suicida"
+  ],
+
+  "criterios_diagnosticos": {
+    "DSM5_resumido": {
+      "criterio_A": "5 ou mais dos 9 sintomas abaixo durante pelo menos 2 semanas. Pelo menos 1 deve ser humor deprimido ou anedonia.",
+      "sintomas": [
+        "1. Humor deprimido na maior parte do dia",
+        "2. Anedonia (perda de interesse ou prazer)",
+        "3. Perda ou ganho de peso significativo ou alteração do apetite",
+        "4. Insônia ou hipersonia",
+        "5. Agitação ou retardo psicomotor observável",
+        "6. Fadiga ou perda de energia",
+        "7. Sentimentos de inutilidade ou culpa excessiva",
+        "8. Dificuldade de concentração ou indecisão",
+        "9. Pensamentos recorrentes de morte ou ideação suicida"
+      ],
+      "criterio_B": "Prejuízo clinicamente significativo no funcionamento social, profissional ou outras áreas",
+      "criterio_C": "Não atribuível a substâncias ou outra condição médica"
+    },
+    "classificacao_gravidade": {
+      "leve": "5 a 6 sintomas, prejuízo funcional leve, sem ideação suicida",
+      "moderada": "6 a 7 sintomas, prejuízo funcional moderado",
+      "grave": "7 a 9 sintomas, prejuízo funcional grave, pode haver ideação suicida ou sintomas psicóticos"
+    },
+    "instrumentos_rastreio": {
+      "PHQ9": "Questionário de 9 itens. Validado para APS. Escore 0-4: mínimo; 5-9: leve; 10-14: moderado; 15-19: moderadamente grave; 20-27: grave.",
+      "PHQ2": "2 primeiras perguntas do PHQ-9 como rastreio rápido. Positivo se escore igual ou acima de 3.",
+      "observacao": "PHQ-9 recomendado pela Linha de Cuidado do MS para APS."
+    },
+    "diagnostico_diferencial": [
+      "Transtorno bipolar: investigar episódios de mania ou hipomania antes de iniciar antidepressivo",
+      "Hipotireoidismo: solicitar TSH em todos os casos",
+      "Anemia: hemograma",
+      "Uso ou abstinência de substâncias",
+      "Depressão secundária a doenças crônicas: dor crônica, câncer, AVC",
+      "Luto normal: não tratar farmacologicamente nas primeiras semanas"
+    ]
+  },
+
+  "perguntas_obrigatorias": [
+    "Há humor deprimido ou anedonia na maior parte dos dias por pelo menos 2 semanas?",
+    "Há pensamentos de morte, autolesão ou suicídio? (Avaliação de risco obrigatória)",
+    "Houve algum episódio de euforia, grandiosidade ou comportamento impulsivo? (Excluir bipolar)",
+    "Há uso de álcool, drogas ou medicamentos que possam causar depressão?",
+    "A paciente está gestante ou planeja engravidar?",
+    "Há comorbidades: hipotireoidismo, doenças crônicas, dor crônica?",
+    "Há histórico familiar de transtorno bipolar ou suicídio?"
+  ],
+
+  "avaliacao_risco_suicidio": {
+    "obrigatoria": true,
+    "perguntas_basicas": [
+      "Você tem pensamentos de se machucar ou de suicídio?",
+      "Você tem um plano de como faria isso?",
+      "Você já tentou suicídio antes?"
+    ],
+    "risco_iminente": "Plano definido, tentativa recente, agitação intensa, acesso a meios letais: encaminhar imediatamente para emergência psiquiátrica. Não deixar o paciente sozinho.",
+    "alerta": "Nunca prescrever antidepressivos tricíclicos em quantidades grandes para pacientes com risco de suicídio. Dispensar doses menores com supervisão de familiar."
+  },
+
+  "tratamento": {
+    "nao_farmacologico": {
+      "descricao": "Obrigatório em todos os casos. Suficiente isoladamente em casos leves.",
+      "medidas": [
+        "Psicoterapia: TCC (terapia cognitivo-comportamental) é a mais estudada. Indicada em todos os casos.",
+        "Atividade física regular: eficácia comprovada em depressão leve a moderada",
+        "Higiene do sono: rotina regular, evitar telas antes de dormir",
+        "Suporte social e familiar",
+        "Redução de estressores identificáveis",
+        "Psicoeducação: explicar a doença, evolução e importância da adesão"
+      ],
+      "depressao_leve": "Iniciar com intervenções não farmacológicas por 4 a 8 semanas antes de medicação, se disponível suporte psicossocial e sem risco de suicídio."
+    },
+    "farmacologico": {
+      "indicacoes": [
+        "Depressão moderada a grave: iniciar medicação junto com suporte psicossocial",
+        "Depressão leve sem resposta a intervenções não farmacológicas em 4 a 8 semanas",
+        "Depressão com risco de suicídio",
+        "Episódio depressivo recorrente"
+      ],
+      "primeira_linha_sus": {
+        "medicamento": "Fluoxetina",
+        "classe_terapeutica": "Inibidor seletivo de recaptação de serotonina (ISRS)",
+        "apresentacao": "Cápsula ou comprimido 20 mg",
+        "dose_adulto": "Início: 20 mg 1 vez ao dia. Após 4 semanas sem resposta adequada: aumentar para 40 mg/dia. Dose máxima: 80 mg/dia.",
+        "dose_idoso": "Início com 10 mg/dia. Aumentar lentamente. Dose máxima usual: 40 mg/dia.",
+        "dose_adolescente": "10 a 20 mg/dia. Máximo 60 mg/dia.",
+        "dose_gestante": "20 a 40 mg/dia. Segura na gestação. Preferida entre os ISRS pela maior evidência de segurança. Evitar paroxetina.",
+        "posologia": "Via oral, 1 vez ao dia, preferencialmente pela manhã",
+        "duracao": "Mínimo 6 meses após remissão dos sintomas. Primeiro episódio: 6 a 12 meses. Episódios recorrentes: 2 anos ou indefinido.",
+        "sus_rename_2024": true,
+        "sus_remume_sp": true,
+        "disponibilidade_sp": "UBS (medicamento controlado: exige receita especial notificação B2)",
+        "justificativa": "Único ISRS na RENAME 2024. Boa tolerabilidade, segurança e eficácia comprovada. Primeira linha do MS para APS.",
+        "alerta": "Efeito terapêutico pleno leva 4 a 6 semanas. Não suspender antes desse prazo por ausência de resposta inicial.",
+        "fonte": "Linha de Cuidado MS Depressão; RENAME 2024; REMUME SP 2025"
+      },
+      "alternativa_sertralina": {
+        "medicamento": "Sertralina",
+        "classe_terapeutica": "ISRS",
+        "apresentacao": "Comprimido 50 mg",
+        "dose_adulto": "Início: 50 mg/dia. Dose terapêutica: 50 a 200 mg/dia. Aumentar 50 mg a cada 1 a 2 semanas conforme resposta.",
+        "dose_idoso": "Início com 25 mg/dia. Aumentar lentamente.",
+        "dose_gestante": "50 a 200 mg/dia. Boa opção pela meia-vida curta. Evidências de segurança robustas.",
+        "posologia": "Via oral, 1 vez ao dia, com ou sem alimentos",
+        "duracao": "Mínimo 6 meses após remissão",
+        "sus_rename_2024": false,
+        "sus_remume_sp": false,
+        "disponibilidade_sp": "Farmácia popular ou privada. Não disponível rotineiramente na UBS.",
+        "indicacao": "Alternativa à fluoxetina com perfil de menor interação medicamentosa. Opção preferida em pacientes com múltiplos medicamentos ou doenças crônicas.",
+        "justificativa": "Evidências de superioridade sobre fluoxetina na taxa de resposta segundo revisão CONITEC 2023. Menor potencial de interações. Não disponível no SUS básico mas amplamente usada.",
+        "fonte": "CONITEC Revisão ISRS 2023; SMS-RJ 2023; Linha de Cuidado MS"
+      },
+      "tricíclico_alternativa": {
+        "medicamento": "Amitriptilina",
+        "classe_terapeutica": "Antidepressivo tricíclico (ADT)",
+        "apresentacao": "Comprimido 25 mg",
+        "dose_adulto": "Início: 25 mg ao deitar. Dose terapêutica: 75 a 150 mg/dia. Máximo 300 mg/dia.",
+        "dose_idoso": "Início com 10 a 25 mg ao deitar. Aumentar muito lentamente. Dose máxima 100 mg/dia.",
+        "dose_gestante": "Usar com cautela. Dados de segurança limitados. Preferir ISRS.",
+        "posologia": "Via oral, 1 a 3 vezes ao dia. Dose maior ao deitar pela sedação.",
+        "duracao": "Mínimo 6 meses após remissão",
+        "sus_rename_2024": true,
+        "sus_remume_sp": true,
+        "disponibilidade_sp": "UBS (medicamento controlado: receita especial notificação B2)",
+        "indicacao": "Alternativa quando ISRS contraindicado ou intolerável. Útil quando há insônia associada ou dor crônica comórbida.",
+        "alertas_importantes": [
+          "Alto risco de toxicidade em overdose: nunca prescrever grandes quantidades para pacientes com risco de suicídio",
+          "Efeitos anticolinérgicos: boca seca, constipação, retenção urinária, confusão em idosos",
+          "Risco cardiovascular: prolongamento do QT, arritmia. Evitar em cardiopatas",
+          "Sedação intensa: orientar não dirigir nas primeiras semanas"
+        ],
+        "fonte": "RENAME 2024; Linha de Cuidado MS"
+      }
+    },
+    "principios_prescricao": [
+      "Iniciar sempre com dose baixa e aumentar gradualmente",
+      "Informar ao paciente que o efeito terapêutico demora 4 a 6 semanas",
+      "Não suspender abruptamente: reduzir dose gradualmente em 4 a 8 semanas para evitar síndrome de descontinuação",
+      "Manter o tratamento por pelo menos 6 meses após remissão completa",
+      "Trocar de ISRS se ausência de resposta após 4 a 8 semanas em dose terapêutica adequada",
+      "Controlar a dispensação de tricíclicos em pacientes com risco de suicídio"
+    ],
+    "gestante": {
+      "principio": "Depressão grave não tratada na gestação representa risco maior que o tratamento farmacológico.",
+      "primeira_linha": "Fluoxetina 20 a 40 mg/dia. Segura na gestação.",
+      "alternativa": "Sertralina 50 a 200 mg/dia. Boa opção pela meia-vida curta.",
+      "evitar": "Paroxetina (pequeno aumento de malformações cardíacas). Tricíclicos em altas doses.",
+      "psicoterapia": "TCC deve ser sempre associada.",
+      "fonte": "Linha de Cuidado MS Depressão; SMS-RJ 2023"
+    },
+    "idoso": {
+      "principio": "Iniciar com metade da dose do adulto jovem e aumentar mais lentamente.",
+      "preferir": "Fluoxetina ou sertralina. Menor risco de efeitos anticolinérgicos em relação aos tricíclicos.",
+      "evitar": "Amitriptilina em idosos: alto risco de confusão, quedas e retenção urinária (Lista de Beers).",
+      "atencao": "Verificar interações com polifarmácia. Rastrear comprometimento cognitivo associado."
+    }
+  },
+
+  "interacoes_medicamentosas": [
+    {
+      "medicamento_a": "Fluoxetina ou paroxetina",
+      "medicamento_b": "Tramadol, triptanos, lítio, outros ISRS ou IRSN",
+      "gravidade": "grave",
+      "mecanismo": "Síndrome serotoninérgica: hipertermia, agitação, tremor, diarreia, rigidez muscular",
+      "conduta": "Evitar associação. Se necessário, monitorar rigorosamente. Síndrome serotoninérgica é emergência médica."
+    },
+    {
+      "medicamento_a": "Fluoxetina",
+      "medicamento_b": "Varfarina, AAS, AINEs",
+      "gravidade": "moderada",
+      "mecanismo": "ISRS inibem agregação plaquetária. Risco aumentado de sangramento gastrointestinal",
+      "conduta": "Monitorar INR com varfarina. Associar protetor gástrico (omeprazol) se uso concomitante com AINE ou AAS."
+    },
+    {
+      "medicamento_a": "Fluoxetina ou paroxetina",
+      "medicamento_b": "Tamoxifeno",
+      "gravidade": "grave",
+      "mecanismo": "Fluoxetina e paroxetina inibem CYP2D6 reduzindo conversão do tamoxifeno em seu metabólito ativo",
+      "conduta": "Evitar associação em pacientes com câncer de mama em uso de tamoxifeno. Preferir sertralina ou venlafaxina."
+    },
+    {
+      "medicamento_a": "Amitriptilina",
+      "medicamento_b": "Antiarrítmicos, outros QT prolongadores",
+      "gravidade": "grave",
+      "mecanismo": "Risco aditivo de prolongamento do intervalo QT e arritmias graves",
+      "conduta": "Evitar associação. ECG basal antes de iniciar amitriptilina em pacientes com cardiopatia."
+    },
+    {
+      "medicamento_a": "Qualquer antidepressivo",
+      "medicamento_b": "IMAO (selegilina, moclobemida)",
+      "gravidade": "grave",
+      "mecanismo": "Síndrome serotoninérgica grave com risco de morte",
+      "conduta": "Intervalo mínimo de 14 dias entre IMAO e qualquer antidepressivo. Para fluoxetina: 5 semanas de intervalo pela meia-vida longa."
+    }
+  ],
+
+  "efeitos_adversos": [
+    {
+      "efeito": "Náusea, diarreia, cefaleia nas primeiras semanas",
+      "medicamento": "Fluoxetina, sertralina (ISRS)",
+      "frequencia": "comum no início",
+      "gravidade": "leve",
+      "conduta": "Tomar com alimento. Geralmente resolve em 1 a 2 semanas. Persistindo, reduzir dose temporariamente."
+    },
+    {
+      "efeito": "Disfunção sexual (redução da libido, anorgasmia, disfunção erétil)",
+      "medicamento": "ISRS em geral",
+      "frequencia": "comum (20 a 40%)",
+      "gravidade": "moderada",
+      "conduta": "Discutir com o paciente. Considerar redução de dose, troca para bupropiona ou adição de bupropiona. Não suspender antidepressivo sem orientação."
+    },
+    {
+      "efeito": "Insônia ou agitação",
+      "medicamento": "Fluoxetina",
+      "frequencia": "comum",
+      "gravidade": "leve a moderada",
+      "conduta": "Tomar pela manhã. Reduzir dose se necessário. Pode melhorar com o tempo."
+    },
+    {
+      "efeito": "Síndrome de descontinuação: tontura, náusea, parestesias, irritabilidade",
+      "medicamento": "Todos os antidepressivos, especialmente paroxetina",
+      "frequencia": "comum quando interrompido abruptamente",
+      "gravidade": "moderada",
+      "conduta": "Nunca suspender abruptamente. Reduzir dose gradualmente em 4 a 8 semanas. Fluoxetina tem menor risco pela meia-vida longa."
+    },
+    {
+      "efeito": "Boca seca, constipação, sedação, retenção urinária, confusão",
+      "medicamento": "Amitriptilina (efeitos anticolinérgicos)",
+      "frequencia": "muito comum",
+      "gravidade": "leve a moderada, grave em idosos",
+      "conduta": "Iniciar com dose baixa. Evitar em idosos. Orientar hidratação e cuidados com direção."
+    },
+    {
+      "efeito": "Ativação suicida nas primeiras semanas",
+      "medicamento": "Todos os antidepressivos, especialmente em jovens",
+      "frequencia": "raro mas importante",
+      "gravidade": "grave",
+      "conduta": "Alertar paciente e família sobre possível piora inicial e agitação nas primeiras 2 semanas. Agendar retorno precoce em 1 a 2 semanas após início."
+    }
+  ],
+
+  "alertas_clinicos": [
+    "RISCO DE SUICÍDIO: avaliar em toda consulta. Risco iminente: encaminhar emergência psiquiátrica imediatamente.",
+    "Excluir TRANSTORNO BIPOLAR antes de prescrever antidepressivo isolado: perguntar sobre episódios de euforia, impulsividade ou grandiosidade. Antidepressivo isolado no bipolar pode precipitar mania.",
+    "Solicitar TSH em todo paciente com depressão para excluir hipotireoidismo.",
+    "Antidepressivos NÃO funcionam imediatamente: efeito em 4 a 6 semanas. Orientar o paciente para não suspender por falta de resposta inicial.",
+    "NUNCA suspender antidepressivo abruptamente: síndrome de descontinuação. Reduzir gradualmente.",
+    "Amitriptilina em idosos: contraindicada pela Lista de Beers pelo risco de quedas, confusão e retenção urinária.",
+    "Fluoxetina inibe CYP2D6: verificar interações com outros medicamentos, especialmente tamoxifeno e codeinados.",
+    "Ativação suicida nas primeiras 2 semanas: agendar retorno precoce após início da medicação, especialmente em jovens.",
+    "Receita especial (notificação B2) obrigatória para todos os antidepressivos no Brasil."
+  ],
+
+  "criterios_encaminhamento": [
+    "Depressão grave com risco de suicídio: encaminhar para psiquiatria ou CAPS",
+    "Suspeita de transtorno bipolar: psiquiatria antes de iniciar antidepressivo",
+    "Ausência de resposta após 2 tentativas com antidepressivos diferentes em doses e tempo adequados",
+    "Depressão com sintomas psicóticos",
+    "Depressão pós-parto grave",
+    "Depressão em crianças abaixo de 12 anos: sempre psiquiatria infantil"
+  ],
+
+  "criterios_internacao": [
+    "Risco iminente de suicídio com plano definido",
+    "Tentativa de suicídio recente",
+    "Depressão grave com recusa alimentar e desnutrição",
+    "Depressão com sintomas psicóticos graves"
+  ],
+
+  "monitoramento": {
+    "retorno_inicial": "1 a 2 semanas após início da medicação para avaliar tolerabilidade e risco de suicídio",
+    "avaliacao_resposta": "4 a 6 semanas: avaliar resposta terapêutica com PHQ-9. Se resposta parcial: aumentar dose. Se ausência de resposta: considerar troca.",
+    "remissao": "PHQ-9 abaixo de 5 por pelo menos 2 semanas consecutivas",
+    "manutencao": "A cada 1 a 3 meses no primeiro ano. Depois a cada 6 meses se estável.",
+    "duracao_total": "Primeiro episódio: manter 6 a 12 meses após remissão. Dois ou mais episódios: 2 anos ou indefinido.",
+    "suspensao": "Reduzir dose em 25% a cada 2 a 4 semanas. Monitorar sintomas de recaída."
+  },
+
+  "orientacoes_paciente": [
+    "A depressão é uma doença, não fraqueza de caráter. Tem tratamento eficaz.",
+    "O medicamento demora 4 a 6 semanas para fazer efeito completo. Não desista antes.",
+    "Não suspender o medicamento sem orientação médica, mesmo sentindo-se melhor.",
+    "Praticar atividade física regular ajuda muito no tratamento.",
+    "Manter rotina de sono regular: dormir e acordar nos mesmos horários.",
+    "Se tiver pensamentos de se machucar, procurar ajuda imediatamente: CVV 188 (24h) ou emergência.",
+    "Evitar álcool durante o tratamento: piora a depressão e interage com medicamentos.",
+    "Retornar na consulta agendada mesmo que esteja se sentindo bem."
+  ],
+
+  "recursos_crise": {
+    "CVV": "Centro de Valorização da Vida: ligue 188 (24 horas, gratuito)",
+    "SAMU": "192",
+    "CAPS": "Centro de Atenção Psicossocial: referência para saúde mental no SUS"
+  },
+
+  "fonte_principal": "Linha de Cuidado para Atenção às Pessoas com Depressão - Ministério da Saúde 2023",
+  "fontes_secundarias": [
+    "RENAME 2024 - Portaria GM/MS nº 6.324/2024",
+    "REMUME SP - Janeiro 2025",
+    "Protocolo SMS-RJ Depressão 2023",
+    "CONITEC - Revisão ISRS para TDM 2023",
+    "OMS - Mental Health Gap Action Programme (mhGAP) 2023"
+  ],
+  "ultima_atualizacao": "2026-03"
+}
