@@ -1,0 +1,329 @@
+{
+  "id": "transtorno_ansiedade",
+  "nome": "Transtornos de ansiedade",
+  "cid10": [
+    "F41.1", "F41.0", "F40.1", "F40.0", "F41.2", "F41.8", "F41.9",
+    "F43.1", "F42"
+  ],
+  "especialidade": ["clinica_medica", "medicina_familia", "psiquiatria", "psicologia"],
+  "sinonimos": [
+    "TAG", "transtorno de ansiedade generalizada",
+    "transtorno do pânico", "fobia social",
+    "transtorno de ansiedade social", "TEPT",
+    "TOC", "ansiedade crônica"
+  ],
+  "descricao": "Grupo de transtornos mentais caracterizados por ansiedade e medo excessivos, com prejuízo funcional significativo. O transtorno de ansiedade generalizada (TAG) é o mais comum na APS, estando entre os dez motivos mais frequentes de consulta. Prevalência de aproximadamente 3% ao ano na população geral, duas vezes mais comum em mulheres.",
+
+  "tipos_cobertos": {
+    "TAG": "Ansiedade e preocupação excessivas sobre múltiplos temas por pelo menos 6 meses",
+    "transtorno_panico": "Ataques de pânico recorrentes e inesperados com preocupação persistente sobre novos ataques",
+    "fobia_social": "Medo intenso de situações sociais com exposição ao julgamento alheio",
+    "TEPT": "Sintomas após exposição a evento traumático: revivência, esquiva, hipervigilância"
+  },
+
+  "perfil_paciente": {
+    "sexo": "ambos",
+    "faixa_etaria": ["adolescente", "adulto", "idoso", "gestante"],
+    "observacoes": "Duas vezes mais prevalente em mulheres. Início geralmente na idade adulta jovem mas pode ocorrer em qualquer faixa etária. Frequentemente comórbido com depressão (50 a 60% dos casos). Em idosos: manifestações atípicas, sobreposição com queixas somáticas. Benzodiazepínicos: evitar uso prolongado em qualquer faixa etária."
+  },
+
+  "sintomas_chave": {
+    "TAG": [
+      "preocupação excessiva e difícil de controlar sobre múltiplos assuntos",
+      "tensão muscular",
+      "inquietação ou sensação de estar no limite",
+      "fadiga fácil",
+      "dificuldade de concentração",
+      "irritabilidade",
+      "alteração do sono (insônia ou sono não reparador)"
+    ],
+    "panico": [
+      "palpitações ou taquicardia",
+      "sudorese",
+      "tremores",
+      "falta de ar ou sensação de sufocamento",
+      "dor ou desconforto torácico",
+      "tontura ou desmaio",
+      "parestesias",
+      "medo de morrer ou de perder o controle",
+      "início abrupto atingindo pico em minutos"
+    ],
+    "somaticos_frequentes_aps": [
+      "cefaleia tensional",
+      "dor epigástrica",
+      "palpitações sem causa cardíaca",
+      "dispneia funcional",
+      "fadiga crônica"
+    ]
+  },
+
+  "criterios_diagnosticos": {
+    "TAG_DSM5": {
+      "criterio_A": "Ansiedade e preocupação excessivas na maioria dos dias por pelo menos 6 meses sobre vários eventos ou atividades",
+      "criterio_B": "Dificuldade de controlar a preocupação",
+      "criterio_C": "3 ou mais dos 6 sintomas (pelo menos 1 em crianças): inquietação, fadiga, dificuldade de concentração, irritabilidade, tensão muscular, alteração do sono",
+      "criterio_D": "Prejuízo clinicamente significativo no funcionamento"
+    },
+    "transtorno_panico_DSM5": {
+      "criterio_A": "Ataques de pânico recorrentes e inesperados com 4 ou mais sintomas somáticos ou cognitivos",
+      "criterio_B": "Pelo menos 1 mês de preocupação persistente sobre novos ataques ou mudança significativa de comportamento"
+    },
+    "instrumentos": {
+      "GAD7": "Escala de 7 itens para TAG. Escore 0-4: mínimo; 5-9: leve; 10-14: moderado; 15-21: grave.",
+      "GAD2": "2 primeiras perguntas do GAD-7 como rastreio rápido.",
+      "observacao": "GAD-7 recomendado para rastreio e monitoramento na APS."
+    },
+    "diagnostico_diferencial": [
+      "Hipertireoidismo: solicitar TSH",
+      "Arritmia cardíaca: ECG se palpitações",
+      "Feocromocitoma: se episódios paroxísticos com hipertensão",
+      "Depressão maior comórbida: frequente, tratar ambas",
+      "Transtorno bipolar: excluir antes de iniciar medicação",
+      "Uso ou abstinência de substâncias: álcool, cafeína, estimulantes",
+      "Efeito adverso de medicamentos: broncodilatadores, corticoides, descongestionantes"
+    ]
+  },
+
+  "perguntas_obrigatorias": [
+    "Há preocupação excessiva e difícil de controlar na maioria dos dias há pelo menos 6 meses?",
+    "Os sintomas causam prejuízo no trabalho, relacionamentos ou atividades diárias?",
+    "Há ataques de pânico: episódios abruptos de medo intenso com sintomas físicos?",
+    "Há sintomas de depressão associados? (Excluir ou tratar comorbidade)",
+    "Houve episódios de euforia ou comportamento impulsivo? (Excluir bipolar)",
+    "Há uso de álcool, cafeína excessiva, estimulantes ou outras substâncias?",
+    "A paciente está gestante?",
+    "Há uso atual de benzodiazepínico? Por quanto tempo?"
+  ],
+
+  "tratamento": {
+    "nao_farmacologico": {
+      "descricao": "Primeira linha para TAG leve a moderado. Deve sempre acompanhar o tratamento farmacológico.",
+      "medidas": [
+        "Psicoterapia: TCC é a mais eficaz e indicada para todos os tipos de transtorno de ansiedade",
+        "Técnicas de relaxamento: respiração diafragmática, relaxamento muscular progressivo",
+        "Atividade física regular: eficácia comprovada na ansiedade",
+        "Mindfulness e meditação",
+        "Redução de cafeína e álcool",
+        "Higiene do sono",
+        "Psicoeducação: explicar o transtorno e o tratamento"
+      ]
+    },
+    "farmacologico": {
+      "principio": "ISRS e IRSN são a primeira linha farmacológica para todos os transtornos de ansiedade. Benzodiazepínicos apenas para uso pontual e de curta duração.",
+      "primeira_linha_sus": {
+        "medicamento": "Fluoxetina",
+        "classe_terapeutica": "ISRS",
+        "apresentacao": "Cápsula ou comprimido 20 mg",
+        "dose_adulto": "Início: 10 a 20 mg/dia. Dose terapêutica: 20 a 60 mg/dia.",
+        "dose_idoso": "Início com 10 mg/dia. Aumentar lentamente.",
+        "dose_gestante": "20 mg/dia. Segura na gestação.",
+        "posologia": "Via oral, 1 vez ao dia, pela manhã",
+        "duracao": "Mínimo 12 meses. Transtornos de ansiedade tendem a recorrer.",
+        "sus_rename_2024": true,
+        "sus_remume_sp": true,
+        "disponibilidade_sp": "UBS (receita especial notificação B2)",
+        "alerta": "Nas primeiras 1 a 2 semanas pode ocorrer piora inicial da ansiedade. Iniciar com dose baixa. Informar o paciente.",
+        "justificativa": "Único ISRS na RENAME 2024. Eficácia comprovada em TAG, transtorno do pânico e fobia social.",
+        "fonte": "Linha de Cuidado MS; RENAME 2024; REMUME SP 2025"
+      },
+      "alternativa_sertralina": {
+        "medicamento": "Sertralina",
+        "classe_terapeutica": "ISRS",
+        "apresentacao": "Comprimido 50 mg",
+        "dose_adulto": "Início: 25 a 50 mg/dia. Dose terapêutica: 50 a 200 mg/dia.",
+        "dose_idoso": "Início com 25 mg/dia.",
+        "dose_gestante": "50 a 200 mg/dia. Boa opção pela meia-vida curta e perfil de segurança.",
+        "posologia": "Via oral, 1 vez ao dia, com ou sem alimentos",
+        "duracao": "Mínimo 12 meses",
+        "sus_rename_2024": false,
+        "sus_remume_sp": false,
+        "disponibilidade_sp": "Farmácia popular ou privada. Não disponível rotineiramente na UBS.",
+        "indicacao": "Alternativa preferida pela menor interação medicamentosa. Evidências consistentes em TAG, pânico e TEPT. Opção quando fluoxetina causa agitação ou insônia intolerável.",
+        "justificativa": "Evidências consistentes de eficácia em TAG (CCATES BVS). Menor potencial de interações que fluoxetina.",
+        "fonte": "CCATES BVS; NatJus TJDFT 2024; MSD Manuals 2023; Protocolo MT"
+      },
+      "inicio_tratamento": {
+        "regra": "Iniciar com metade da dose usual nas primeiras 1 a 2 semanas para minimizar piora inicial da ansiedade",
+        "fluoxetina": "Começar com 10 mg/dia por 1 a 2 semanas, depois aumentar para 20 mg/dia",
+        "sertralina": "Começar com 25 mg/dia por 1 a 2 semanas, depois aumentar para 50 mg/dia",
+        "observacao": "Efeito ansiolítico pleno leva 4 a 6 semanas. Informar o paciente."
+      }
+    },
+    "benzodiazepinicos": {
+      "posicao": "NÃO são primeira linha. Uso apenas pontual e curta duração.",
+      "indicacoes_limitadas": [
+        "Alívio imediato em crise aguda de pânico enquanto ISRS não faz efeito",
+        "Procedimentos ou situações específicas de alto estresse",
+        "Início do tratamento com ISRS para tolerar a piora inicial (máximo 2 a 4 semanas)"
+      ],
+      "clonazepam": {
+        "medicamento": "Clonazepam",
+        "apresentacao": "Comprimido 0,5 mg ou 2 mg",
+        "dose_adulto": "0,5 a 2 mg ao dia em 1 a 2 tomadas",
+        "duracao_maxima": "2 a 4 semanas. Uso prolongado causa dependência física.",
+        "sus_rename_2024": true,
+        "sus_remume_sp": true,
+        "disponibilidade_sp": "UBS (receita especial notificação B2)",
+        "alertas": [
+          "Risco de dependência física com uso prolongado",
+          "Sedação: não dirigir ou operar máquinas",
+          "Potencializa álcool e outros depressores do SNC",
+          "Em idosos: risco aumentado de quedas, confusão e dependência",
+          "Síndrome de abstinência ao suspender abruptamente: reduzir gradualmente"
+        ]
+      },
+      "diazepam": {
+        "medicamento": "Diazepam",
+        "dose_adulto": "2 a 10 mg 2 a 4 vezes ao dia conforme necessidade",
+        "sus_rename_2024": true,
+        "sus_remume_sp": true,
+        "disponibilidade_sp": "UBS (receita especial notificação B2)",
+        "observacao": "Meia-vida longa. Evitar em idosos pelo acúmulo e risco de quedas."
+      },
+      "regra_geral": "Nunca manter benzodiazepínico por mais de 4 a 8 semanas sem reavaliação criteriosa. Planejar desmame desde o início da prescrição."
+    },
+    "transtorno_panico_especifico": {
+      "primeira_linha": "ISRS (fluoxetina 20 a 40 mg/dia ou sertralina 50 a 200 mg/dia) por pelo menos 12 meses.",
+      "inicio": "Começar com dose baixa: fluoxetina 10 mg ou sertralina 25 mg. ISRS pode piorar o pânico nas primeiras semanas.",
+      "benzodiazepínico_transicional": "Clonazepam 0,5 a 1 mg pode ser usado nas primeiras 2 a 4 semanas até o ISRS fazer efeito.",
+      "tcc": "Psicoterapia com técnicas de exposição é altamente eficaz no transtorno do pânico."
+    },
+    "gestante": {
+      "principio": "Ansiedade grave não tratada na gestação representa risco para a mãe e o feto.",
+      "preferir": "TCC como primeira abordagem. Se farmacológico necessário: fluoxetina ou sertralina.",
+      "evitar": "Benzodiazepínicos no 1º trimestre (risco de malformações) e próximo ao parto (síndrome de abstinência neonatal). Se imprescindível, usar a menor dose pelo menor tempo.",
+      "paroxetina": "Evitar pela possibilidade de malformações cardíacas."
+    },
+    "idoso": {
+      "preferir": "Sertralina ou fluoxetina em doses menores.",
+      "evitar_benzo": "Benzodiazepínicos contraindicados em idosos pela Lista de Beers: risco de quedas, confusão e dependência.",
+      "atencao": "Verificar interações com polifarmácia. Iniciar com doses menores."
+    }
+  },
+
+  "interacoes_medicamentosas": [
+    {
+      "medicamento_a": "Fluoxetina ou sertralina",
+      "medicamento_b": "Tramadol, triptanos, lítio",
+      "gravidade": "grave",
+      "mecanismo": "Síndrome serotoninérgica: hipertermia, agitação, tremor, rigidez, diarreia",
+      "conduta": "Evitar associação. Síndrome serotoninérgica é emergência médica."
+    },
+    {
+      "medicamento_a": "Benzodiazepínico",
+      "medicamento_b": "Álcool, opioides, outros depressores do SNC",
+      "gravidade": "grave",
+      "mecanismo": "Depressão aditiva do SNC com risco de depressão respiratória",
+      "conduta": "Proibir álcool. Evitar associação com opioides. Monitorar sedação."
+    },
+    {
+      "medicamento_a": "Fluoxetina",
+      "medicamento_b": "Tamoxifeno",
+      "gravidade": "grave",
+      "mecanismo": "Fluoxetina inibe CYP2D6 reduzindo eficácia do tamoxifeno",
+      "conduta": "Preferir sertralina em pacientes com câncer de mama em uso de tamoxifeno."
+    },
+    {
+      "medicamento_a": "ISRS",
+      "medicamento_b": "AINEs, AAS, anticoagulantes",
+      "gravidade": "moderada",
+      "mecanismo": "Inibição da agregação plaquetária com risco aumentado de sangramento",
+      "conduta": "Associar protetor gástrico (omeprazol) se uso concomitante com AINE. Monitorar INR com varfarina."
+    }
+  ],
+
+  "efeitos_adversos": [
+    {
+      "efeito": "Piora inicial da ansiedade e agitação nas primeiras 1 a 2 semanas",
+      "medicamento": "ISRS",
+      "frequencia": "comum no início",
+      "gravidade": "leve a moderada",
+      "conduta": "Iniciar com dose baixa. Informar o paciente. Geralmente resolve em 2 semanas. Não suspender sem orientação."
+    },
+    {
+      "efeito": "Náusea, cefaleia nas primeiras semanas",
+      "medicamento": "ISRS",
+      "frequencia": "comum",
+      "gravidade": "leve",
+      "conduta": "Tomar com alimento. Geralmente autolimitado em 1 a 2 semanas."
+    },
+    {
+      "efeito": "Disfunção sexual",
+      "medicamento": "ISRS",
+      "frequencia": "comum (20 a 40%)",
+      "gravidade": "moderada",
+      "conduta": "Discutir com o paciente. Considerar redução de dose ou troca."
+    },
+    {
+      "efeito": "Sedação, tontura, comprometimento de memória, quedas",
+      "medicamento": "Benzodiazepínicos",
+      "frequencia": "muito comum",
+      "gravidade": "moderada a grave em idosos",
+      "conduta": "Orientar não dirigir. Evitar em idosos. Uso pelo menor tempo possível."
+    },
+    {
+      "efeito": "Dependência física e síndrome de abstinência",
+      "medicamento": "Benzodiazepínicos",
+      "frequencia": "comum com uso acima de 4 semanas",
+      "gravidade": "grave",
+      "conduta": "Reduzir dose gradualmente (10 a 25% por semana). Nunca suspender abruptamente."
+    }
+  ],
+
+  "alertas_clinicos": [
+    "ISRS pode PIORAR a ansiedade nas primeiras 1 a 2 semanas. Iniciar com dose baixa e informar o paciente para não suspender.",
+    "Benzodiazepínicos NÃO são primeira linha. Usar apenas pontualmente, pelo menor tempo possível. Risco de dependência.",
+    "Excluir hipertireoidismo (TSH), arritmia (ECG) e uso de substâncias antes de iniciar tratamento.",
+    "Excluir transtorno BIPOLAR: antidepressivo isolado no bipolar pode precipitar mania.",
+    "Depressão comórbida é frequente (50 a 60%): ISRS trata ambos.",
+    "Benzodiazepínicos em idosos: contraindicados pela Lista de Beers pelo risco de quedas e confusão.",
+    "Síndrome de abstinência de benzodiazepínicos pode ser grave: nunca suspender abruptamente.",
+    "Receita especial (notificação B2) obrigatória para ISRS e benzodiazepínicos no Brasil.",
+    "Em gestantes: evitar benzodiazepínicos especialmente no 1º trimestre e próximo ao parto."
+  ],
+
+  "criterios_encaminhamento": [
+    "Ausência de resposta após 2 tentativas com ISRS diferentes em doses e tempo adequados",
+    "Suspeita de transtorno bipolar comórbido",
+    "Transtorno de ansiedade grave com prejuízo funcional acentuado",
+    "Dependência de benzodiazepínico estabelecida: encaminhar para CAPS ou psiquiatria",
+    "TEPT grave: psiquiatria ou psicologia especializada em trauma",
+    "TOC refratário: psiquiatria"
+  ],
+
+  "criterios_internacao": [
+    "Crise de pânico com suspeita de evento cardíaco ou neurológico (excluir antes de tratar como pânico)",
+    "Risco de suicídio associado a ansiedade grave",
+    "Abstinência grave de benzodiazepínico com convulsões ou delirium"
+  ],
+
+  "monitoramento": {
+    "retorno_inicial": "1 a 2 semanas após início para avaliar tolerabilidade e piora inicial",
+    "avaliacao_resposta": "4 a 6 semanas: avaliar com GAD-7. Resposta parcial: aumentar dose. Sem resposta: trocar ou encaminhar.",
+    "duracao_tratamento": "Mínimo 12 meses após resposta. Transtornos de ansiedade têm alta taxa de recorrência ao suspender.",
+    "suspensao": "Reduzir dose de ISRS gradualmente em 4 a 8 semanas para evitar síndrome de descontinuação.",
+    "retorno_padrao": "A cada 1 a 2 meses no primeiro ano. Depois a cada 3 a 6 meses se estável."
+  },
+
+  "orientacoes_paciente": [
+    "O medicamento demora 4 a 6 semanas para fazer efeito completo. Não desista antes.",
+    "Nas primeiras 1 a 2 semanas pode sentir mais ansiedade ou agitação: é esperado e passa.",
+    "Não suspender o medicamento sem orientação médica mesmo sentindo-se bem.",
+    "A psicoterapia (TCC) junto com o medicamento dá melhores resultados.",
+    "Reduzir cafeína (café, energéticos, refrigerantes) pode ajudar muito.",
+    "Atividade física regular é comprovadamente eficaz na ansiedade.",
+    "Técnicas de respiração profunda ajudam a controlar crises de ansiedade.",
+    "Se usar benzodiazepínico: não combinar com álcool e não dirigir. Usar pelo menor tempo possível.",
+    "CVV: ligue 188 (24 horas, gratuito) se sentir necessidade."
+  ],
+
+  "fonte_principal": "Linha de Cuidado para Atenção às Pessoas com Depressão e Ansiedade - Ministério da Saúde 2023; MSD Manuals TAG 2023",
+  "fontes_secundarias": [
+    "RENAME 2024 - Portaria GM/MS nº 6.324/2024",
+    "REMUME SP - Janeiro 2025",
+    "CCATES BVS - Transtornos de Ansiedade II: eficácia de sertralina, citalopram e venlafaxina no TAG",
+    "Protocolo de Dispensação de Sertralina para Ansiedade e Depressão - SES-MT",
+    "DSM-5-TR 2022"
+  ],
+  "ultima_atualizacao": "2026-03"
+}
