@@ -1,0 +1,343 @@
+{
+  "id": "parasitoses_intestinais",
+  "nome": "Parasitoses intestinais",
+  "cid10": [
+    "B77", "B77.0", "B77.9",
+    "B76", "B76.0", "B76.1",
+    "B80",
+    "B79",
+    "A07.1",
+    "A06", "A06.0", "A06.9",
+    "B78", "B78.0", "B78.9"
+  ],
+  "especialidade": ["clinica_medica", "medicina_familia", "pediatria", "infectologia"],
+  "sinonimos": [
+    "verminose", "helmintíase", "enteroparasitose", "lombriga", "oxiúros",
+    "giardíase", "amebíase", "ancilostomíase", "estrongiloidíase", "ascaridíase"
+  ],
+  "descricao": "Infecções intestinais causadas por helmintos (vermes) ou protozoários. Altamente prevalentes na APS brasileira, especialmente em crianças e populações com saneamento precário. Podem causar diarreia, dor abdominal, desnutrição, anemia e retardo do desenvolvimento infantil.",
+
+  "perfil_paciente": {
+    "sexo": "ambos",
+    "faixa_etaria": ["pediatrico", "adulto", "idoso", "gestante"],
+    "observacoes": "Mais prevalente em crianças em idade escolar. Em gestantes: albendazol e mebendazol contraindicados no 1º trimestre. Estrongiloidíase pode ser grave em imunossuprimidos. Tratar sempre os contatos domiciliares em caso de oxiuríase."
+  },
+
+  "parasitos_cobertos": {
+    "helmintos": [
+      "Ascaris lumbricoides (ascaridíase)",
+      "Enterobius vermicularis (oxiuríase ou enterobíase)",
+      "Ancylostoma duodenale / Necator americanus (ancilostomíase)",
+      "Trichuris trichiura (tricuríase)",
+      "Strongyloides stercoralis (estrongiloidíase)"
+    ],
+    "protozoarios": [
+      "Giardia lamblia (giardíase)",
+      "Entamoeba histolytica (amebíase)"
+    ]
+  },
+
+  "sintomas_chave": {
+    "geral": [
+      "diarreia aguda ou crônica",
+      "dor abdominal tipo cólica",
+      "flatulência e distensão abdominal",
+      "náusea e vômito",
+      "perda de peso e apetite",
+      "prurido anal (especialmente oxiuríase)",
+      "anemia (especialmente ancilostomíase)",
+      "irritabilidade e dificuldade de concentração em crianças"
+    ],
+    "por_parasito": {
+      "ascaridiase": "dor abdominal, desnutrição, complicações (obstrução, perfuração)",
+      "oxiuriase": "prurido anal noturno intenso, agitação noturna em crianças",
+      "ancilostomiase": "anemia ferropriva, fraqueza, palidez, edema",
+      "giardiase": "diarreia disabsortiva, fezes gordurosas, perda de peso, distensão",
+      "amobiase": "diarreia sanguinolenta ou mucosa, febre, dor abdominal intensa",
+      "estrongiloidíase": "diarreia crônica, larva currens, síndrome de Loeffler"
+    }
+  },
+
+  "criterios_diagnosticos": {
+    "clinico": "Sintomas compatíveis em paciente de área endêmica ou com histórico de exposição (contato com solo, água não tratada, alimentos mal lavados)",
+    "laboratorial": {
+      "exame_parasitologico_fezes": "EPF com método de concentração (Hoffman ou Faust). Coletar 3 amostras em dias alternados para maior sensibilidade.",
+      "metodo_graham": "Fita adesiva na região perianal ao acordar: específico para oxiuríase",
+      "hemograma": "Eosinofilia sugere infecção por helminto. Anemia ferropriva na ancilostomíase.",
+      "observacao": "Tratamento empírico pode ser iniciado sem EPF quando há forte suspeita clínica em área endêmica, especialmente em crianças."
+    }
+  },
+
+  "perguntas_obrigatorias": [
+    "Quais sintomas estão presentes: diarreia, dor abdominal, prurido anal?",
+    "Há resultado de exame parasitológico de fezes?",
+    "Qual a idade e o peso do paciente?",
+    "A paciente está gestante? Qual o trimestre?",
+    "O paciente é imunossuprimido? (Suspeita de estrongiloidíase grave)",
+    "Há outros casos na família ou escola? (Oxiuríase: tratar contatos)"
+  ],
+
+  "tratamento": {
+    "helmintos_broad_spectrum": {
+      "descricao": "Para ascaridíase, ancilostomíase, tricuríase e oxiuríase",
+      "primeira_linha": {
+        "medicamento": "Albendazol",
+        "classe_terapeutica": "Anti-helmíntico benzimidazólico",
+        "apresentacao": "Comprimido 400 mg ou suspensão 40 mg/mL",
+        "dose_adulto": "400 mg dose única",
+        "dose_pediatrica": {
+          "acima_2_anos": "400 mg dose única",
+          "12_a_24_meses": "200 mg dose única (metade da dose)",
+          "abaixo_12_meses": "Evitar. Usar apenas se benefício superar risco com avaliação cuidadosa."
+        },
+        "dose_gestante": "CONTRAINDICADO no 1º trimestre. No 2º e 3º trimestres: usar somente se benefício superar risco. Preferir tratar após o parto quando possível.",
+        "posologia": "Via oral, dose única, com ou sem alimentos",
+        "duracao": "Dose única. Repetir após 14 a 21 dias para oxiuríase e infecções intensas.",
+        "sus_rename_2024": true,
+        "sus_remume_sp": true,
+        "disponibilidade_sp": "UBS",
+        "indicacoes": ["ascaridíase", "ancilostomíase", "tricuríase", "oxiuríase", "estrongiloidíase (alternativa)"],
+        "justificativa": "Anti-helmíntico de amplo espectro. Primeira escolha do MS para helmintíases. Dose única facilita adesão.",
+        "fonte": "Plano Nacional MS; TelessaúdeRS-UFRGS 2024; Protocolo Ribeirão Preto 2024; RENAME 2024"
+      },
+      "alternativa": {
+        "medicamento": "Mebendazol",
+        "classe_terapeutica": "Anti-helmíntico benzimidazólico",
+        "apresentacao": "Comprimido 100 mg ou suspensão 20 mg/mL",
+        "dose_adulto": "100 mg 2 vezes ao dia por 3 dias ou 500 mg dose única",
+        "dose_pediatrica": {
+          "acima_1_ano": "100 mg 2 vezes ao dia por 3 dias ou 500 mg dose única",
+          "abaixo_1_ano": "Usar com cautela. Preferir albendazol."
+        },
+        "dose_gestante": "CONTRAINDICADO no 1º trimestre. Usar com cautela no 2º e 3º trimestres.",
+        "posologia": "Via oral, 2 vezes ao dia com ou sem alimentos",
+        "duracao": "3 dias (esquema padrão) ou dose única 500 mg",
+        "sus_rename_2024": true,
+        "sus_remume_sp": true,
+        "disponibilidade_sp": "UBS",
+        "observacao": "Não eficaz contra Strongyloides stercoralis. Alternativa quando albendazol indisponível.",
+        "fonte": "Plano Nacional MS; RENAME 2024"
+      }
+    },
+    "oxiuriase": {
+      "especificidades": [
+        "Tratar TODOS os contatos domiciliares simultaneamente, independentemente de sintomas",
+        "Repetir dose após 14 dias para eliminar ovos que eclodiram após o primeiro tratamento",
+        "Lavar roupas de cama e roupas íntimas com água quente",
+        "Orientar higiene das mãos e manutenção das unhas curtas e limpas"
+      ],
+      "tratamento": "Albendazol 400 mg dose única + repetir em 14 dias. Tratar todos os contatos domiciliares."
+    },
+    "giardiase": {
+      "descricao": "Protozoário. Tratamento diferente dos helmintos.",
+      "primeira_linha": {
+        "medicamento": "Metronidazol",
+        "classe_terapeutica": "Nitroimidazólico",
+        "apresentacao": "Comprimido 250 mg ou 400 mg",
+        "dose_adulto": "250 mg 3 vezes ao dia por 5 a 7 dias",
+        "dose_pediatrica": "15 mg/kg/dia divididos em 3 doses por 5 a 7 dias. Máximo 750 mg/dia.",
+        "dose_gestante": "EVITAR no 1º trimestre. No 2º e 3º trimestres: usar se necessário, benefício superar risco.",
+        "posologia": "Via oral, durante as refeições para reduzir náusea",
+        "duracao": "5 a 7 dias",
+        "sus_rename_2024": true,
+        "sus_remume_sp": true,
+        "disponibilidade_sp": "UBS",
+        "alerta": "Efeito dissulfiram: proibir álcool durante o tratamento e por 48h após.",
+        "fonte": "Plano Nacional MS; TelessaúdeRS-UFRGS 2024; RENAME 2024"
+      },
+      "alternativa_dose_unica": {
+        "medicamento": "Secnidazol",
+        "classe_terapeutica": "Nitroimidazólico de longa ação",
+        "apresentacao": "Comprimido ou granulado 500 mg",
+        "dose_adulto": "2g dose única",
+        "dose_pediatrica": "30 mg/kg dose única. Máximo 2g.",
+        "posologia": "Via oral, dose única com refeição",
+        "duracao": "Dose única",
+        "sus_rename_2024": false,
+        "sus_remume_sp": false,
+        "disponibilidade_sp": "Farmácia privada ou popular",
+        "indicacao": "Alternativa conveniente pela dose única e melhor tolerabilidade gastrointestinal.",
+        "fonte": "Plano Nacional MS"
+      },
+      "albendazol_giardia": {
+        "medicamento": "Albendazol",
+        "dose_adulto": "400 mg 1 vez ao dia por 5 dias",
+        "sus_rename_2024": true,
+        "sus_remume_sp": true,
+        "disponibilidade_sp": "UBS",
+        "indicacao": "Alternativa quando metronidazol contraindicado ou indisponível."
+      }
+    },
+    "amobiase": {
+      "descricao": "Entamoeba histolytica. Distinguir de E. dispar (não patogênica, não tratar).",
+      "forma_nao_invasiva": {
+        "medicamento": "Metronidazol",
+        "dose_adulto": "500 a 750 mg 3 vezes ao dia por 7 a 10 dias",
+        "dose_pediatrica": "35 a 50 mg/kg/dia divididos em 3 doses por 7 a 10 dias",
+        "sus_rename_2024": true,
+        "sus_remume_sp": true,
+        "disponibilidade_sp": "UBS"
+      },
+      "forma_invasiva_grave": {
+        "conduta": "Encaminhar para serviço especializado. Tratamento com metronidazol IV e avaliação de abscesso hepático amebiano.",
+        "observacao": "Abscesso hepático amebiano raramente necessita drenagem cirúrgica."
+      }
+    },
+    "estrongiloidíase": {
+      "descricao": "Strongyloides stercoralis. Risco de hiperinfecção grave em imunossuprimidos.",
+      "primeira_linha": {
+        "medicamento": "Ivermectina",
+        "classe_terapeutica": "Anti-helmíntico macrolídeo",
+        "apresentacao": "Comprimido 6 mg",
+        "dose_adulto": "200 mcg/kg/dia por 2 dias (dose única diária)",
+        "dose_pediatrica": "200 mcg/kg/dia por 2 dias. Acima de 15 kg.",
+        "dose_gestante": "CONTRAINDICADO. Adiar tratamento se possível.",
+        "posologia": "Via oral, em jejum",
+        "duracao": "2 dias",
+        "sus_rename_2024": false,
+        "sus_remume_sp": false,
+        "disponibilidade_sp": "Farmácia popular ou privada. Não disponível rotineiramente na UBS.",
+        "justificativa": "Primeira linha para estrongiloidíase. Superior ao albendazol em eficácia.",
+        "fonte": "TelessaúdeRS-UFRGS 2024; WHO Guidelines"
+      },
+      "alternativa_sus": {
+        "medicamento": "Albendazol",
+        "dose_adulto": "400 mg 2 vezes ao dia por 7 dias",
+        "sus_rename_2024": true,
+        "sus_remume_sp": true,
+        "disponibilidade_sp": "UBS",
+        "observacao": "Eficácia inferior à ivermectina para Strongyloides. Usar quando ivermectina indisponível."
+      },
+      "imunossuprimido": {
+        "alerta": "Estrongiloidíase em imunossuprimido (corticoide, HIV, transplante): risco de síndrome de hiperinfecção com sepse por gram-negativos. Encaminhar urgente para infectologia.",
+        "conduta": "Ivermectina por ciclos repetidos sob supervisão especializada."
+      }
+    }
+  },
+
+  "interacoes_medicamentosas": [
+    {
+      "medicamento_a": "Metronidazol",
+      "medicamento_b": "Álcool",
+      "gravidade": "moderada",
+      "mecanismo": "Efeito dissulfiram: rubor facial, náusea, vômito, taquicardia, hipotensão",
+      "conduta": "Proibir consumo de álcool durante o tratamento e por 48 horas após o término"
+    },
+    {
+      "medicamento_a": "Metronidazol",
+      "medicamento_b": "Varfarina",
+      "gravidade": "moderada",
+      "mecanismo": "Metronidazol inibe metabolismo da varfarina aumentando risco de sangramento",
+      "conduta": "Monitorar INR durante e após o tratamento"
+    },
+    {
+      "medicamento_a": "Metronidazol",
+      "medicamento_b": "Lítio",
+      "gravidade": "moderada",
+      "mecanismo": "Metronidazol pode aumentar níveis séricos de lítio",
+      "conduta": "Monitorar liteemia se uso concomitante"
+    },
+    {
+      "medicamento_a": "Albendazol",
+      "medicamento_b": "Cimetidina",
+      "gravidade": "leve",
+      "mecanismo": "Cimetidina aumenta biodisponibilidade do albendazol",
+      "conduta": "Geralmente não requer ajuste. Observar efeitos adversos."
+    }
+  ],
+
+  "efeitos_adversos": [
+    {
+      "efeito": "Dor abdominal e diarreia",
+      "medicamento": "Albendazol, mebendazol",
+      "frequencia": "incomum",
+      "gravidade": "leve",
+      "conduta": "Geralmente autolimitado. Tomar com alimentos pode reduzir desconforto."
+    },
+    {
+      "efeito": "Náusea, vômito, gosto metálico",
+      "medicamento": "Metronidazol",
+      "frequencia": "comum",
+      "gravidade": "leve",
+      "conduta": "Tomar com refeição. Geralmente autolimitado. Efeito dissulfiram se ingerir álcool."
+    },
+    {
+      "efeito": "Elevação de transaminases",
+      "medicamento": "Albendazol em doses altas ou tratamentos prolongados",
+      "frequencia": "incomum",
+      "gravidade": "leve a moderada",
+      "conduta": "Monitorar função hepática em tratamentos prolongados (equinococose, neurocisticercose)."
+    },
+    {
+      "efeito": "Prurido, urticária, tontura",
+      "medicamento": "Ivermectina",
+      "frequencia": "incomum",
+      "gravidade": "leve",
+      "conduta": "Geralmente autolimitado. Pode ser reação pela morte dos parasitos."
+    }
+  ],
+
+  "alertas_clinicos": [
+    "Albendazol e mebendazol são CONTRAINDICADOS no 1º trimestre de gestação.",
+    "Metronidazol: proibir álcool durante o tratamento e por 48h após pelo efeito dissulfiram.",
+    "Oxiuríase: tratar TODOS os contatos domiciliares simultaneamente. Sem isso há reinfecção garantida.",
+    "Estrongiloidíase em imunossuprimido: risco de síndrome de hiperinfecção fatal. Encaminhar urgente.",
+    "Ascaridíase com obstrução intestinal: não usar albendazol na fase aguda obstrutiva. Encaminhar cirurgia.",
+    "Ancilostomíase com anemia grave: tratar anemia com sulfato ferroso além do anti-helmíntico.",
+    "Giardíase de repetição em crianças: investigar imunodeficiência subjacente.",
+    "Amebíase invasiva: não confundir com E. dispar (não patogênica). Tratar apenas E. histolytica confirmada ou fortemente suspeita."
+  ],
+
+  "criterios_encaminhamento": [
+    "Estrongiloidíase em imunossuprimido: infectologia urgente",
+    "Amebíase com suspeita de abscesso hepático",
+    "Ascaridíase com obstrução ou perfuração intestinal: cirurgia",
+    "Neurocisticercose (T. solium no SNC): neurologia",
+    "Esquistossomose: infectologia ou referência especializada",
+    "Giardíase recorrente com suspeita de imunodeficiência"
+  ],
+
+  "criterios_internacao": [
+    "Síndrome de hiperinfecção por Strongyloides: sepse, pneumonia grave",
+    "Obstrução intestinal por áscaris",
+    "Abscesso hepático amebiano com indicação de drenagem",
+    "Desidratação grave por diarreia parasitária"
+  ],
+
+  "monitoramento": {
+    "controle_cura": "EPF de controle 3 a 4 semanas após término do tratamento se sintomas persistirem.",
+    "reinfeccao": "Orientar medidas de higiene e saneamento para evitar reinfecção. EPF repetido se sintomas retornarem.",
+    "retorno": "Retorno em 30 dias se sintomas persistentes ou EPF de controle positivo."
+  },
+
+  "prevencao": [
+    "Lavar as mãos com água e sabão antes de comer e após usar o banheiro",
+    "Lavar frutas, verduras e legumes em água corrente e higienizar com solução de hipoclorito",
+    "Consumir água filtrada ou fervida em áreas sem saneamento adequado",
+    "Usar calçados em solos potencialmente contaminados",
+    "Não defecar a céu aberto",
+    "Manter unhas curtas e limpas, especialmente em crianças",
+    "Troca regular de roupas de cama e higienização com água quente na oxiuríase"
+  ],
+
+  "orientacoes_paciente": [
+    "Tomar o medicamento conforme prescrito, geralmente dose única.",
+    "Não consumir bebida alcoólica durante o tratamento com metronidazol e por 2 dias após.",
+    "Na oxiuríase: todos da família devem tomar o remédio ao mesmo tempo.",
+    "Lavar as mãos com frequência, especialmente antes de comer e após o banheiro.",
+    "Lavar bem frutas e verduras antes de consumir.",
+    "Usar calçados ao caminhar em solos de terra.",
+    "Retornar se os sintomas não melhorarem em 7 a 14 dias."
+  ],
+
+  "fonte_principal": "Plano Nacional de Vigilância e Controle das Enteroparasitoses - Ministério da Saúde; TelessaúdeRS-UFRGS 2024",
+  "fontes_secundarias": [
+    "RENAME 2024 - Portaria GM/MS nº 6.324/2024",
+    "REMUME SP - Janeiro 2025",
+    "Protocolo Parasitoses Intestinais - Ribeirão Preto SP 2024",
+    "BVS Atenção Primária em Saúde 2023",
+    "WHO Soil-transmitted helminthiases 2024",
+    "Duncan et al. Medicina Ambulatorial 5ª ed. 2022"
+  ],
+  "ultima_atualizacao": "2026-03"
+}
