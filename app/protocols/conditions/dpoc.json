@@ -1,0 +1,367 @@
+{
+  "id": "dpoc",
+  "nome": "Doença Pulmonar Obstrutiva Crônica",
+  "cid10": ["J44", "J44.0", "J44.1", "J44.8", "J44.9", "J43", "J43.0", "J43.1", "J43.2", "J43.8", "J43.9"],
+  "especialidade": ["clinica_medica", "medicina_familia", "pneumologia", "geriatria"],
+  "sinonimos": ["DPOC", "bronquite crônica", "enfisema pulmonar", "doença obstrutiva crônica"],
+  "descricao": "Condição pulmonar caracterizada por obstrução crônica, progressiva e não totalmente reversível ao fluxo aéreo. Causada principalmente por tabagismo e exposição a poluentes. Engloba bronquite crônica e enfisema pulmonar. Quinta causa de morte no Brasil. Principal causa de internação no SUS entre pacientes acima de 40 anos.",
+
+  "perfil_paciente": {
+    "sexo": "ambos",
+    "faixa_etaria": ["adulto", "idoso"],
+    "fatores_risco": [
+      "Tabagismo: principal fator. Risco proporcional à carga tabágica (maços-ano)",
+      "Exposição ocupacional: poeiras, fumaça, gases tóxicos",
+      "Biomassa: lenha, carvão em ambientes fechados",
+      "Infecções respiratórias de repetição na infância",
+      "Deficiência de alfa-1-antitripsina (causa genética rara)"
+    ],
+    "observacoes": "Diagnóstico após os 40 anos na maioria. Frequentemente subdiagnosticado. Apresentação insidiosa: pacientes consultam nas fases moderada a avançada."
+  },
+
+  "sintomas_chave": [
+    "dispneia progressiva ao esforço, depois em repouso",
+    "tosse crônica produtiva, geralmente matinal",
+    "expectoração crônica",
+    "chiado no peito (sibilância)",
+    "intolerância progressiva ao exercício",
+    "exacerbações: piora aguda dos sintomas além da variação diária habitual"
+  ],
+
+  "criterios_diagnosticos": {
+    "espirometria": {
+      "criterio_principal": "VEF1/CVF abaixo de 0,70 após broncodilatador",
+      "obrigatorio": true,
+      "observacao": "Espirometria com teste pré e pós-broncodilatador é indispensável para o diagnóstico. Indicada para fumantes ou ex-fumantes acima de 40 anos com sintomas respiratórios.",
+      "quando_suspeitar_sem_espirometria": "Tosse crônica produtiva + tabagismo significativo + dispneia progressiva: iniciar investigação e tratar empiricamente se espirometria indisponível na APS."
+    },
+    "classificacao_gravidade_obstrucao": {
+      "base": "VEF1 pós-broncodilatador com VEF1/CVF abaixo de 0,70",
+      "GOLD1_leve": "VEF1 igual ou acima de 80% do previsto",
+      "GOLD2_moderada": "VEF1 entre 50% e 79% do previsto",
+      "GOLD3_grave": "VEF1 entre 30% e 49% do previsto",
+      "GOLD4_muito_grave": "VEF1 abaixo de 30% do previsto"
+    },
+    "classificacao_grupos_GOLD": {
+      "base": "Combinação de sintomas (mMRC ou CAT) e histórico de exacerbações",
+      "grupo_A": "Baixo risco, poucos sintomas: 0 a 1 exacerbação leve/ano e mMRC 0-1 ou CAT abaixo de 10",
+      "grupo_B": "Baixo risco, muitos sintomas: 0 a 1 exacerbação leve/ano e mMRC 2 ou mais ou CAT 10 ou mais",
+      "grupo_E": "Alto risco: 2 ou mais exacerbações moderadas/ano ou 1 ou mais graves (com hospitalização)"
+    },
+    "escalas": {
+      "mMRC": "Escala de dispneia 0 a 4. mMRC 0: dispneia apenas em exercício intenso. mMRC 4: dispneia em repouso.",
+      "CAT": "COPD Assessment Test: 8 itens, escore 0 a 40. Abaixo de 10: impacto baixo. 10 ou mais: impacto alto."
+    },
+    "diagnostico_diferencial": [
+      "Asma: reversibilidade maior ao broncodilatador, início precoce, atopia",
+      "Insuficiência cardíaca: edema, ortopneia, BNP elevado",
+      "Bronquiectasias: expectoração purulenta volumosa, TC confirma",
+      "Tuberculose: tosse crônica com hemoptise, perda de peso, exposição"
+    ]
+  },
+
+  "perguntas_obrigatorias": [
+    "Há histórico de tabagismo? Quantos maços-dia por quantos anos?",
+    "Há dispneia? Em que nível de esforço? (escala mMRC)",
+    "Há tosse crônica produtiva? Há quanto tempo?",
+    "Quantas exacerbações (pioras agudas) nos últimos 12 meses? Precisou de internação?",
+    "Há resultado de espirometria?",
+    "Está em uso de broncodilatador? Qual e como usa?",
+    "Há exposição a biomassa ou poluentes ocupacionais?"
+  ],
+
+  "tratamento": {
+    "nao_farmacologico": {
+      "cessacao_tabagismo": {
+        "descricao": "Intervenção mais importante em DPOC. Única medida que modifica a progressão da doença.",
+        "conduta": "Abordar em toda consulta. Oferecer terapia de reposição de nicotina e vareniclina (via CEAF). Encaminhar para programa de cessação do tabagismo.",
+        "sus": "Programa Nacional de Controle do Tabagismo: adesivos, gomas de nicotina e vareniclina disponíveis via SUS."
+      },
+      "reabilitacao_pulmonar": "Reduz dispneia, melhora capacidade funcional e qualidade de vida. Indicada a partir do GOLD 2. Encaminhar para serviço especializado.",
+      "vacinacao": [
+        "Influenza anual: obrigatória em todos os pacientes com DPOC",
+        "Pneumococo: PCV13 + PPSV23 conforme calendário do adulto",
+        "COVID-19: atualizar esquema",
+        "dTpa: reforço a cada 10 anos"
+      ],
+      "atividade_fisica": "Estimular caminhada, subir escadas e exercícios de membros superiores no domicílio. Fundamental para manter capacidade funcional.",
+      "oxigenoterapia_domiciliar": "Indicada se SaO2 em repouso igual ou abaixo de 88% ou PaO2 abaixo de 55 mmHg. Mínimo 15 horas/dia. Via CEAF."
+    },
+    "farmacologico": {
+      "principio_geral": "Tratamento escalonado conforme grupo GOLD. Broncodilatadores inalatórios são a base do tratamento. Corticoides inalatórios apenas em indicações específicas.",
+      "grupo_A_tratamento": {
+        "descricao": "Sintomas leves, baixo risco. Tratamento conforme necessidade.",
+        "primeira_linha": {
+          "medicamento": "Salbutamol",
+          "classe": "SABA (beta-2 agonista de curta duração)",
+          "apresentacao": "Aerossol 100 mcg/dose (200 doses)",
+          "dose": "100 a 200 mcg (1 a 2 jatos) a cada 4 a 6 horas conforme necessidade",
+          "sus_rename_2024": true,
+          "sus_remume_sp": true,
+          "disponibilidade_sp": "UBS",
+          "indicacao": "Alívio de sintomas conforme necessidade. Grupo A sem sintomas persistentes.",
+          "fonte": "PCDT DPOC MS 2025; RENAME 2024"
+        },
+        "alternativa_sama": {
+          "medicamento": "Brometo de ipratrópio",
+          "classe": "SAMA (anticolinérgico de curta duração)",
+          "apresentacao": "Aerossol 20 mcg/dose ou solução para nebulização 0,25 mg/mL",
+          "dose_aerossol": "40 mcg (2 jatos) 3 a 4 vezes ao dia",
+          "dose_nebulizacao": "0,25 a 0,5 mg em 2,5 mL de soro fisiológico 3 a 4 vezes ao dia",
+          "sus_rename_2024": true,
+          "sus_remume_sp": true,
+          "disponibilidade_sp": "UBS",
+          "alerta": "Evitar contato com os olhos na nebulização com máscara: risco de midríase e aumento da pressão ocular.",
+          "fonte": "PCDT DPOC MS 2025; RENAME 2024"
+        }
+      },
+      "grupo_B_tratamento": {
+        "descricao": "Sintomas persistentes, baixo risco. Broncodilatador de longa duração.",
+        "primeira_linha": {
+          "medicamento": "Salmeterol",
+          "classe": "LABA (beta-2 agonista de longa duração)",
+          "apresentacao": "Aerossol ou pó inalante 25 a 50 mcg/dose",
+          "dose": "50 mcg 2 vezes ao dia",
+          "sus_rename_2024": true,
+          "sus_remume_sp": false,
+          "disponibilidade_sp": "CEAF (Componente Especializado - farmácia de referência)",
+          "indicacao": "DPOC grupo B: sintomas persistentes com baixo risco de exacerbação.",
+          "fonte": "PCDT DPOC MS 2025"
+        },
+        "alternativa_lama": {
+          "medicamento": "Brometo de tiotrópio",
+          "classe": "LAMA (anticolinérgico de longa duração)",
+          "apresentacao": "Pó inalante 18 mcg/cápsula ou solução para inalação 2,5 mcg/dose",
+          "dose": "18 mcg 1 vez ao dia (cápsula) ou 5 mcg (2 jatos) 1 vez ao dia (solução)",
+          "sus_rename_2024": true,
+          "sus_remume_sp": false,
+          "disponibilidade_sp": "CEAF",
+          "indicacao": "Alternativa ao LABA ou combinação LABA + LAMA no grupo B com sintomas persistentes.",
+          "fonte": "PCDT DPOC MS 2025"
+        },
+        "dupla_broncodilatacao": {
+          "indicacao": "Grupo B com sintomas persistentes apesar de LABA ou LAMA isolado",
+          "opcoes_ceaf": [
+            "Umeclidínio 62,5 mcg + Vilanterol 25 mcg (LAMA + LABA) 1 vez ao dia",
+            "Tiotrópio 2,5 mcg + Olodaterol 2,5 mcg (LAMA + LABA) 2 jatos 1 vez ao dia"
+          ],
+          "sus_rename_2024": true,
+          "disponibilidade_sp": "CEAF"
+        }
+      },
+      "grupo_E_tratamento": {
+        "descricao": "Alto risco de exacerbação. Broncodilatação dupla ou terapia tripla.",
+        "primeira_linha": {
+          "descricao": "Dupla broncodilatação LABA + LAMA",
+          "opcoes": "Umeclidínio + Vilanterol ou Tiotrópio + Olodaterol conforme acima",
+          "disponibilidade_sp": "CEAF"
+        },
+        "terapia_tripla": {
+          "indicacao": "Grupo E com eosinofilia (eosinófilos maior ou igual a 300 células/microL) ou exacerbações frequentes não controladas com dupla broncodilatação",
+          "opcoes_ceaf": [
+            "Fluticasona/Umeclidínio/Vilanterol (CI + LAMA + LABA): 1 inalação ao dia",
+            "Beclometasona/Formoterol/Glicopirrônio (CI + LABA + LAMA): 2 inalações 2 vezes ao dia"
+          ],
+          "sus_rename_2024": true,
+          "disponibilidade_sp": "CEAF",
+          "alerta": "Corticoide inalatório (CI) NÃO é indicado como monoterapia na DPOC. Usar apenas nas combinações indicadas. Associado a maior risco de pneumonia.",
+          "fonte": "PCDT DPOC MS 2025; CONITEC Portaria SECTICS/MS nº 44/2024"
+        },
+        "corticoide_inalatorio_isolado": {
+          "posicao": "CONTRAINDICADO como monoterapia na DPOC. Sempre em combinação com LABA."
+        }
+      },
+      "tratamento_ubs_basico": {
+        "descricao": "Medicamentos disponíveis na UBS para manejo inicial na APS",
+        "medicamentos": [
+          "Salbutamol 100 mcg/dose aerossol: SABA para alívio e exacerbação leve",
+          "Brometo de ipratrópio aerossol ou nebulização: SAMA para alívio e exacerbação",
+          "Beclometasona 250 mcg/dose: CI disponível na UBS para casos com indicação",
+          "Prednisona 20 mg: corticoide oral para exacerbações moderadas a graves",
+          "Prednisolona solução oral: alternativa oral ao prednisona"
+        ],
+        "observacao": "Para medicamentos LABA, LAMA e combinações: referenciar ao CEAF via pneumologia ou medicina interna."
+      }
+    },
+    "exacerbacao": {
+      "definicao": "Piora aguda dos sintomas respiratórios além da variação habitual, exigindo mudança no tratamento.",
+      "classificacao": {
+        "leve": "Tratada com broncodilatadores de curta duração (SABA ou SAMA) em domicílio",
+        "moderada": "Requer antibiótico e/ou corticoide sistêmico. Manejo ambulatorial ou UPA.",
+        "grave": "Necessita hospitalização. Critérios: dispneia grave em repouso, alteração do nível de consciência, hipoxemia (SaO2 abaixo de 90%), falência respiratória."
+      },
+      "tratamento_exacerbacao_moderada": {
+        "broncodilatador": "Salbutamol 2,5 mg em nebulização a cada 20 minutos nas primeiras 2 horas ou ipratrópio 0,5 mg em nebulização",
+        "corticoide_oral": {
+          "medicamento": "Prednisona",
+          "dose": "40 mg/dia por 5 dias",
+          "sus_rename_2024": true,
+          "sus_remume_sp": true,
+          "disponibilidade_sp": "UBS"
+        },
+        "antibiotico": {
+          "indicacao": "Exacerbação com 2 ou 3 critérios de Anthonisen: aumento da dispneia + aumento do volume de expectoração + expectoração purulenta",
+          "primeira_linha": {
+            "medicamento": "Amoxicilina + Clavulanato",
+            "dose": "875/125 mg a cada 12 horas por 5 a 7 dias",
+            "sus_rename_2024": true,
+            "sus_remume_sp": true,
+            "disponibilidade_sp": "UBS"
+          },
+          "alternativa": {
+            "medicamento": "Azitromicina",
+            "dose": "500 mg ao dia por 3 a 5 dias",
+            "sus_rename_2024": true,
+            "sus_remume_sp": true,
+            "disponibilidade_sp": "UBS"
+          }
+        }
+      },
+      "criterios_internacao_exacerbacao": [
+        "Dispneia grave em repouso não responsiva ao tratamento inicial",
+        "SaO2 abaixo de 90% ou PaO2 abaixo de 60 mmHg",
+        "Alteração do nível de consciência ou confusão",
+        "Falência respiratória: uso de musculatura acessória, respiração paradoxal",
+        "Cianose central",
+        "Edema periférico novo",
+        "Paciente sem suporte domiciliar adequado",
+        "Comorbidades graves descompensadas: ICC, arritmia, pneumonia"
+      ]
+    }
+  },
+
+  "interacoes_medicamentosas": [
+    {
+      "medicamento_a": "Salbutamol ou salmeterol",
+      "medicamento_b": "Beta-bloqueadores não seletivos (propranolol, atenolol)",
+      "gravidade": "grave",
+      "mecanismo": "Beta-bloqueadores antagonizam o efeito broncodilatador dos beta-2 agonistas",
+      "conduta": "Evitar beta-bloqueadores não seletivos na DPOC. Se necessário para cardiopatia, usar beta-bloqueadores cardioseletivos (bisoprolol, metoprolol) com cautela."
+    },
+    {
+      "medicamento_a": "Corticoide sistêmico prolongado",
+      "medicamento_b": "AINEs, anticoagulantes",
+      "gravidade": "moderada",
+      "mecanismo": "Risco aumentado de sangramento gastrointestinal",
+      "conduta": "Associar protetor gástrico (omeprazol) se uso prolongado de corticoide oral."
+    },
+    {
+      "medicamento_a": "Salbutamol em doses altas",
+      "medicamento_b": "Diuréticos hipocalemiantes (furosemida, tiazídicos)",
+      "gravidade": "moderada",
+      "mecanismo": "Risco aditivo de hipocalemia",
+      "conduta": "Monitorar potássio em pacientes em uso de altas doses de SABA e diuréticos."
+    }
+  ],
+
+  "efeitos_adversos": [
+    {
+      "efeito": "Tremor, taquicardia, palpitações",
+      "medicamento": "Salbutamol, salmeterol (beta-2 agonistas)",
+      "frequencia": "comum",
+      "gravidade": "leve a moderada",
+      "conduta": "Geralmente dose-dependente e transitório. Reduzir dose se sintomático. Cautela em cardiopatas."
+    },
+    {
+      "efeito": "Boca seca, retenção urinária, visão turva",
+      "medicamento": "Ipratrópio, tiotrópio (anticolinérgicos)",
+      "frequencia": "comum",
+      "gravidade": "leve",
+      "conduta": "Orientar hidratação. Cautela em hiperplasia prostática e glaucoma de ângulo fechado."
+    },
+    {
+      "efeito": "Candidíase oral, disfonia",
+      "medicamento": "Corticoides inalatórios (beclometasona, budesonida)",
+      "frequencia": "comum",
+      "gravidade": "leve",
+      "conduta": "Orientar bochechos com água após cada uso do inalador. Usar espaçador."
+    },
+    {
+      "efeito": "Pneumonia",
+      "medicamento": "Corticoide inalatório",
+      "frequencia": "incomum mas relevante",
+      "gravidade": "grave",
+      "conduta": "Monitorar sinais de pneumonia em pacientes em uso de CI. Evitar CI em monoterapia ou sem indicação."
+    },
+    {
+      "efeito": "Hiperglicemia, HAS, supressão adrenal, osteoporose",
+      "medicamento": "Prednisona/prednisolona oral prolongado",
+      "frequencia": "comum com uso prolongado",
+      "gravidade": "moderada a grave",
+      "conduta": "Usar corticoide oral por no máximo 5 a 7 dias nas exacerbações. Evitar uso crônico."
+    }
+  ],
+
+  "alertas_clinicos": [
+    "Espirometria com VEF1/CVF abaixo de 0,70 pós-broncodilatador é obrigatória para o diagnóstico. Não diagnosticar DPOC apenas clinicamente sem confirmação funcional quando possível.",
+    "Beta-bloqueadores NÃO seletivos (propranolol): contraindicados na DPOC. Se cardiopata necessitar, usar bisoprolol ou metoprolol.",
+    "Corticoide inalatório ISOLADO: não usar como monoterapia na DPOC. Apenas em combinações LABA + CI ou terapia tripla.",
+    "Exacerbação com SaO2 abaixo de 90%: encaminhar para emergência imediatamente.",
+    "Cessar tabagismo é a única medida que modifica a progressão da doença. Abordar em toda consulta.",
+    "Ipratrópio em nebulização com máscara: evitar contato com os olhos. Risco de glaucoma agudo.",
+    "Medicamentos de longa duração (LABA, LAMA, combinações): via CEAF. Encaminhar para especialidade se necessário.",
+    "Oxigenoterapia domiciliar: SaO2 igual ou abaixo de 88%: indicar e encaminhar para CEAF.",
+    "Vacinação influenza anual: obrigatória em todos os pacientes com DPOC."
+  ],
+
+  "criterios_encaminhamento": [
+    "Diagnóstico incerto: espirometria indisponível na APS ou resultado duvidoso",
+    "DPOC grave ou muito grave (GOLD 3 ou 4): pneumologia para otimização terapêutica e CEAF",
+    "Exacerbações frequentes não controladas: 2 ou mais por ano",
+    "Necessidade de LABA, LAMA ou combinações: solicitação via CEAF exige avaliação especializada",
+    "Suspeita de deficiência de alfa-1-antitripsina: paciente jovem, não fumante, com DPOC",
+    "Avaliação para oxigenoterapia domiciliar",
+    "Candidato a reabilitação pulmonar"
+  ],
+
+  "criterios_internacao": [
+    "Exacerbação grave: dispneia intensa em repouso não responsiva ao tratamento",
+    "SaO2 abaixo de 90% ou PaO2 abaixo de 60 mmHg",
+    "Alteração do nível de consciência",
+    "Falência respiratória com uso de musculatura acessória",
+    "Cianose central nova ou piora",
+    "Comorbidades graves descompensadas associadas"
+  ],
+
+  "monitoramento": {
+    "consulta_estavel": "A cada 3 a 6 meses: avaliar sintomas (mMRC, CAT), uso correto do inalador, exacerbações, vacinação e cessação do tabagismo.",
+    "espirometria": "Repetir anualmente ou a cada 2 anos para monitorar progressão.",
+    "saturacao": "Medir SaO2 em toda consulta. Encaminhar para avaliação de O2 domiciliar se igual ou abaixo de 88%.",
+    "tecnica_inalatoria": "Revisar técnica de uso do inalador em toda consulta. Erro de técnica é causa frequente de falha terapêutica.",
+    "retorno_exacerbacao": "Retorno em 2 a 4 semanas após exacerbação para reavaliação e ajuste do plano terapêutico."
+  },
+
+  "tecnica_inalatoria": {
+    "importancia": "Erro na técnica inalatória é a principal causa de falha terapêutica. Revisar e demonstrar em toda consulta.",
+    "aerossol_pressurizado": [
+      "Agitar o inalador antes de usar",
+      "Expirar completamente",
+      "Posicionar o bocal entre os dentes sem mordê-lo",
+      "Iniciar inalação lenta e profunda enquanto pressiona o inalador",
+      "Prender a respiração por 10 segundos",
+      "Aguardar 1 minuto antes da próxima dose se necessário"
+    ],
+    "espaçador": "Indicado especialmente em idosos, crianças e pacientes com dificuldade de coordenação. Melhora a deposição pulmonar."
+  },
+
+  "orientacoes_paciente": [
+    "Pare de fumar: é a medida mais importante para travar a progressão da doença.",
+    "Use o inalador todos os dias conforme prescrito, mesmo sem sintomas.",
+    "Aprenda a técnica correta do inalador: peça demonstração na consulta.",
+    "Vacine-se contra gripe todo ano e contra pneumonia conforme indicado.",
+    "Pratique atividade física leve regularmente: caminhadas curtas ajudam a manter o pulmão funcionando.",
+    "Evite ambientes com fumaça, poeira e produtos de limpeza com odor forte.",
+    "Procure atendimento imediatamente se a falta de ar piorar muito, a expectoração ficar amarelada ou esverdeada, ou se sentir febre.",
+    "Lembre-se: DPOC não tem cura, mas tem tratamento. Com adesão, é possível ter boa qualidade de vida."
+  ],
+
+  "fonte_principal": "PCDT DPOC - Portaria Conjunta SAES/SCTIE/MS nº 29, de 28/11/2025",
+  "fontes_secundarias": [
+    "SBPT - Manual DPOC: Diagnóstico e Tratamento, Outubro 2024",
+    "CONITEC - Portaria SECTICS/MS nº 44/2024: incorporação terapia tripla",
+    "GOLD 2025 - Global Initiative for Chronic Obstructive Lung Disease",
+    "RENAME 2024 - Portaria GM/MS nº 6.324/2024",
+    "REMUME SP - Janeiro 2025"
+  ],
+  "ultima_atualizacao": "2026-03"
+}
